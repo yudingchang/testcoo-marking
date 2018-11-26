@@ -1,6 +1,6 @@
 <template>
   <div class="upload-container">
-    <div v-for="file in files" :key="file.id" class="image-preview shadow-sm">
+    <div v-for="file in files" :key="file.id"  :class="{'successBorder':isSuccess,'image-preview':true,'shadow-sm':true}">
       <div class="image-preview-wrapper">
         <div>
           <svg-icon :icon-class="getFileExtensions(file.url)" class-name="file-icon"/>
@@ -13,7 +13,7 @@
         </div>
       </div>
     </div>
-    <div v-for="(uploadingFile, index) in uploadingFiles" :key="index" class="image-preview shadow-sm">
+    <div v-for="(uploadingFile, index) in uploadingFiles" :key="index">
       <div class="image-preview-wrapper">
         <svg-icon :icon-class="getFileExtensions(uploadingFile.name)" class-name="file-icon"/>
         <div class="image-uploading-action">
@@ -34,7 +34,7 @@
       multiple
       class="image-preview shadow-sm"
       list-type="picture-card">
-      <i class="el-icon-plus"/>
+      <!-- <i class="el-icon-plus"/> -->
     </el-upload>
   </div>
 </template>
@@ -59,7 +59,8 @@ export default {
   },
   data() {
     return {
-      uploadingFiles: []
+      uploadingFiles: [],
+      isSuccess:true
     }
   },
   computed: {
@@ -92,7 +93,6 @@ export default {
       this.uploadingFiles.push(file)
     },
     uploadOnProgress(e, file) {
-      console.log(12123)
       const index = this.uploadingFiles.findIndex(uploadingFile => uploadingFile.uid === file.uid)
       this.uploadingFiles[index].percent = Math.round(e.percent)
       this.$set(this.uploadingFiles, index, file)
@@ -103,12 +103,24 @@ export default {
       console.log(response.code)
       if (response.code === 0) {
         this.files.push(response.data)
+        this.isSuccess = true
         console.log(response.data)
       }
     }
   }
 }
 </script>
+<style>
+  .el-upload-dragger{
+    border: none;
+  }
+  .el-upload--picture-card{
+    border: none;
+  }
+  .successBorder{
+    border: 1px solid #CFCFCF !important;
+  }
+</style>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import "src/styles/mixin.scss";
@@ -117,6 +129,7 @@ export default {
   position: relative;
   margin-top: .8em;
   @include clearfix;
+  
   .file-icon {
     font-size: 105px;
   }
@@ -126,10 +139,10 @@ export default {
   }
   .image-preview {
     position: relative;
-    border: 1px solid #e1e1e1;
+    border: 2px dashed #e1e1e1;
     border-radius: 7px;
     float: left;
-    width: 110px;
+    width: 120px;
     height: 145px;
     margin-left: 10px;
     margin-bottom: 15px;
