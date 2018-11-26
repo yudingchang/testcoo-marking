@@ -13,7 +13,6 @@
         </div>
       </div>
     </div>
-    {{ uploadingFiles }}
     <div v-for="(uploadingFile, index) in uploadingFiles" :key="index" class="image-preview shadow-sm">
       <div class="image-preview-wrapper">
         <svg-icon :icon-class="getFileExtensions(uploadingFile.name)" class-name="file-icon"/>
@@ -35,7 +34,7 @@
       multiple
       class="image-preview shadow-sm"
       list-type="picture-card">
-      <!-- <i class="el-icon-plus"/> -->
+      <i class="el-icon-plus"/>
     </el-upload>
   </div>
 </template>
@@ -71,6 +70,9 @@ export default {
       return { Authorization: 'Bearer ' + getToken() }
     }
   },
+  created() {
+
+  },
   methods: {
     getFileExtensions(url) {
       return prettyFileIcons.getIcon(url)
@@ -87,10 +89,10 @@ export default {
     // },
     handleRemove(file, fileList) {
     //   console.log(file, fileList)
-        this.uploadingFiles.push(file)
+      this.uploadingFiles.push(file)
     },
     uploadOnProgress(e, file) {
-        console.log(12123)
+      console.log(12123)
       const index = this.uploadingFiles.findIndex(uploadingFile => uploadingFile.uid === file.uid)
       this.uploadingFiles[index].percent = Math.round(e.percent)
       this.$set(this.uploadingFiles, index, file)
@@ -100,7 +102,8 @@ export default {
       this.uploadingFiles.splice(index, 1)
       console.log(response.code)
       if (response.code === 0) {
-        this.files.push(response.data.data)
+        this.files.push(response.data)
+        console.log(response.data)
       }
     }
   }
