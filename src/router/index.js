@@ -85,9 +85,15 @@ export const constantRouterMap = [
         component: () => import('@/views/controlboard/index'),
         name: 'Dashboard',
         meta: { title: '控制台', icon: 'dashboard', noCache: true }
+      },
+      {
+        path: 'checkoutSuccess',
+        component: () => import('@/views/controlboard/checkoutSuccess'),
+        hidden: true
       }
     ]
-  }
+  },
+  
   // {
   //   path: '/documentation',
   //   component: Layout,
@@ -341,6 +347,13 @@ export const asyncRouterMap = [
         path: 'examineGood',
         component: () => import('@/views/orderManagement/examineGood'),
         name: 'examineGood',
+        meta: { title: '验货订单' }
+      },
+      {
+        path: 'pay',
+        hidden: true,
+        name: 'pay',
+        component: () => import('@/views/orderManagement/pay'),
         meta: { title: '验货订单' }
       }
     ]
