@@ -13,7 +13,7 @@
         </div>
       </div>
     </div>
-    <div v-for="(uploadingFile, index) in uploadingFiles" :key="index">
+    <div v-for="(uploadingFile, index) in uploadingFiles" :key="index" class="image-preview shadow-sm">
       <div class="image-preview-wrapper">
         <svg-icon :icon-class="getFileExtensions(uploadingFile.name)" class-name="file-icon"/>
         <div class="image-uploading-action">
@@ -34,7 +34,8 @@
       multiple
       class="image-preview shadow-sm"
       list-type="picture-card">
-      <!-- <i class="el-icon-plus"/> -->
+
+      <i class="el-icon-plus"/>
     </el-upload>
   </div>
 </template>
@@ -120,6 +121,21 @@ export default {
   .successBorder{
     border: 1px solid #CFCFCF !important;
   }
+   .el-progress-circle{
+     position: absolute;
+     left: 50%;
+     top: 50%;
+     margin-top: -44px;
+     margin-left: -44px;
+  }
+  .el-progress--circle .el-progress__text{
+    position: absolute;
+     left: 50%;
+     top: 50%;
+     margin-left: -10px;
+     /* margin-top: -44px;
+     /* margin-left: -44px; */ 
+  }
 </style>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
@@ -129,7 +145,6 @@ export default {
   position: relative;
   margin-top: .8em;
   @include clearfix;
-  
   .file-icon {
     font-size: 105px;
   }
@@ -137,6 +152,7 @@ export default {
       width: 60%;
       float: left;
   }
+ 
   .image-preview {
     position: relative;
     border: 2px dashed #e1e1e1;
@@ -158,12 +174,15 @@ export default {
       }
     }
     .image-name {
-      padding-top: 10px;
+      padding-top: 5px;
       line-height: 1.3em;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
+      border-top:1px solid #CFCFCF;
+      margin-top: 10px;
     }
+    
     .image-uploading-action {
       position: absolute;
       width: 100%;

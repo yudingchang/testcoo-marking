@@ -3,13 +3,14 @@
     <div class="product-information">
       <!-- {{editableTabs2}} -->
       <p>产品信息</p>
-      <el-button
+      
+      <div>
+        <el-button
         size="small"
         class="addNewProduct"
         @click="addTab(editableTabsValue2)">
         增加新产品
       </el-button>
-      <div>
         <el-tabs v-model="editableTabsValue2" type="card" closable @tab-remove="removeTab">
           <el-tab-pane
             v-for="(item, index) in editableTabs2"
@@ -49,15 +50,15 @@
     </div>
     <div class="supplier-information">
       <p>供应商信息</p>
-      <el-form ref="supplyform" :inline="true" v-model="supplyform" :rules="supplyrules" label-width="120px" class="demo-ruleForm">
+      <el-form ref="supplyform" :inline="true" :model="supplyform" :rules="supplyrules" label-width="120px" class="demo-ruleForm">
         <el-form-item label="供应商名称" prop="name">
           <el-select
-            v-model="value10"
+            v-model="supplyform.name"
             filterable
             allow-create
             default-first-option
             placeholder="请选择供应商名称"
-            style="width:565px;">
+            style="width:565px;" @change="getOtherMessage()">
             <el-option
               v-for="item in supplyNameList"
               :key="item.value"
@@ -105,7 +106,7 @@
     </div>
     <div class="inspection-information">
       <p>验货基本信息</p>
-      <el-form ref="examineform" v-model="examineform" :rules="examinerules" label-width="120px" class="demo-ruleForm">
+      <el-form ref="examineform" :model="examineform" :rules="examinerules" label-width="120px" class="demo-ruleForm">
         <el-form-item label="报告语言" prop="report_locale">
           <!-- <el-input style="width:565px;" placeholder="请输入供应商名称"></el-input> -->
           <el-radio-group v-model="examineform.report_locale">
@@ -169,7 +170,7 @@
 
         </el-form-item>
         <el-form-item label="报告接收邮箱" prop="accept_report_emails">
-          <el-select v-model="examineform.accept_report_emails" placeholder="请选择">
+          <el-select v-model="examineform.accept_report_emails" multiple  placeholder="请选择">
             <el-option
               v-for="item in emailList"
               :key="item.id"
@@ -182,6 +183,7 @@
           <el-date-picker
             v-model="examineform.estimated_dates"
             type="dates"
+            value-format="yyyy-MM-dd"
             placeholder="选择一个或多个日期"/>
         </el-form-item>
       </el-form>
@@ -198,7 +200,7 @@
         <el-form-item prop="name">
           <p class="t1">只支持上传PDF、PPT、Word、Excel、Jpg、jpeg格式,单个附件小于30M</p>
           <p class="tip"><el-checkbox v-model="checked"/><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p>
-          <el-button class="btn">
+          <el-button class="btn" @click="order()">
             下单
           </el-button>
         </el-form-item>
@@ -217,7 +219,7 @@
           <el-input v-model="emailform.email" style="width:325px;" placeholder="请输入电子邮箱"/>
         </el-form-item>
         <br>
-        <el-form-item :label-width="labelwidth" label="姓:" style="margin-left:40px;" prop="last_name">
+        <el-form-item :label-width="labelwidth" label="姓:" prop="last_name">
           <el-input v-model="emailform.last_name" style="width:120px;" placeholder="请输入姓"/>
         </el-form-item>
         <el-form-item label="名:" prop="first_name" label-width="72px">
@@ -235,6 +237,7 @@
 
 <script>
 import { addEmail, getdata } from '@/api/accountManagement'
+import {order , getOtherMessage} from '@/api/order'
 import upLoad from '@/components/Upload'
 export default {
   name: '',
@@ -320,10 +323,16 @@ export default {
           required: true, message: '请输入姓', trigger: 'blur'
         }]
       },
-      supplyform: '',
+      supplyform: {
+        name:[12],
+        first_name:'yu',
+        last_name:'dingchang',
+        phone_number:'13107705533',
+        email:'983183623@qq.com'
+      },
       examineform: {
         report_locale: 'zh_CN',
-        reports_number: 1,
+        reports_number: '',
         inspection_type: 3,
         sample_type: 0
       },
@@ -431,8 +440,51 @@ export default {
           this.emailList = response.data.data.list
         }
       })
-    }
+    },
+    // 根据供应商名称获取其他信息
+    getOtherMessage() {
+      getOtherMessage({
+        "url": "/v1/supplier/name/" + this.supplyform.name,
+      }).then(response => {
+        if (response.data.code == 0) {
+          this.supplyform = response.data.data.list
+        }else{
+          // this.supplyform = {}
+        }
+      })
+    },
+    order(){
+      var _this =this
+      var p1=new Promise(function(resolve, reject) {
+        
+        _this.$refs['supplyform'].validate((valid) => {
+            if(valid){
+              resolve();
+            }
+          })
+        });
+        
+        var p2=new Promise(function(resolve, reject) {
+             _this.$refs['examineform'].validate((valid) => {
+              if(valid){
+                resolve();
+              }
+            })
+        });      
+        Promise.all([p2,p1]).then(function(){
+          order({
+            ..._this.examineform,
+            products:_this.editableTabs2,
+            supplier:_this.supplyform,
+            factories:_this.factories,
+          }).then(response =>{
+            if(response.data.code == 0){
+              _this.$router.push({path: 'checkoutSuccess', query: {created_at:response.data.data.created_at}})
+            }
+          })
+        });
 
+    }
   }
 }
 </script>
@@ -525,6 +577,12 @@ export default {
 .popper__arrow {
     border-right-color: rgba(144,147,153,0.90) !important;
 }
+.el-button--medium{
+  vertical-align: middle;
+}
+.el-select {
+  vertical-align: middle;
+}
 </style>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
@@ -558,9 +616,10 @@ export default {
       font-size: 16px;
       font-weight: bold;
       color: #50688c;
+      margin-bottom:24px;
     }
     .addNewProduct{
-      display:inline-block;position:absolute;cursor:pointer;right: 0;z-index:5;top:43px;background-image: linear-gradient(0deg, #f4f7fa 0%, #ffffff 100%)
+      display:inline-block;position:absolute;cursor:pointer;right: 0;z-index:5;top:55px;background-image: linear-gradient(0deg, #f4f7fa 0%, #ffffff 100%)
     }
     .content {
       width: 100%;
@@ -599,6 +658,7 @@ export default {
       font-size: 16px;
       font-weight: bold;
       color: #50688c;
+      margin-bottom:24px;
     }
   }
   .inspection-information{
@@ -607,6 +667,7 @@ export default {
       font-size: 16px;
       font-weight: bold;
       color: #50688c;
+      margin-bottom:24px;
     }
   }
   .other-requirement{
@@ -615,6 +676,7 @@ export default {
       font-size: 16px;
       font-weight: bold;
       color: #50688c;
+      margin-bottom:24px;
     }
     .t1{
       color: #909399;

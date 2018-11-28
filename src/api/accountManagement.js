@@ -94,5 +94,21 @@ export function removeSupply(data) {
     method: 'DELETE'
   })
 }
+// 添加一条发票信息
+export function addInvoice(data) {
+  return request({
+    url: '/v1/receipt/save',
+    method: 'post',
+    data
+  })
+}
+// 添加一条寄送地址
+export function addAddress(data) {
+  return request({
+    url: '/v1/sendaddress/save',
+    method: 'post',
+    data
+  })
+}
 
 
