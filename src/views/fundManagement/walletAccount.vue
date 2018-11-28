@@ -277,7 +277,6 @@ export default {
 }
 </script>
 
-
 <style rel="stylesheet/scss" lang="scss" scoped>
 li{
     list-style:none;
