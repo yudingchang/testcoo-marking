@@ -345,6 +345,27 @@ export const asyncRouterMap = [
       }
     ]
   },
+  // 资金管理
+  {
+    path: '/fundManagement',
+    component: Layout,
+    redirect: '/fundManagement/walletAccount',
+    alwaysShow: true,
+    name: 'fundManagement',
+    meta: {
+      title: '资金管理',
+      icon: 'excel'
+    },
+    children: [
+      {
+        path: 'walletAccount',
+        component: () => import('@/views/fundManagement/walletAccount'),
+        name: 'walletAccount',
+        meta: { title: '钱包账户' }
+      }
+    ]
+  },
+
   // {
   //   path: '/zip',
   //   component: Layout,
