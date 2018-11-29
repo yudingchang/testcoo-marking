@@ -195,6 +195,22 @@ code {
 
 // walletAccount
 .walletAccount{
+  //walletAccount-detail
+  .walletAccount-detail{
+      //改变背景颜色
+        .el-table tr{
+          //table表格 el-table_3_column_1操作样式改变
+          .el-table_3_column_19{
+            span{
+              color:#FFA800 !important;
+            }
+          }
+        }
+    
+    
+  }
+  
+
   // pagination
   .el-pagination{
     //当前总页数
@@ -274,7 +290,9 @@ code {
     }
     
   }
-  //取消单选按钮el-radio__label的样式
+  //rmb充值页面wallet-pay-Rmb
+  .wallet-pay-Rmb{
+    //取消单选按钮el-radio__label的样式
   .el-radio{
     .el-radio__input{
       .el-radio__inner{
@@ -313,6 +331,9 @@ code {
     }
     
   }
+  }
+
+  
 }
 
 

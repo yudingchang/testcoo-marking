@@ -69,33 +69,44 @@
             <li>查询</li>
           </ul>
           <ul>
-            <el-table
-              :data="tableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
-              style="width: 100%">
-              <el-table-column
-                prop="date"
+           <el-table
+                :data="tableData"
+                style="width: 100%">
+                <el-table-column
+                fixed
+                prop="serial"
                 label="流水号"
-                width="198"/>
-              <el-table-column
-                prop="name"
+                width="198">
+                </el-table-column>
+                <el-table-column
+                prop="creatTime"
                 label="创建时间"
-                width="200"/>
-              <el-table-column
-                prop="address"
+                width="200">
+                </el-table-column>
+                <el-table-column
+                prop="amount"
                 label="金额"
-                width="200"/>
-              <el-table-column
-                prop="name"
+                width="200">
+                </el-table-column>
+                <el-table-column
+                prop="tride"
                 label="交易类型"
-                width="200"/>
-              <el-table-column
-                prop="name"
+                width="200">
+                </el-table-column>
+                <el-table-column
+                prop="status"
                 label="状态"
-                width="200"/>
-              <el-table-column
-                prop="name"
+                width="200">
+                </el-table-column>
+                <el-table-column
+                fixed="right"
                 label="操作"
-                width="381"/>
+                width="381">
+                <template slot-scope="scope">
+                    <el-button @click="handleClick(scope.row)" type="text" size="small">详情</el-button>
+                    <el-button type="text" size="small"></el-button>
+                </template>
+                </el-table-column>
             </el-table>
           </ul>
           <ul>
@@ -116,30 +127,21 @@
       <p>人民币充值</p>
       <ul class="wallet-pay-Rmb-ul">
         <li>充值金额</li>
-        <li @click="sumMin">{{ sum.min }}元</li>
-        <li @click="sumMinA">{{ sum.minA }}元</li>
-        <li @click="sumMinAA">{{ sum.minAA }}元</li>
-        <li @click="sumMinAAA">{{ sum.minAAA }}元</li>
+        <!-- <li @click="sumMin" :calss="{'class-G':isG0,'class-B':isB0}">{{ sum.min }}元</li> -->
+        <li @click="sumMin" :class="{'class-G':isG0,'class-B':isB0}">{{ sum.min }}元</li>
+        <li @click="sumMinA" :class="{'class-G':isGA,'class-B':isBA}">{{ sum.minA }}元</li>
+        <li @click="sumMinAA" :class="{'class-G':isGAA,'class-B':isBAA}">{{ sum.minAA }}元</li>
+        <li @click="sumMinAAA" :class="{'class-G':isGAAA,'class-B':isBAAA}">{{ sum.minAAA }}元</li>
       </ul>
       <p>
-        <input id="sumFin" v-model="sumFin" type="text" placeholder="输入">
+        <input id="sumFin" v-model="sumFin" type="text" placeholder="输入" @click="sumMinDown">
         <span>元</span>
       </p>
       <div class="payment">
         <p>付款方式</p>
         <div class="paymentAll">
-          <ul class="paymentAll-ul">
-            <li>
-              <el-radio v-model="radio" label="1"/>
-              <img src="" alt="">
-              <span>银联</span>
-            </li>
-            <li>
-              <el-radio v-model="radio" label="2"/>
-              <img src="" alt="">
-              <span>支付宝</span>
-            </li>
-          </ul>
+          <!-- 引入组件 -->
+          <pay-ment-chn></pay-ment-chn>
         </div>
       </div>
       <!-- 点击提交 -->
@@ -149,10 +151,14 @@
 </template>
 
 <script>
-import { tableDate } from '@/api/walletDetail'
+import { tableDate } from '@/api/walletDetail'//列表请求数据
+import payMentChn from '../common/paymentCHN.vue'
 export default {
+    watch:{//监听点击事件
+       
+    },
   name: 'WalletAccount',
-  components: { },
+  components: { payMentChn },
   data() {
     return {
       value10: '',
@@ -211,7 +217,15 @@ export default {
         minAAA: '10000'
       },
       sumFin: '',
-      radio: '1'
+      radio: '1',
+      isG0:false,
+      isB0:false,
+      isGA:false,
+      isBA:false,
+      isGAA:false,
+      isBAA:false,
+      isGAAA:false,
+      isBAAA:false
     }
   },
   computed: {
@@ -227,7 +241,7 @@ export default {
   },
   mounted() {
     // console.log(this.$route.fullPath)
-
+    
   },
   methods: {
     // 初始页currentPage、初始每页数据数pagesize和数据data
@@ -248,6 +262,11 @@ export default {
         console.log(this.tableData)
       })
     },
+    //table表格操作click方法
+    handleClick(row) {
+        console.log(row);
+
+      },
     // 跳转支付
     jumpPay() {
       this.walletIndex = false,
@@ -256,23 +275,49 @@ export default {
     // walletPayRmb
     sumMin() {
       this.sumFin = this.sum.min
+      this.isG0=true
+      this.isB0=false
+      this.isBA=true
+      this.isBAA=true
+      this.isBAAA=true
     },
     sumMinA() {
       this.sumFin = this.sum.minA
+      this.isGA=true
+      this.isB0=true
+      this.isBA=false
+      this.isBAA=true
+      this.isBAAA=true
     },
     sumMinAA() {
       this.sumFin = this.sum.minAA
+      this.isGAA=true
+      this.isB0=true
+      this.isBA=true
+      this.isBAA=false
+      this.isBAAA=true
     },
     sumMinAAA() {
       this.sumFin = this.sum.minAAA
+      this.isGAAA=true
+      this.isB0=true
+      this.isBA=true
+      this.isBAA=true
+      this.isBAAA=false
     },
-
+    sumMinDown(){
+      this.isB0=true
+      this.isBA=true
+      this.isBAA=true
+      this.isBAAA=true
+    },
     // 提交传递数据
     open5() {
       this.$alert('', '', {
         dangerouslyUseHTMLString: true
       })
-    }
+    },
+
   }
 }
 </script>
@@ -307,7 +352,7 @@ li{
                 float:left;
                 p:nth-child(1){
                     height:35px;
-                    margin-top:32px;
+                    margin:32px 0 22px;
                     span:nth-child(1){
                         color:#50688C;
                         font-size:24px;
@@ -345,7 +390,7 @@ li{
                 float:left;
                 p:nth-child(1){
                     height:35px;
-                    margin-top:32px;
+                    margin:32px 0 22px;;
                     span:nth-child(1){
                         color:#50688C;
                         font-size:24px;
@@ -437,7 +482,7 @@ li{
                 }
             }
             ul:nth-child(2){
-                margin-top:18px;
+                margin:18px 0 24px;
                 width:100%;
                 background:#F5F8FA;
             }
@@ -478,11 +523,20 @@ li{
                 border:none;
                 width:64px;
                 margin-right:26px;
-
+                text-align: left;
+                color:#7F8FA4;
             }
             .addBg{
                 background:#67C23A;
                 color:#fff;
+            }
+            .class-G{
+                background:#67C23A;
+                color:#fff;
+            }
+            .class-B{
+                background:#F3F6F9;
+                color:#909399;
             }
         }
         p:nth-child(3){
@@ -490,6 +544,7 @@ li{
             margin-left:90px;
             position:relative;
             width:300px;
+            margin-bottom:24px;
             #sumFin{
                 width:284px;
                 height:100%;
@@ -511,39 +566,21 @@ li{
         }
         //payment
         .payment{
-            height:240px;
+            height:320px;
+            margin-bottom:24px;
             p{
                 height:80px;
-                color:#50688C;
+                color:#7F8FA4;
                 font-size:14px;
                 float:left;
                 line-height:80px;
+                margin-right:34px;
+
             }
             .paymentAll{
                 float:left;
-                .paymentAll-ul{
-                    height:160px;
-                    width:660px;
-                    li{
-                        height:80px;
-                        width:660px;
-                        line-height:80px;
-                        border-bottom:1px solid #C0C4CC;
-                        padding-left:54px;
-                        input[type="radio"]{
-                            display:inline-block;
-                            vertical-align: middle;
-                            width:26px;
-                            height:26px;
-                            border:1px solid red;
-                            background-color:#F3F6F9;
-                        }
-                        input[type="radio"]:checked{
-                            background-color:#F3F6F9;
-                            background-clip: inherit;
-                        }
-                    }
-                }
+                height:320px;
+                width:660px;
             }
 
         }
