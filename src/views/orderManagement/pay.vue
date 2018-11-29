@@ -5,81 +5,116 @@
             :data="tableData"
             style="width: 100%" class="tableData">
             <el-table-column
-                prop="date"
+                prop="number"
                 label="订单号"
                 width="180">
             </el-table-column>
             <el-table-column
-                prop="name"
-                label="产品名称"
-                width="180">
+                label="产品名称">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.products.length==1">{{scope.row.products[0]}}</span>
+                    <span v-else-if="scope.row.products.length>1"><span style="display:inline-block;width:150px;">{{scope.row.products[0]}}...</span><i style="margin-left:20px" class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span>
+                </template>
             </el-table-column>
             <el-table-column
-                prop="address"
-                label="验货地区">
+                label="供应商">
+                <template slot-scope="scope">
+                    {{scope.row.supplier.name}}
+                </template>
             </el-table-column>
             <el-table-column
-                prop="address"
                 label="工作量">
+                <template slot-scope="scope">
+                    {{ calculateManDay(scope.row.fees)}}人天
+                </template>
             </el-table-column>
             <el-table-column
-                prop="address"
                 label="订单金额">
+                 <template slot-scope="scope">
+                    <!-- {{ calculateMoney(scope.row.fees)}} -->
+                </template>
             </el-table-column>
         </el-table>         
         <el-form class="form-content" label-width="100px">
             <el-form-item label="付款币种"> 
-                <el-radio-group v-model="radio">
-                    <el-radio :label="3">人民币</el-radio>                                                              
-                    <el-radio :label="6">美元</el-radio>                                                
+                <el-radio-group v-model="moneyType">
+                    <el-radio :label="1" @change="CNY()">人民币</el-radio>                                                              
+                    <el-radio :label="2" @change="USD()">美元</el-radio>                                                
                 </el-radio-group>
             </el-form-item>
             <el-form-item label="发票类型"> 
-                <el-radio-group v-model="radio">
-                    <el-radio :label="3">不开发票</el-radio>
-                    <el-radio :label="6">增值税发票</el-radio>
-                    <el-radio :label="9">普通发票</el-radio>
+                <el-radio-group v-model="invoicetype">
+                    <el-radio :label="0">不开发票</el-radio>
+                    <el-radio :label="1">增值税发票</el-radio>
+                    <el-radio :label="2">普通发票</el-radio>
                 </el-radio-group>
             </el-form-item>
-            <el-form-item label="开票公司"> 
-                <el-select v-model="value" placeholder="请选择">
+            <el-form-item label="开票公司" v-if="invoicetype!=0"> 
+                <el-select v-model="invoiceCompany" placeholder="请选择">
                     <el-option
                     v-for="item in invoiceList"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+                    :key="item.company_name"
+                    :label="item.company_name"
+                    :value="item.id">
                     </el-option>
                 </el-select>
                 <el-button type="success" icon="el-icon-plus" @click="addInvoiceCompany()">新增开票公司</el-button>
             </el-form-item>
-            <el-form-item label="发票收件人"> 
-                <el-select v-model="value" placeholder="请选择">
+            <el-form-item label="发票收件人" v-if="invoicetype!=0"> 
+                <el-select v-model="recipients" placeholder="请选择">
                     <el-option
                     v-for="item in addressee"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+                    :key="(item.last_name+item.first_name)"
+                    :label="(item.last_name+item.first_name)"
+                    :value="item.id">
                     </el-option>
                 </el-select>
-                <el-button type="success" icon="el-icon-plus">新增寄送地址</el-button>
+                <el-button type="success" @click="addressPump()" icon="el-icon-plus">新增寄送地址</el-button>
             </el-form-item>
             <el-form-item label="应付金额"> 
                 <span class="money-text">{{shouldpay}}</span>
             </el-form-item> 
+            <el-form-item label="付款方式"> 
+                <ul class="paystyle" v-if="CNYPayShow">
+                    <li v-for="(item,index) in CNYPay" :key="index">
+                        <span v-if="item.id==1"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                        <span v-if="item.id==2"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                        <span v-if="item.id==3"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                        <span v-if="item.id==4"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                        <span v-if="item.id==6"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                    </li>
+                    <!-- <li><el-radio v-model="radio1" label="2">支付宝</el-radio></li> -->
+                </ul>
+                <ul class="paystyle" v-if="USDPayShow">
+                    <li v-for="(item,index) in USDPay" :key="index">
+                        <span v-if="item.id==5"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                        <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                    </li>
+                    <!-- <li><el-radio v-model="radio1" label="2">支付宝</el-radio></li> -->
+                </ul>
+                <!-- <span class="money-text">{{shouldpay}}</span> -->
+            </el-form-item> 
+            <el-form-item label="支付密码"> 
+                <el-input placeholder="请输入密码" style="width:280px;" v-model="password"></el-input>
+                <span class="tip">忘记密码?</span>
+            </el-form-item>  
+            <el-form-item label=""> 
+                <el-button type="warning" class="confirmPay" @click="confirmPay()">确定付款</el-button>
+            </el-form-item>                                                            
         </el-form>
         <el-dialog title="新增发票信息" :visible.sync="dialogFormVisible" width="600px" center>
             <el-form :model="form" :rules="rules" ref="form" :label-width="formLabelWidth">
                 <el-form-item label="公司名称：" prop="company_name">
-                    <el-input v-model="form.company_name" autocomplete="off"></el-input>
+                    <el-input v-model="form.company_name"></el-input>
                 </el-form-item>
                 <el-form-item label="纳税人识别号：" prop="tax_id_number">
-                    <el-input v-model="form.tax_id_number" autocomplete="off"></el-input>
+                    <el-input v-model="form.tax_id_number"></el-input>
                 </el-form-item>
                 <el-form-item label="开户银行：" prop="bank">
-                    <el-input v-model="form.bank" autocomplete="off"></el-input>
+                    <el-input v-model="form.bank"></el-input>
                 </el-form-item>
                 <el-form-item label="银行账号：" prop="bank_account">
-                    <el-input v-model="form.bank_account" autocomplete="off"></el-input>
+                    <el-input v-model="form.bank_account"></el-input>
                 </el-form-item>
                 <el-form-item label="单位电话：" prop="telephone">
                     <el-input placeholder="请输入内容" v-model="form.telephone" class="input-with-select">
@@ -91,10 +126,10 @@
                     </el-input>
                 </el-form-item>
                 <el-form-item label="单位地址：" prop="address">
-                    <el-input v-model="form.address" autocomplete="off"></el-input>
+                    <el-input v-model="form.address"></el-input>
                 </el-form-item>
                 <el-form-item label="详细地址：" prop="detailed_address">
-                    <el-input type="textarea" v-model="form.detailed_address" autocomplete="off"></el-input>
+                    <el-input type="textarea" v-model="form.detailed_address"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -148,21 +183,37 @@
 </template>
 
 <script>
-import {addInvoice,addAddress} from "@/api/accountManagement";
+import {addInvoice,addAddress,getInvoiceList,getAddressList} from "@/api/accountManagement";
+import {orderDetail,confirmPay,surePay} from "@/api/order";
 export default {
   name: "",
   components: {},
   data() {
     return {
       tableData: [],
+      CNYPay:[],
+      USDPay:[],
+      CNYPayShow:true,
+      USDPayShow:false,
       total: 0,
-      shouldpay: "¥799.00",
-      radio: "",
+      shouldpay: "",
+      password:'',
+      moneyType:1,
+      invoicetype:0,
+      payurl:'',
+      paymentTypeId:'',
+      invoiceCompany:'',
+      recipients:'',
       listLoading: true,
       dialogFormVisible:false,
-      addressdialogFormVisible:true,
+      addressdialogFormVisible:false,
       value:'',
-      form:{},
+      radio1:'',
+      order:this.$route.query.order,
+      paymentOrder:'',
+      form:{
+          address:[1,2,3]
+      },
       rules:{
             company_name:[{ required: true, message: '请输入公司名称', trigger: 'blur' }],    
             tax_id_number:[{ required: true, message: '请输入纳税人识别号', trigger: 'blur' }],  
@@ -172,7 +223,9 @@ export default {
             address:[{ required: true, message: '请输入单位地址', trigger: 'blur'}],
             detailed_address:[{ required: true, message: '请输入详细地址', trigger: 'blur'}],
       },
-      addressform:{},
+      addressform:{
+          address:[1,2,3]
+      },
       addressrules:{
         last_name:[{required: true, message: '请输入收件人姓', trigger: 'blur'}],
         first_name:[{required: true, message: '请输入名', trigger: 'blur'}],
@@ -185,14 +238,15 @@ export default {
       invoiceLabelWidth:'130px',
       invoiceList: [
         {
-          vulue: "",
-          label: ""
+          company_name: "",
+          id: ""
         }
       ],
       addressee: [
         {
-          vulue: "",
-          label: ""
+            last_name:'',
+           first_name: "",
+           id: ""
         }
       ],
       listQuery: {
@@ -209,6 +263,11 @@ export default {
     //   return this.$route.fullPath
     // }
   },
+  created(){
+      this.orderDetail()
+      this.getcompanyname()
+      this.getaddress()
+  },
   methods:{
       addInvoiceCompany(){
           this.dialogFormVisible = true
@@ -217,7 +276,8 @@ export default {
           this.$refs['form'].validate((valid) => {
             if (valid) {
                 addInvoice({
-                    ...this.form
+                    ...this.form,
+                    address:[1,2,3]
                 }).then(response => {
                     if(response.data.code == 0){
                         this.dialogFormVisible = false
@@ -226,6 +286,9 @@ export default {
             }
           })
           
+      },
+      addressPump(){
+          this.addressdialogFormVisible = true
       },
       addresssubmit(){
           this.$refs['addressform'].validate((valid) => {
@@ -239,7 +302,97 @@ export default {
                 })
             }
           })
-      }
+      },
+      getcompanyname(){
+          getInvoiceList().then(response =>{
+              if(response.data.code == 0){
+                  this.invoiceList = response.data.data.list
+              }
+          })
+      },
+      getaddress(){
+          getAddressList().then(response =>{
+               if(response.data.code == 0){
+                  this.addressee = response.data.data.list
+              }
+          })
+      },
+      orderDetail(){
+          orderDetail({
+              url:'/v1/order/'+ this.$route.query.order +'/pay'
+          }).then(response =>{
+              this.tableData = []
+              this.tableData.push(response.data.data)
+              this.CNYPay = response.data.data.select.CNY
+              this.USDPay = response.data.data.select.USD
+              this.paymentOrder = response.data.data.payment.orderid
+              this.CNYShouldPay = response.data.data.payment.price.CNY.fee
+              this.USDShouldPay = response.data.data.payment.price.USD.fee
+              this.shouldpay = "¥" + this.CNYShouldPay 
+          })  
+      },
+    //   计算工作量
+    calculateManDay(row){
+        let fees = 0
+        _.each(row, currency => {
+            const value = Number(currency.workload)
+            fees = value==null ? Number(fees) : Number(fees) + value
+        })
+        return fees
+    },
+    //   计算总金额
+    // calculateMoney(value){
+    //     let CNYfees = 0
+    //     let USDfees = 0
+    //     _.each(value, fee => {
+    //         if(fee.is_main == true){
+    //              _.each(fee.currencies, currency => {
+    //             const value = Number(currency.value)
+    //             if(currency.name == "CNY"){
+    //                 CNYfees +=  value
+    //             }else{
+    //                 USDfees +=  value
+    //             }        
+    //             })
+    //         }
+       
+    //     })
+    //     return fees;
+    // },
+     //  人民币支付
+    CNY(){
+     this.CNYPayShow = true   
+      this.USDPayShow = false 
+      this.shouldpay = "¥" + this.CNYShouldPay 
+    },
+    //  美元支付
+    USD(){
+     this.USDPayShow = true 
+     this.CNYPayShow = false 
+     this.shouldpay = "$" + this.USDShouldPay  
+    },
+    //  预付款
+    confirmPay(){
+        confirmPay({
+           url:'/v1/payment/pay/select/' + this.paymentOrder + '/' + this.paymentTypeId
+        }).then(response =>{
+            let responsed = response.data
+            if(responsed.code ==0 ){
+                this.payurl = responsed.data.url
+                this.surePay()
+            }
+        })
+    },
+    //  付款
+    surePay(){
+        surePay({
+            url: this.payurl,
+            password:this.password
+        }).then(response =>{
+
+        })
+    }
+
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -297,6 +450,28 @@ export default {
       font-size: 24px;
       font-weight: bold;
       color: #158be4;
+    }
+    .paystyle{
+        width: 600px;
+        li{
+            border-bottom: 1px solid #C0C4CC;
+            padding: 20px 0;
+        }
+        li:first-child{
+            padding: 0 0 20px;
+        }
+    }
+    .tip{
+        margin-left: 16px;
+        cursor: pointer;
+        color: #158BE4;
+    }
+    .confirmPay{
+        width: 250px;
+        height: 40px;
+        font-size: 16px;
+        background: #FFA800;
+        border: none;
     }
   }
 }

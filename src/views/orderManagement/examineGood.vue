@@ -86,7 +86,7 @@
         >
         <template slot-scope="scope">
           <el-button style="color:#FFA800;margin-right:10px;" @click="setDefault(scope.row)" type="text" size="small" v-if="scope.row.can.modify==true">修改</el-button>
-          <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" @click="pay()" v-if="scope.row.can.pay==true">付款</el-button>
+          <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" @click="pay(scope.row)" v-if="scope.row.can.pay==true">付款</el-button>
           <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" v-if="scope.row.can.pay==true">追加付款</el-button>
           <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" v-if="scope.row.can.pay==true">退单</el-button>
           <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" v-if="scope.row.can.pay==true">查看退单</el-button>
@@ -329,8 +329,9 @@ export default {
       console.log(this.gridData);
     },
     // 付款
-    pay(){
-      this.$router.push({path: 'pay', query: {created_at:'123'}})
+    pay(row){
+      console.log(row)
+      this.$router.push({path: 'pay', query: {order:row.id}})
     }
   },
   mounted() {
@@ -355,12 +356,13 @@ export default {
 .el-table th {
   background-color: #ffffff;
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
   color: #50688C;
 }
-.el-table td {
+
+.el-table td {                      
   text-align: center;
-  
+  font-size: 12px;
 }
 .el-button--text {
   color: #50688c;
@@ -461,7 +463,7 @@ content: '/ ';
           height: 50px;
           line-height: 50px;
           text-align: center;
-          font-size: 16px;
+          font-size: 14px;
           color: #50688c;
         }
         .active {

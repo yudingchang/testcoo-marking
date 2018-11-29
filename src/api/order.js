@@ -20,14 +20,38 @@ export function getOtherMessage(data) {
   })
 }
 export function getList(data) {
+  return request({
+    url: '/v1/inspection',
+    method: 'get',
+    params: {
+      searches:data
+    },
+    paramsSerializer: function(params) {
+      return qs.stringify(params, { indices: true })
+    }
+  })
+}
+// 获取订单前期数据
+export function orderDetail(data) {
+  return request({
+    url: data.url,
+    method: 'get',
+    // params:data
+  })
+}  
+// 预付款
+export function confirmPay(data) {
     return request({
-      url: '/v1/inspection',
+      url: data.url,
       method: 'get',
-      params: {
-          searches:data
-    } ,
-      paramsSerializer: function(params) {
-        return qs.stringify(params, { indices: true })
-      }
+      // params:data
     })
-  }
+  }  
+// 付款
+export function surePay(data) {
+    return request({
+      url: data.url,
+      method: 'get',
+      params:data
+    })
+  }    
