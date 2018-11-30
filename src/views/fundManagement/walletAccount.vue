@@ -70,27 +70,30 @@
           </ul>
           <ul class="wallet-tableDate-ul">
            <el-table
-                background-color="#F5F8FA"
-                :data="tableData"
+                :header-cell-style="{background:'#F5F8FA'}"
+                :data="tableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
                 style="width: 100%">
                 <el-table-column
                 fixed
-                prop="serial"
+                prop="money_id"
                 label="流水号"
-                width="198">
+                width="237">
                 </el-table-column>
                 <el-table-column
-                prop="creatTime"
+                prop="created_at"
                 label="创建时间"
                 width="200">
                 </el-table-column>
                 <el-table-column
-                prop="amount"
+                prop="price"
                 label="金额"
                 width="200">
+                <template slot-scope="scope">
+                    <span :class="{tableDataadd:tableDataadd,tableDatareduce:tableDatareduce}">￥</span>
+                </template>
                 </el-table-column>
                 <el-table-column
-                prop="tride"
+                prop="type"
                 label="交易类型"
                 width="200">
                 </el-table-column>
@@ -112,13 +115,14 @@
           </ul>
           <ul>
             <el-pagination
-              :current-page="currentPage"
-              :page-sizes="[5, 10, 20, 40]"
-              :page-size="pagesize"
-              :total="tableData.length"
-              layout="total, sizes, prev, pager, next, jumper"
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"/>
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[9]" 
+                    :page-size="pagesize"         
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="tableData.length">    
+            </el-pagination>
           </ul>
         </div>
       </div>
@@ -142,7 +146,7 @@
         <p>付款方式</p>
         <div class="paymentAll">
           <!-- 引入组件 -->
-          <pay-ment-chn></pay-ment-chn>
+          <pay-ment-chn @receiveDate="paymentWay"></pay-ment-chn>
         </div>
       </div>
       <!-- 点击提交 -->
@@ -152,8 +156,8 @@
           :visible.sync="centerDialogVisible"
           width="30%"
           center>
-          <p class="su-payment">你正在使用支付宝充值</p>
-          <p class="su-payaccount">充值金额￥1000.00</p>
+          <p class="su-payment">你正在使用{{detailPayWayInMessage}}付款</p>
+          <p class="su-payaccount">充值金额￥{{sumFin}}</p>
           <span slot="footer" class="dialog-footer">
             <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
             <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
@@ -189,7 +193,7 @@
           :visible.sync="centerDialogVisible"
           width="30%"
           center>
-          <p class="su-payment">你正在使用支付宝充值</p>
+          <p class="su-payment" v-on:receiveDate="paymentWay($event)">你正在使用支付宝充值</p>
           <p class="su-payaccount">充值金额￥1000.00</p>
           <span slot="footer" class="dialog-footer">
             <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
@@ -201,7 +205,7 @@
     <!-- wallet-detailGo -->
     <div v-if="walletDetail" class="wallet-detailGo">
       <p>钱包详情</p>
-      <!-- ul待付款 -->
+      <!-- ul待付款倒计时提示 -->
       <ul v-show="false">
         <li>
           <span>系统将在1天23小时59分59秒后自动关闭</span>
@@ -211,40 +215,41 @@
       <!-- ul钱包详情 -->
       <ul>
         <li>
-          <span>状态</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailStatus}}</span>
+          <span></span>
         </li>
         <li>
-          <span>创建时间</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailCreateTime}}</span>
+          <span></span>
         </li>
         <li>
-          <span>流水号</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailSerial}}</span>
+          <span></span>
         </li>
         <li>
-          <span>交易类型</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailTradeType}}</span>
+          <span></span>
         </li>
         <li>
-          <span>账单</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailBill}}</span>
+          <span></span>
         </li>
         <li>
-          <span>金额</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailAmount}}</span>
+          <span></span>
         </li>
         <li>
-          <span>付款时间</span>
-          <span>成功</span>
+          <span>{{jumpDetailKeyValue.detailPayTime}}</span>
+          <span></span>
         </li>
       </ul>
+      <!-- ul汇款转账预留 -->
     </div>
   </div>
 </template>
 
 <script>
-import { tableDate } from '@/api/walletDetail'//列表请求数据
+import { tableDate,tradeTypeDetail } from '@/api/walletDetail'//列表请求数据
 import payMentChn from '../common/paymentCHN.vue'
 export default {
     watch:{//监听点击事件
@@ -254,6 +259,7 @@ export default {
   components: { payMentChn },
   data() {
     return {
+      a:"+",
       value10: '',
       value11: '',
       // options1交易类型
@@ -294,10 +300,10 @@ export default {
       value1: '',
       // value2是状态类型数据
       value2: '',
-      // 表格数据tableData
+      // 钱包明细表格数据tableData
       tableData: [],
       currentPage: 1, // 初始页
-      pagesize: 10, // 每页的数据
+      pagesize:9, // 每页的数据
 
       // walletindex
       walletIndex: true,
@@ -318,7 +324,9 @@ export default {
         minAA: '5000',
         minAAA: '10000'
       },
+      //sumFinchinese支付双向数据绑定data
       sumFin: '',
+      //sumFinDollarUS支付双向数据绑定data
       sumFinDollar:'',
       radio: '1',
       isG0:false,
@@ -336,8 +344,28 @@ export default {
       walletDetail:false,
 
       //详情页面的数据origin
-      jumpDetailDate:[]
+      jumpDetailDate:[],
+      jumpDetailKeyValue:{
+        detailStatus:"状态",
+        detailCreateTime:"创建时间",
+        detailSerial:"流水号",
+        detailTradeType:"交易类型",
+        detailBill:this.judege,
+        detailAmount:"金额",
+        detailPayTime:"付款时间"
+      },
+       //判断是订单号是还是账单号
+       judege:"",
+
+
+      //用来区分table金额前面的加减号
+       tableDataadd:false,
+       tableDatareduce:true,
+
+      //判断支付方式途径传递传出框中数据
+      detailPayWayInMessage:""
     }
+
   },
   computed: {
     // cachedViews() {
@@ -367,23 +395,54 @@ export default {
     // 获取钱包明细状态信息
     tableDateA() {
       tableDate().then(response => {
+        console.log(response.data.data.list)
         if (response.data.code == 0) {
           this.tableData = response.data.data.list
+          console.log(this.tableData[0].money_id)
+         
+          for(let i=0;i<this.tableData.length;i++){
+            //判断拿回来的数据进行列表交易类型判断
+            if(this.tableData[i].money_id==22){
+              this.tableData[i].money_id="订单付款"
+            }else if(this.tableData[i].type=="1"){
+              this.tableData[i].type="月结还款"
+            }else if(this.tableData[i].type=="2"){
+              this.tableData[i].type="充值"
+            }else if(this.tableData[i].type=="3"){
+              this.tableData[i].type="订单退款"
+            }
+            //判断拿回来的数据进行列表状态判断
+            if(this.tableData[i].status=="0"){
+              this.tableData[i].status="待付款"
+            }else if(this.tableData[i].status=="1"){
+              this.tableData[i].status="成功"
+            }else if(this.tableData[i].status=="2"){
+              this.tableData[i].status="已关闭"
+            }
+            //判断拿回来的数据进行金额数据判断
+            if(this.tableData[i].ncsy==0){
+              
+            }
+          }
+          
         }
-        console.log(this.tableData)
       })
     },
     //table表格操作click详情方法
-    handleClick(row,a) {
+    handleClick(row,index) {
         console.log(row);
+        console.log(index);
         this.walletIndex=false
         this.walletDetail=true
         tradeTypeDetail().then(response =>{
           if(response.data.code == 0){
             this.jumpDetailDate=response.data.list;
           }
-          console.log('')
+          // console.log('')
         })
+        // if(response.data.id=="1"){
+
+        // }
       },
     // 跳转支付
     jumpPayRmb() {
@@ -438,16 +497,241 @@ export default {
       this.isBAAA=true
     },
     // 提交传递数据
-   
+    paymentWay(evl){
+      if(evl=="1"){
+        this.detailPayWayInMessage="银联";
+      }else if(evl=="2"){
+         this.detailPayWayInMessage="支付宝";
+      }else if(evl=="3"){
+        this.detailPayWayInMessage="测库月结";
+      }else if(evl=="4"){
+        this.detailPayWayInMessage="钱包";
+      }
+      
+      console.log(evl)
+    }
 
   }
 }
 </script>
 
-<style rel="stylesheet/scss" lang="scss" scoped>
-li{
-    list-style:none;
+<style rel="stylesheet/scss" lang="scss">
+  // walletAccount
+.walletAccount{
+  //walletAccount-detail
+  .walletAccount-detail{
+      //改变钱包明细列表样式
+      .wallet-tableDate-ul{
+        // .el-table .cell, .el-table th div{
+        //   padding-left:39px;
+        // }
+        // //表头
+        // .el-table__header-wrapper{
+        //   tr{
+        //     th{
+        //       // padding-left:39px;
+        //       div{
+        //         text-align: left !important;
+        //         padding-left:0 !important;
+        //       }  
+        //     }
+        //   }
+        // }
+        // .el-table__row{
+        //   //table表格 el-table_3_column_1操作样式改变
+        //   td{
+        //     // text-align: center;
+        //     span{
+        //       color:#FFA800 !important;
+        //     }
+        //   }
+        // }
+        .el-button--text{
+          color:#FFA800;
+        }
+      }  
+  }
+  // pagination
+  .el-pagination{
+    //当前总页数
+    .el-pagination__total{
+      color:#7F8FA4 !important;
+      font-size:14px !important;
+      width:88px !important;
+      height:36px !important;
+      border:1px solid #CED0DA;
+      text-align: center;
+      line-height: 36px !important;
+      border-radius:4px;
+      cursor:pointer;
+    }
+    //选择页数
+    .el-input__inner{
+      color:#7F8FA4 !important;
+      font-size:14px !important;
+      // width:88px !important;
+      height:36px !important;
+      border:1px solid #CED0DA;
+    }
+    //后退
+    .btn-prev,.btn-next{
+      width:36px !important;
+      height:36px !important;
+      border:1px solid #CED0DA;
+      border-radius:4px;
+      text-align: center;
+      padding-left:12px;
+      margin-right:15px;
+      color:#7F8FA4 !important;
+    }
+    .btn-next{
+      margin-left:15px !important;
+    }
+    //
+    //页码
+    .el-pager{
+      height:36px;
+      .number{
+        width:36px !important;
+        height:100% !important;
+        border:1px solid #CED0DA;
+        border-radius:4px;
+        text-align: center;
+        line-height: 36px !important;
+        margin-right:10px;
+        color:#7F8FA4 !important;
+      }
+    }
+    //跳转页码
+    .el-pagination__jump{
+        width:124px !important;
+        height:36px !important;
+        border:1px solid #CED0DA;
+        border-radius:4px;
+        line-height: 36px !important;
+        text-align: center !important;
+        background:#CED0DA;
+        color:#fff !important;
+        .el-input{
+          float:right;
+          width:68px;
+          height:100%;
+          overflow:hidden;
+          padding:0;
+          margin:0;
+          border-top-left-radius:0 !important;
+          border-bottom-left-radius:0 !important;
+          .el-input__inner{
+            border:none;
+            border-radius: 0 !important;
+            
+          }
+        }
+    }
+    
+  }
+  //rmb充值页面wallet-pay-Rmb
+  .wallet-pay-Rmb,.wallet-pay-Dollar{
+    //取消单选按钮el-radio__label的样式
+  .el-radio{
+    .el-radio__input{
+      .el-radio__inner{
+        width:26px !important;
+        height:26px !important;
+      }
+    }
+    .el-radio__input.is-checked .el-radio__inner{
+      background:#F5A623;
+      border-color:#F5A623;
+    }
+    .el-radio__inner:hover{
+      border-color:#F5A623;
+    }
+    .el-radio__inner::after{
+      width:6px !important;
+      height:6px !important;
+    }
+    .el-radio__label{
+      display:none !important;
+    }
+  }
+  //弹出框样式调整
+  .pay-rmb-submit{
+    //点击按钮
+    .el-button--medium{
+      margin-left:146px;
+      width:250px;
+      height:50px;
+      border-radius:4px;
+      background:#FFA800;
+      span{
+        color:#fff;
+        font-size:18px;
+      }
+    }
+    //弹出框界面
+    .el-dialog__wrapper{
+      .el-dialog--center{
+        width:600px !important;
+        height:360px !important;
+        border-radius:8px;
+        border:none;
+        //弹出框header
+        .el-dialog__header{
+          height:48px;
+          margin-bottom:49px;
+          .el-dialog__headerbtn{
+            i{
+              font-size:32px;
+              color:#909399;
+              font-weight:600;
+            }
+          }
+        }
+        //弹出框body
+        .el-dialog__body{
+          padding:0;
+          margin-bottom:27px;
+        }
+        //弹出框footer
+        .el-dialog__footer{
+          padding:0;
+          button{
+            margin-left:210px !important;
+            width:180px !important;
+            height:40px !important;
+            border:none;
+            padding: 0;
+            display:block;
+          }
+          button:nth-child(1){
+            margin-bottom:16px;
+            span{
+              font-size:14px !important;
+              color:#fff;
+            }
+            
+          }
+          button:nth-child(2){
+            background:#fff;
+            border:1px solid #909399;
+            span{
+              color:#909399;
+              font-size:14px !important;
+            }
+          }
+        }
+      }
+      
+    }
+  }
 }
+
+  
+}
+</style>
+
+<style rel="stylesheet/scss" lang="scss" scoped>
 .walletAccount{
     padding-left:100px;
     // height:600px;
@@ -554,11 +838,12 @@ li{
             border:1px solid #E6EAEE;
             border-radius:4px;
             background:#fff;
-            padding-left:40px;
+            // padding-left:40px;
             padding-top:19px;
             ul:nth-child(1){
                 height:36px;
                 line-height:36px;
+                padding-left:40px;
                  li{
                     list-style:none;
                     float:left;
@@ -786,6 +1071,17 @@ li{
         li:last-child{
           margin-bottom:0;
         }
+      }
+    }
+    //用来判定传过来的数据金额前面是+还是-
+    .tableDataadd {
+      &::before {
+        content: '+';
+      }
+    }
+    .tableDatareduce{
+      &::before{
+        content:'-';
       }
     }
 

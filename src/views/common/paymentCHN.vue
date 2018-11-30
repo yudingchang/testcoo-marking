@@ -95,7 +95,8 @@ export default{
         radio(val) {
             // console.log(val)
             this.$emit("receiveDate",val)
-            console.log(this.$emit("receiveDate",val).radio)
+            // console.log(val)
+
         }
     }
 }
