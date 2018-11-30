@@ -198,16 +198,17 @@ code {
   //walletAccount-detail
   .walletAccount-detail{
       //改变背景颜色
-        .el-table tr{
+      .wallet-tableDate-ul{
+        .el-table__row{
           //table表格 el-table_3_column_1操作样式改变
-          .el-table_3_column_19{
+          td{
+            // text-align: center;
             span{
               color:#FFA800 !important;
             }
           }
         }
-    
-    
+      }  
   }
   
 
@@ -291,7 +292,7 @@ code {
     
   }
   //rmb充值页面wallet-pay-Rmb
-  .wallet-pay-Rmb{
+  .wallet-pay-Rmb,.wallet-pay-Dollar{
     //取消单选按钮el-radio__label的样式
   .el-radio{
     .el-radio__input{
@@ -316,22 +317,76 @@ code {
     }
   }
   //弹出框样式调整
-  .el-button{
-    span{
-      display:inline-block;
+  .pay-rmb-submit{
+    //点击按钮
+    .el-button--medium{
+      margin-left:146px;
       width:250px;
       height:50px;
       border-radius:4px;
       background:#FFA800;
-      margin-left:147px;
-      color:#fff;
-      font-size:16px;
-      text-align: center;
-      line-height: 50px;
+      span{
+        color:#fff;
+        font-size:18px;
+      }
     }
-    
+    //弹出框界面
+    .el-dialog__wrapper{
+      .el-dialog--center{
+        width:600px !important;
+        height:360px !important;
+        border-radius:8px;
+        border:none;
+        //弹出框header
+        .el-dialog__header{
+          height:48px;
+          margin-bottom:49px;
+          .el-dialog__headerbtn{
+            i{
+              font-size:32px;
+              color:#909399;
+              font-weight:600;
+            }
+          }
+        }
+        //弹出框body
+        .el-dialog__body{
+          padding:0;
+          margin-bottom:27px;
+        }
+        //弹出框footer
+        .el-dialog__footer{
+          padding:0;
+          button{
+            margin-left:210px !important;
+            width:180px !important;
+            height:40px !important;
+            border:none;
+            padding: 0;
+            display:block;
+          }
+          button:nth-child(1){
+            margin-bottom:16px;
+            span{
+              font-size:14px !important;
+              color:#fff;
+            }
+            
+          }
+          button:nth-child(2){
+            background:#fff;
+            border:1px solid #909399;
+            span{
+              color:#909399;
+              font-size:14px !important;
+            }
+          }
+        }
+      }
+      
+    }
   }
-  }
+}
 
   
 }

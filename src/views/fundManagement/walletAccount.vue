@@ -10,7 +10,7 @@
               <span>人民币</span>
               <span>￥ 8989.89</span>
             </p>
-            <p @click="jumpPay">去充值</p>
+            <p @click="jumpPayRmb">去充值</p>
           </div>
           <div class="walletAccount-Ac-recharge-line"/>
           <div class="walletAccount-Ac-recharge-dollar">
@@ -18,7 +18,7 @@
               <span>美元</span>
               <span>$ 8989.89</span>
             </p>
-            <p>去充值</p>
+            <p @click="jumpDollar">去充值</p>
           </div>
         </div>
       </div>
@@ -68,8 +68,9 @@
             </li>
             <li>查询</li>
           </ul>
-          <ul>
+          <ul class="wallet-tableDate-ul">
            <el-table
+                background-color="#F5F8FA"
                 :data="tableData"
                 style="width: 100%">
                 <el-table-column
@@ -103,7 +104,7 @@
                 label="操作"
                 width="381">
                 <template slot-scope="scope">
-                    <el-button @click="handleClick(scope.row)" type="text" size="small">详情</el-button>
+                    <el-button @click="handleClick(scope.row, scope.$index)" type="text" size="small">详情</el-button>
                     <el-button type="text" size="small"></el-button>
                 </template>
                 </el-table-column>
@@ -145,7 +146,99 @@
         </div>
       </div>
       <!-- 点击提交 -->
-      <el-button type="text" @click="open5">确定付款</el-button>
+      <div class="pay-rmb-submit">
+        <el-button type="text" @click="centerDialogVisible = true">确定付款</el-button>
+        <el-dialog
+          :visible.sync="centerDialogVisible"
+          width="30%"
+          center>
+          <p class="su-payment">你正在使用支付宝充值</p>
+          <p class="su-payaccount">充值金额￥1000.00</p>
+          <span slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
+            <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
+          </span>
+        </el-dialog>
+      </div>
+    </div>
+    <div v-if="walletPayDollar" class="wallet-pay-Dollar">
+      <p>人民币充值</p>
+      <ul class="wallet-pay-Rmb-ul">
+        <li>充值金额</li>
+        <!-- <li @click="sumMin" :calss="{'class-G':isG0,'class-B':isB0}">{{ sum.min }}元</li> -->
+        <li @click="sumMin" :class="{'class-G':isG0,'class-B':isB0}">{{ us.min }}美元</li>
+        <li @click="sumMinA" :class="{'class-G':isGA,'class-B':isBA}">{{ us.minA }}美元</li>
+        <li @click="sumMinAA" :class="{'class-G':isGAA,'class-B':isBAA}">{{ us.minAA }}美元</li>
+        <li @click="sumMinAAA" :class="{'class-G':isGAAA,'class-B':isBAAA}">{{ us.minAAA }}美元</li>
+      </ul>
+      <p>
+        <input id="sumFin" v-model="sumFinDollar" type="text" placeholder="输入" @click="sumMinDown">
+        <span>美元</span>
+      </p>
+      <div class="payment">
+        <p>付款方式</p>
+        <div class="paymentAll">
+          <!-- 引入组件 -->
+          <!-- <pay-ment-chn></pay-ment-chn> -->
+        </div>
+      </div>
+      <!-- 点击提交 -->
+      <div class="pay-rmb-submit">
+        <el-button type="text" @click="centerDialogVisible = true">确定付款</el-button>
+        <el-dialog
+          :visible.sync="centerDialogVisible"
+          width="30%"
+          center>
+          <p class="su-payment">你正在使用支付宝充值</p>
+          <p class="su-payaccount">充值金额￥1000.00</p>
+          <span slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
+            <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
+          </span>
+        </el-dialog>
+      </div>
+    </div>
+    <!-- wallet-detailGo -->
+    <div v-if="walletDetail" class="wallet-detailGo">
+      <p>钱包详情</p>
+      <!-- ul待付款 -->
+      <ul v-show="false">
+        <li>
+          <span>系统将在1天23小时59分59秒后自动关闭</span>
+          <span id="obligation">付款</span>
+        </li>
+      </ul>
+      <!-- ul钱包详情 -->
+      <ul>
+        <li>
+          <span>状态</span>
+          <span>成功</span>
+        </li>
+        <li>
+          <span>创建时间</span>
+          <span>成功</span>
+        </li>
+        <li>
+          <span>流水号</span>
+          <span>成功</span>
+        </li>
+        <li>
+          <span>交易类型</span>
+          <span>成功</span>
+        </li>
+        <li>
+          <span>账单</span>
+          <span>成功</span>
+        </li>
+        <li>
+          <span>金额</span>
+          <span>成功</span>
+        </li>
+        <li>
+          <span>付款时间</span>
+          <span>成功</span>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -169,7 +262,7 @@ export default {
         label: '订单付款'
       }, {
         value: '选项2',
-        label: '白条还款'
+        label: '月结还款'
       }, {
         value: '选项3',
         label: '充值'
@@ -210,6 +303,15 @@ export default {
       walletIndex: true,
       // walletPay
       walletPayRmb: false,
+      walletPayDollar:false,
+      //美元选择数据
+      us:{
+         min: '119',
+         minA: '500',
+         minAA: '1000',
+         minAAA: '2000'
+      },
+      //人民币选择数据
       sum: {
         min: '700',
         minA: '1000',
@@ -217,6 +319,7 @@ export default {
         minAAA: '10000'
       },
       sumFin: '',
+      sumFinDollar:'',
       radio: '1',
       isG0:false,
       isB0:false,
@@ -225,7 +328,15 @@ export default {
       isGAA:false,
       isBAA:false,
       isGAAA:false,
-      isBAAA:false
+      isBAAA:false,
+      //点击提交数据
+      centerDialogVisible: false,
+
+      //点击详情跳转查看
+      walletDetail:false,
+
+      //详情页面的数据origin
+      jumpDetailDate:[]
     }
   },
   computed: {
@@ -262,19 +373,31 @@ export default {
         console.log(this.tableData)
       })
     },
-    //table表格操作click方法
-    handleClick(row) {
+    //table表格操作click详情方法
+    handleClick(row,a) {
         console.log(row);
-
+        this.walletIndex=false
+        this.walletDetail=true
+        tradeTypeDetail().then(response =>{
+          if(response.data.code == 0){
+            this.jumpDetailDate=response.data.list;
+          }
+          console.log('')
+        })
       },
     // 跳转支付
-    jumpPay() {
+    jumpPayRmb() {
       this.walletIndex = false,
       this.walletPayRmb = true
+    },
+    jumpDollar(){
+      this.walletIndex = false,
+      this.walletPayDollar=true
     },
     // walletPayRmb
     sumMin() {
       this.sumFin = this.sum.min
+      this.sumFinDollar=this.us.min
       this.isG0=true
       this.isB0=false
       this.isBA=true
@@ -283,6 +406,7 @@ export default {
     },
     sumMinA() {
       this.sumFin = this.sum.minA
+      this.sumFinDollar=this.us.minA
       this.isGA=true
       this.isB0=true
       this.isBA=false
@@ -291,6 +415,7 @@ export default {
     },
     sumMinAA() {
       this.sumFin = this.sum.minAA
+      this.sumFinDollar=this.us.minAA
       this.isGAA=true
       this.isB0=true
       this.isBA=true
@@ -299,6 +424,7 @@ export default {
     },
     sumMinAAA() {
       this.sumFin = this.sum.minAAA
+      this.sumFinDollar=this.us.minAAA
       this.isGAAA=true
       this.isB0=true
       this.isBA=true
@@ -312,11 +438,7 @@ export default {
       this.isBAAA=true
     },
     // 提交传递数据
-    open5() {
-      this.$alert('', '', {
-        dangerouslyUseHTMLString: true
-      })
-    },
+   
 
   }
 }
@@ -492,7 +614,7 @@ li{
         }
     }
     // wallet-pay
-    .wallet-pay-Rmb{
+    .wallet-pay-Rmb,.wallet-pay-Dollar{
         padding-left:100px;
         padding-top:38px;
         p:nth-child(1){
@@ -598,6 +720,73 @@ li{
             margin-left:147px;
             cursor:pointer;
         }
+        //pay-rmb-submit
+        .pay-rmb-submit{
+          p{
+            height:28px;
+            text-align: center;
+            font-size:20px;
+            color:#6F90AE;
+          }
+          .su-payment{
+            margin-bottom:0;
+          }
+        }
+    }
+    //wallet-detailGo
+    .wallet-detailGo{
+      padding-top:40px;
+      p{
+        height:25px;
+        line-height: 25px;
+        font-size:16px;
+        color:#50688C;
+        margin-bottom:24px;
+      }
+      ul:nth-child(2){
+        margin-bottom:24px;
+        li{
+          height:40px;
+          line-height:40px;
+          span:nth-child(1){
+            display:inline-block;
+            color:#FFA800;
+            font-size:14px;
+            margin-right:24px;
+          }
+          span:nth-child(2){
+            display:inline-block;
+            width:120px;
+            height:40px;
+            border-radius:4px;
+            background:#67C23A;
+            color:#fff;
+            font-size:14px;
+            text-align: center;
+            line-height: 40px;
+          }
+        }
+      }
+      ul:nth-child(3){
+        li{
+          height:22px;
+          line-height: 22px;
+          margin-bottom:24px;
+          span:nth-child(1){
+            display: inline-block;
+            width:190px;
+            color:#7C8FA6;
+            font-size:14px;
+          }
+          span:nth-child(2){
+            color:#50688C;
+            font-size:14px;
+          }
+        }
+        li:last-child{
+          margin-bottom:0;
+        }
+      }
     }
 
 }
