@@ -94,11 +94,42 @@ export function removeSupply(data) {
     method: 'DELETE'
   })
 }
+// 获取发票信息列表
+export function getInvoiceList(data) {
+  return request({
+    url: '/v1/receipt',
+    method: 'get',
+    data
+  })
+}
 // 添加一条发票信息
 export function addInvoice(data) {
   return request({
     url: '/v1/receipt/save',
     method: 'post',
+    data
+  })
+}
+//  设置默认发票信息
+export function setInvoiceDefault(data) {
+  return request({
+    url: data.url,
+    method: 'patch'
+  })
+}
+//删除发票信息
+export function removeInvoice(data) {
+  return request({
+    url: data.url,
+    method: 'DELETE'
+  })
+}
+
+// 获取寄送地址信息列表
+export function getAddressList(data) {
+  return request({
+    url: '/v1/sendaddress',
+    method: 'get',
     data
   })
 }
@@ -108,6 +139,21 @@ export function addAddress(data) {
     url: '/v1/sendaddress/save',
     method: 'post',
     data
+  })
+}
+
+//  设置默认寄送地址
+export function setaddressDefault(data) {
+  return request({
+    url: data.url,
+    method: 'patch'
+  })
+}
+//删除寄送地址
+export function removeaddress(data) {
+  return request({
+    url: data.url,
+    method: 'DELETE'
   })
 }
 

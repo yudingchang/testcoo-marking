@@ -87,7 +87,7 @@
     <el-table
       :data="invoiceTableData"
       style="width: 100%"
-      v-show="num==2"
+      v-if="num==2"
       >
       <el-table-column
         label="公司名称"
@@ -102,19 +102,19 @@
         >
       </el-table-column>
       <el-table-column
-        prop="email"
+        prop="bank"
         label="开户银行"
         width="200"
         >
       </el-table-column>
       <el-table-column
-        prop="email"
+        prop="bank_account"
         label="开户账号"
         width="200"
         >
       </el-table-column>
       <el-table-column
-        prop="email"
+        prop="telephone"
         label="手机号码"
         width="200"
         >
@@ -122,10 +122,10 @@
       <el-table-column
         label="操作">
         <template slot-scope="scope">
-          <el-button @click="setSupplyDefault(scope.row)" type="text" size="small" v-if="scope.row.is_default==0">设为默认</el-button>
-          <el-button type="text" size="small" v-if="scope.row.is_default==1" :class="{changecolor:scope.row.is_default==1}">默认</el-button>
-          <el-button type="text" size="small" @click="editSupply(scope.row)">编辑</el-button>
-          <el-button type="text" size="small" @click="removeSupply(scope.row)">删除</el-button>
+          <el-button @click="setInvoiceDefault(scope.row)" type="text" size="small" v-if="scope.row.default==0">设为默认</el-button>
+          <el-button type="text" size="small" v-if="scope.row.default==1" :class="{changecolor:scope.row.default==1}">默认</el-button>
+          <el-button type="text" size="small" @click="editInvoice(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="removeInvoice(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -136,24 +136,26 @@
       >
       <el-table-column
         label="收件人姓名"
-        prop="company_name"
         width="200"
        >
+        <template slot-scope="scope">
+          {{ scope.row.last_name + scope.row.first_name}}
+        </template>
       </el-table-column>
       <el-table-column
-        prop="tax_id_number"
+        prop="detailed_address"
         label="收件地址"
         width="200"
         >
       </el-table-column>
       <el-table-column
-        prop="email"
+        prop="telephone"
         label="手机号码"
         width="200"
         >
       </el-table-column>
       <el-table-column
-        prop="email"  
+        prop="fixed_telephone"  
         label="固定电话"
         width="200"
         >
@@ -161,10 +163,10 @@
       <el-table-column
         label="操作">
         <template slot-scope="scope">
-          <el-button @click="setSupplyDefault(scope.row)" type="text" size="small" v-if="scope.row.is_default==0">设为默认</el-button>
-          <el-button type="text" size="small" v-if="scope.row.is_default==1" :class="{changecolor:scope.row.is_default==1}">默认</el-button>
-          <el-button type="text" size="small" @click="editSupply(scope.row)">编辑</el-button>
-          <el-button type="text" size="small" @click="removeSupply(scope.row)">删除</el-button>
+          <el-button @click="setaddressDefault(scope.row)" type="text" size="small" v-if="scope.row.default==0">设为默认</el-button>
+          <el-button type="text" size="small" v-if="scope.row.default==1" :class="{changecolor:scope.row.default==1}">默认</el-button>
+          <el-button type="text" size="small" @click="editaddress(scope.row)">编辑</el-button>
+          <el-button type="text" size="small" @click="removeaddress(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -237,124 +239,97 @@
     <el-dialog
       :title="invoiceTitle"
       :visible.sync="invoiceDialogVisible"
-      width="500px"
+      width="600px"
       class="email-dialog"
       top="20vh"
       center>
-      <el-form :model="invoiceform" :rules="invoicerules" ref="invoiceform" :inline="true" >
-        <el-form-item label="公司名称:" style="" prop="supplier_name" :label-width="labelwidth">
-          <el-input placeholder="请输入公司名称" style="width:326px;" v-model="supplyform.supplier_name"></el-input>
-        </el-form-item>
-        <el-form-item label="纳税人识别号:" style="" prop="supplier_name" :label-width="labelwidth">
-          <el-input placeholder="请输入纳税人识别号" style="width:326px;" v-model="supplyform.supplier_name"></el-input>
-        </el-form-item>
-        <el-form-item label="开户银行:" style="" prop="supplier_name" :label-width="labelwidth">
-          <el-input placeholder="请输入开户银行" style="width:326px;" v-model="supplyform.supplier_name"></el-input>
-        </el-form-item>
-        <el-form-item label="银行账号:" style="" prop="supplier_name" :label-width="labelwidth">
-          <el-input placeholder="请输入银行账号" style="width:326px;" v-model="supplyform.supplier_name"></el-input>
-        </el-form-item>
-        <el-form-item label="单位电话:" :label-width="labelwidth">
-          <el-select  placeholder="请选择" style="width:165px;" class="select-input">
-              <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-              >    
-              </el-option>
-          </el-select>
-          <el-form-item prop="telephone">
-            <el-input class="special-input" style="width:165px;margin-left:-10px;border-left:none" type="text" placeholder="请输入单位电话" v-model="supplyform.telephone"></el-input>
-          </el-form-item> 
-        </el-form-item>
-        <br>
-        <el-form-item label="手机号码:" :label-width="labelwidth">
-          <el-select  placeholder="请选择" style="width:165px;" class="select-input">
-              <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-              >    
-              </el-option>
-          </el-select>
-          <el-form-item prop="telephone">
-            <el-input class="special-input" style="width:165px;margin-left:-10px;" type="text" placeholder="请输入固定电话" v-model="supplyform.telephone"></el-input>
-          </el-form-item> 
-        </el-form-item>
-        <el-form-item label="银行账号:" style="" prop="supplier_name" :label-width="labelwidth">
-          <el-input placeholder="请输入银行账号" style="width:326px;" v-model="supplyform.supplier_name"></el-input>
-        </el-form-item>
-        <el-form-item label="详细地址:" :label-width="labelwidth" prop="email">
-          <el-input type="textarea" placeholder="请输入详细地址" style="width:326px;" v-model="supplyform.email"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="invoiceDialogVisible = false" class="cancle">取 消</el-button>
-        <el-button @click.native="invoicesubmit()" class="submit">确 定</el-button>
-      </span>
+      <el-form :model="invoiceform" :rules="invoicerules" ref="invoiceform" :label-width="formLabelWidth">
+                <el-form-item label="公司名称：" prop="company_name">
+                    <el-input v-model="invoiceform.company_name"></el-input>
+                </el-form-item>
+                <el-form-item label="纳税人识别号：" prop="tax_id_number">
+                    <el-input v-model="invoiceform.tax_id_number"></el-input>
+                </el-form-item>
+                <el-form-item label="开户银行：" prop="bank">
+                    <el-input v-model="invoiceform.bank"></el-input>
+                </el-form-item>
+                <el-form-item label="银行账号：" prop="bank_account">
+                    <el-input v-model="invoiceform.bank_account"></el-input>
+                </el-form-item>
+                <el-form-item label="单位电话：" prop="telephone">
+                    <el-input placeholder="请输入内容" v-model="invoiceform.telephone" class="input-with-select">
+                        <el-select v-model="invoiceform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                        <el-option label="86" value="1"></el-option>
+                        <el-option label="86" value="2"></el-option>
+                        <el-option label="86" value="3"></el-option>
+                        </el-select>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="单位地址：" prop="address">
+                    <el-input v-model="invoiceform.address"></el-input>
+                </el-form-item>
+                <el-form-item label="详细地址：" prop="detailed_address">
+                    <el-input type="textarea" v-model="invoiceform.detailed_address"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="invoiceDialogVisible = false" class="cancle">取 消</el-button>
+                <el-button type="primary" @click="invoicesubmit()" class="submit">确 定</el-button>
+            </div>
     </el-dialog>
     <el-dialog
       :title="addressTitle"
       :visible.sync="addressDialogVisible"
-      width="500px"
+      width="600px"
       class="email-dialog"
       top="20vh"
       center>
-      <el-form :model="addressform" :rules="addressrules" ref="addressform" :inline="true" >
-         <el-form-item label="收件人姓:" style="" prop="first_name" :label-width="labelwidth">
-          <el-input style="width:120px;" placeholder="请输入姓" v-model="supplyform.first_name"></el-input>
-        </el-form-item>
-        <el-form-item label="名:" prop="last_name" label-width="72px">
-          <el-input style="width:120px;" placeholder="请输入名" v-model="supplyform.last_name"></el-input>
-        </el-form-item>
-        <br>
-        <el-form-item label="收件地址:" style="" prop="supplier_name" :label-width="labelwidth">
-          <el-input placeholder="请输入公司名称" style="width:326px;" v-model="supplyform.supplier_name"></el-input>
-        </el-form-item>
-        <el-form-item label="详细地址:" :label-width="labelwidth" prop="email">
-          <el-input type="textarea" placeholder="请输入详细地址" style="width:326px;" v-model="supplyform.email"></el-input>
-        </el-form-item>
-        <el-form-item label="收件人手机号:" :label-width="labelwidth">
-          <el-select  placeholder="请选择" style="width:165px;" class="select-input">
-              <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-              >    
-              </el-option>
-          </el-select>
-          <el-form-item prop="telephone">
-            <el-input class="special-input" style="width:165px;margin-left:-10px;" type="text" placeholder="请输入手机号码" v-model="supplyform.telephone"></el-input>
-          </el-form-item> 
-        </el-form-item>
-        <el-form-item label="收件人固定号:" :label-width="labelwidth">
-          <el-select  placeholder="请选择" style="width:165px;" class="select-input">
-              <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-              >    
-              </el-option>
-          </el-select>
-          <el-form-item prop="telephone">
-            <el-input class="special-input" style="width:165px;margin-left:-10px;" type="text" placeholder="请输入固定电话" v-model="supplyform.telephone"></el-input>
-          </el-form-item> 
-        </el-form-item>  
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="invoiceDialogVisible = false" class="cancle">取 消</el-button>
-        <el-button @click.native="invoicesubmit()" class="submit">确 定</el-button>
-      </span>
+      <el-form :model="addressform" :rules="addressrules" ref="addressform" :label-width="invoiceLabelWidth" :inline="true">
+                <el-form-item label="收件人姓：" label-width="130px" prop="company_name">
+                    <el-input v-model="addressform.last_name"  style="width:160px"></el-input>
+                </el-form-item>
+                <el-form-item label="名：" prop="company_name" label-width="40px">
+                    <el-input v-model="addressform.first_name"  style="width:160px"></el-input>
+                </el-form-item>
+                <br>
+                <el-form-item label="收件地址：" prop="address">
+                    <el-input v-model="addressform.address"   style="width:375px"></el-input>
+                </el-form-item>
+                <br>
+                <el-form-item label="详细地址：" prop="detailed_address">
+                    <el-input type="textarea" style="width:375px" v-model="addressform.detailed_address" ></el-input>
+                </el-form-item>
+                <br>
+                <el-form-item label="收件人手机号：" prop="telephone">
+                    <el-input placeholder="请输入内容" v-model="addressform.telephone" class="input-with-select" style="width:375px">
+                        <el-select v-model="addressform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                        <el-option label="86" value="1"></el-option>                                                                                                                                                            
+                        <el-option label="86" value="2"></el-option>
+                        <el-option label="86" value="3"></el-option>
+                        </el-select>
+                    </el-input>
+                </el-form-item>
+                <br>
+                <el-form-item label="收件人固定号：" prop="fixed_telephone">
+                    <el-input placeholder="请输入内容" v-model="addressform.fixed_telephone" class="input-with-select" style="width:375px"> 
+                        <el-select v-model="addressform.fixed_telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                        <el-option label="86" value="1"></el-option>
+                        <el-option label="86" value="2"></el-option>
+                        <el-option label="86" value="3"></el-option>
+                        </el-select>
+                    </el-input>                     
+                </el-form-item>                                                     
+            </el-form>                                                  
+            <div slot="footer" class="dialog-footer">                   
+                <el-button @click="addressdialogFormVisible = false" class="cancle">取 消</el-button>
+                <el-button type="primary" @click="addresssubmit()" class="submit">确 定</el-button>
+            </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import {getdata , addEmail , setDefault , editEmail , removeEmail , getSupplydata , addSupply , editSupply , setSupplyDefault , removeSupply} from "@/api/accountManagement";
+import {getdata , addEmail , setDefault , editEmail , removeEmail , getSupplydata , addSupply , editSupply , setSupplyDefault , removeSupply ,addInvoice,getInvoiceList,setInvoiceDefault,removeInvoice,getAddressList,addAddress,setaddressDefault,removeaddress} from "@/api/accountManagement";
 export default {
   name: "",
   components: {},
@@ -434,13 +409,39 @@ export default {
           required: true, message: '请输入手机号码', trigger: 'blur'
         }]
       },
+      invoiceTableData:[],
+      invoiceform:{
+        address:[1,2,3]
+      },
+      invoicerules:{
+        company_name:[{ required: true, message: '请输入公司名称', trigger: 'blur' }],    
+        tax_id_number:[{ required: true, message: '请输入纳税人识别号', trigger: 'blur' }],  
+        bank:[{ required: true, message: '请输入开户银行', trigger: 'blur' }],  
+        bank_account:[{ required: true, message: '请输入银行账号', trigger: 'blur' }],  
+        telephone:[{ required: true, message: '请输入单位电话', trigger: 'blur'}],
+        address:[{ required: true, message: '请输入单位地址', trigger: 'blur'}],
+        detailed_address:[{ required: true, message: '请输入详细地址', trigger: 'blur'}],
+      },
+      addressTableData:[],
+      addressTitle:'新增寄送地址',
+      addressform:{},
+      addressrules:{
+        last_name:[{required: true, message: '请输入收件人姓', trigger: 'blur'}],
+        first_name:[{required: true, message: '请输入名', trigger: 'blur'}],
+        address:[{ required: true, message: '请输入单位地址', trigger: 'blur'}],
+        detailed_address:[{ required: true, message: '请输入详细地址', trigger: 'blur'}],
+        telephone:[{ required: true, message: '请输入单位电话', trigger: 'blur'}],
+        fixed_telephone:[{ required: true, message: '请输入收件人固定号码', trigger: 'blur'}],
+      },
       tableData:[],
       supplyTableData:[],
       num:0,
+      formLabelWidth:"140px",
+      invoiceLabelWidth:'130px',
       emailDialogVisible:false,
       supplyDialogVisible:false,
       invoiceDialogVisible:false,
-      addressDialogVisible:true,
+      addressDialogVisible:false,
       labelwidth:'100px',
       emailTitle:'新增报告接收电子邮箱',
       supplyTitle:'新增供应商信息',
@@ -469,7 +470,14 @@ export default {
         });    
       }
       if(index==2){
-        // this.getSupplydata()
+        this.$nextTick(() => {
+           this.getinvoicedata()
+        }); 
+      }
+      if(index==3){
+        this.$nextTick(() => {
+           this.getaddressdata()
+        }); 
       }
     },
     // 获取电子邮箱表格数据
@@ -497,6 +505,14 @@ export default {
       if(this.num==1){
         this.supplyDialogVisible = true
         this.supplyTitle == '新增供应商信息'
+      }
+      if(this.num==2){
+        this.invoiceDialogVisible = true
+        this.invoiceTitle == '新增发票信息'
+      }
+      if(this.num==3){
+        this.addressDialogVisible = true
+        this.addressTitle == '新增寄送地址'
       }
       
     },
@@ -632,6 +648,152 @@ export default {
         })
      
     },
+    // 获取发票信息表格数据  
+    getinvoicedata(){
+      getInvoiceList().then(response =>{
+        if(response.data.code == 0){
+          this.invoiceTableData = response.data.data.list
+        }
+      })
+    },
+    // 获取发票信息默认 
+    setInvoiceDefault(row){
+      setInvoiceDefault({
+        url: 'v1/receipt/set/'+row.id
+      }).then(response =>{
+         if(response.data.code == 0){
+            this.getinvoicedata()
+          }
+      })
+    },
+    // 编辑发票信息
+    editInvoice(row){
+      this.invoiceTitle = '编辑发票信息'
+      this.invoiceDialogVisible = true
+      this.invoiceform = Object.assign({}, row)
+    },
+    // 新增发票信息
+    invoicesubmit(){
+       if(this.invoiceTitle != '编辑发票信息'){
+          this.$refs['invoiceform'].validate((valid) => {
+            if (valid) {
+              addInvoice({
+                  ...this.invoiceform
+                }).then(response =>{
+                  if(response.data.code == 0){
+                    this.invoiceDialogVisible = false
+                    this.getinvoicedata()
+                  }
+                })
+          }
+        })
+      }else{
+        this.$refs['invoiceform'].validate((valid) => {
+            if (valid) {
+              editEmail({
+                  ...this.invoiceform,
+                  url: 'v1/receipt/update/'+this.invoiceform.id
+                }).then(response =>{
+                  if(response.data.code == 0){
+                    this.invoiceDialogVisible = false
+                    this.getinvoicedata()
+                  }
+                })
+          }
+        })
+      }
+    },
+    // 删除发票信息
+    removeInvoice(row){
+      this.$confirm('是否确认删除', {
+          confirmButtonText: '是',
+          cancelButtonText: '取消',
+          // type: 'warning',
+          center: true
+        }).then(() => {
+           removeInvoice({
+            url: 'v1/receipt/delete/'+row.id
+          }).then(response =>{
+            if(response.data.code == 0){
+                this.getinvoicedata()
+              }
+          })
+        })
+    },
+
+
+      // 获取寄送地址表格数据  
+    getaddressdata(){
+      getAddressList().then(response =>{
+        if(response.data.code == 0){
+          this.addressTableData = response.data.data.list
+        }
+      })
+    },
+    // 获取寄送地址默认 
+    setaddressDefault(row){
+      setaddressDefault({
+        url: 'v1/sendaddress/set/'+row.id
+      }).then(response =>{
+         if(response.data.code == 0){
+            this.getaddressdata()
+          }
+      })
+    },
+    // 编辑寄送地址
+    editaddress(row){
+      this.addressTitle = '编辑寄送地址'
+      this.addressDialogVisible = true
+      this.addressform = Object.assign({}, row)
+    },
+    // 新增寄送地址
+    addresssubmit(){
+       if(this.addressTitle != '编辑发票信息'){
+          this.$refs['addressform'].validate((valid) => {
+            if (valid) {
+              addAddress({
+                  ...this.addressform
+                }).then(response =>{
+                  if(response.data.code == 0){
+                    this.addressDialogVisible = false
+                    this.getaddressdata()
+                  }
+                })
+          }
+        })
+      }else{
+        this.$refs['addressform'].validate((valid) => {
+            if (valid) {
+              editEmail({
+                  ...this.addressform,
+                  url: 'v1/sendaddress/update/'+this.addressform.id
+                }).then(response =>{
+                  if(response.data.code == 0){
+                    this.addressDialogVisible = false
+                    this.getaddressdata()
+                  }
+                })
+          }
+        })
+      }
+    },
+    // 删除寄送地址
+    removeaddress(row){
+      this.$confirm('是否确认删除', {
+          confirmButtonText: '是',
+          cancelButtonText: '取消',
+          // type: 'warning',
+          center: true
+        }).then(() => {
+           removeaddress({
+            url: 'v1/sendaddress/delete/'+row.id
+          }).then(response =>{
+            if(response.data.code == 0){
+                this.getaddressdata()
+              }
+          })
+        })
+    }
     
 
   },
@@ -657,9 +819,11 @@ export default {
 .el-table th{
     background-color: #F5F8FA;
     text-align: center;
+    font-size: 14px;
 }
 .el-table td {
     text-align: center;
+    font-size: 12px;
 }
 .el-button--text{
   color: #50688C;
@@ -705,6 +869,7 @@ export default {
     // line-height: 200px;
     height: 50px;
     border-bottom: 1px solid #F5F8FA;
+    background-color:#ffffff;
     .tabs {
       display: inline-block;
       width: 800px;
