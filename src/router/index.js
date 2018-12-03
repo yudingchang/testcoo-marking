@@ -382,6 +382,12 @@ export const asyncRouterMap = [
         component: () => import('@/views/fundManagement/walletAccount'),
         name: 'walletAccount',
         meta: { title: '钱包账户' }
+      },
+      {
+        path: 'monthlyState',
+        component: () => import('@/views/fundManagement/monthlyState'),
+        name: 'monthlyState',
+        meta: { title: '测库月结' }
       }
     ]
   },
