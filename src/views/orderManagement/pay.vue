@@ -25,13 +25,18 @@
             <el-table-column
                 label="工作量">
                 <template slot-scope="scope">
-                    {{ calculateManDay(scope.row.fees)}}人天
+                    {{scope.row.workload}}人天
                 </template>
             </el-table-column>
             <el-table-column
                 label="订单金额">
                  <template slot-scope="scope">
-                    <!-- {{ calculateMoney(scope.row.fees)}} -->
+                    <span>{{ calculateMoney(scope.row.fees)}}</span>
+                    <span class="tc-separate" v-if="scope.row.fees.supplementary">
+                        <span v-for="(item,index) in scope.row.fees.supplementary" :key = index>
+                            {{item.name}}¥{{item.currencies.CNY}}/${{item.currencies.CNY}}
+                        </span>
+                    </span> 
                 </template>
             </el-table-column>
         </el-table>         
@@ -99,7 +104,7 @@
                 <span class="tip">忘记密码?</span>
             </el-form-item>  
             <el-form-item label=""> 
-                <el-button type="warning" class="confirmPay" @click="confirmPay()">确定付款</el-button>
+                <el-button type="warning" class="confirmPay" :disabled="paymentTypeId=='' || password==''" @click="confirmPay()">确定付款</el-button>
             </el-form-item>                                                            
         </el-form>
         <el-dialog title="新增发票信息" :visible.sync="dialogFormVisible" width="600px" center>
@@ -179,17 +184,53 @@
                 <el-button type="primary" @click="addresssubmit()" class="submit">确 定</el-button>
             </div>
         </el-dialog>
+        <!-- 钱包支付成功 -->
+        <el-dialog
+            title=""
+            :visible.sync="successDialogVisible"
+            width="600px"
+            center
+            class="successDialog">
+                <div class="success-content">
+                    <img src="/static/image/success.png" alt="">
+                    <p>支付成功</p>
+                    <el-button type="primary" class="comfirm" @click="successDialogVisible = false">确 定</el-button>
+                </div>
+        </el-dialog>
+        <!-- 钱包支付失败 -->
+        <el-dialog
+            title=""
+            :visible.sync="failDialogVisible"
+            width="600px"
+            center
+            class="successDialog">
+                <div class="success-content">
+                    <!-- <img src="/static/image/success.png" alt="">
+                     -->
+                     <i class="iconfont icon-Fill3"/>
+                    <p>{{wrongMessage}}</p>
+                    <el-button type="primary" class="comfirm" @click="successDialogVisible = false">确 定</el-button>
+                </div>
+        </el-dialog>
   </div>
 </template>
 
 <script>
+
+
 import {addInvoice,addAddress,getInvoiceList,getAddressList} from "@/api/accountManagement";
 import {orderDetail,confirmPay,surePay} from "@/api/order";
+
+let newTab;
+
 export default {
   name: "",
   components: {},
   data() {
     return {
+      successDialogVisible:false,
+      failDialogVisible:false,
+      wrongMessage:'',
       tableData: [],
       CNYPay:[],
       USDPay:[],
@@ -332,33 +373,25 @@ export default {
           })  
       },
     //   计算工作量
-    calculateManDay(row){
-        let fees = 0
-        _.each(row, currency => {
-            const value = Number(currency.workload)
-            fees = value==null ? Number(fees) : Number(fees) + value
-        })
-        return fees
-    },
-    //   计算总金额
-    // calculateMoney(value){
-    //     let CNYfees = 0
-    //     let USDfees = 0
-    //     _.each(value, fee => {
-    //         if(fee.is_main == true){
-    //              _.each(fee.currencies, currency => {
-    //             const value = Number(currency.value)
-    //             if(currency.name == "CNY"){
-    //                 CNYfees +=  value
-    //             }else{
-    //                 USDfees +=  value
-    //             }        
-    //             })
-    //         }
-       
+    // calculateattch(value){
+    //      _.each(value.main, fee => {
+    //         CNYpay += Number(fee.currencies.CNY)
+    //         USDpay += Number(fee.currencies.USD)
     //     })
-    //     return fees;
     // },
+    //   计算总金额
+    calculateMoney(value){
+        let CNYpay =  0
+        let USDpay = 0
+        let fees = ''
+        _.each(value.main, fee => {
+            CNYpay += Number(fee.currencies.CNY)
+            USDpay += Number(fee.currencies.USD)
+        })
+        USDpay = USDpay==0 ? '' : '/$'+USDpay
+        fees = "¥" + CNYpay + USDpay
+        return fees;
+    },
      //  人民币支付
     CNY(){
      this.CNYPayShow = true   
@@ -373,6 +406,9 @@ export default {
     },
     //  预付款
     confirmPay(){
+        if(this.paymentTypeId ==1){
+            newTab = window.open();
+        } 
         confirmPay({
            url:'/v1/payment/pay/select/' + this.paymentOrder + '/' + this.paymentTypeId
         }).then(response =>{
@@ -389,7 +425,18 @@ export default {
             url: this.payurl,
             password:this.password
         }).then(response =>{
-
+            let res = response.data
+            if(this.paymentTypeId ==2 && res.code == 0){
+                this.successDialogVisible = true
+            }else if(this.paymentTypeId ==2 && res.code != 0){    
+                this.wrongMessage = res.data.message
+                this.failDialogVisible = true
+            }else if(this.paymentTypeId ==1){
+                const div = document.createElement('div');
+                div.innerHTML = res; // html code
+                newTab.document.body.appendChild(div);
+                newTab.document.forms.alipaysubmit.submit()
+            }
         })
     }
 
@@ -420,9 +467,33 @@ export default {
     color: #7C8FA6;
     font-weight: bold;
 }
+.el-table th{
+    text-align: center;
+}
+.el-table td{
+    text-align: center;
+    font-size: 12px;
+}
 </style>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
+.tc-separate {
+span + span {
+&::before {
+content: ' ，';
+}
+}
+span:first-child{
+    &::before {
+content: ' (';
+}
+}
+span:last-child{
+    &::after {
+content: ' ) ';
+}
+}
+}
 .dialog-footer{
   .cancle{
     color: #909399;
@@ -474,6 +545,34 @@ export default {
         border: none;
     }
   }
+}
+.successDialog{
+    .success-content{
+        width: 240px;
+        margin: 0 auto;
+        i{
+            width: 80px;
+            font-size: 80px;
+            color: #67C23A;
+            display: block;
+            margin: 0 auto;
+        }
+        img{
+            display: block;
+            margin: 0 auto;
+        }
+        p{
+            width: 240px;
+            margin: 14px 0 30px;
+            text-align: center;
+        }
+        .comfirm{
+            width: 240px;
+            height: 40px;
+            background-color:#FFA800;
+            border: none;
+        }
+    }
 }
 </style>
 

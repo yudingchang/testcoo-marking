@@ -54,4 +54,12 @@ export function surePay(data) {
       method: 'get',
       params:data
     })
-  }    
+  }   
+// 获取订单详情
+export function getOrderList(data) {
+    return request({
+      url: data.url,
+      method: 'get',
+    //   params:data
+    })
+  }      

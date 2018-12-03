@@ -355,6 +355,13 @@ export const asyncRouterMap = [
         name: 'pay',
         component: () => import('@/views/orderManagement/pay'),
         meta: { title: '验货订单' }
+      },
+      {
+        path: 'orderDetails',
+        hidden: true,
+        name: 'orderDetails',
+        component: () => import('@/views/orderManagement/orderDetails'),
+        meta: { title: '订单详情' }
       }
     ]
   },

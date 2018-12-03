@@ -46,9 +46,11 @@
       style="width: 100%"
       :row-class-name="tableRowClassName">
       <el-table-column
-        prop="number"
         label="订单号"
         width="200">
+        <template slot-scope="scope">
+          <el-button type="text" @click="goOrderDetail(scope.row)">{{scope.row.number}}</el-button>
+        </template>
       </el-table-column>
       <el-table-column
         prop="created_at"
@@ -63,10 +65,11 @@
       </el-table-column>
       <el-table-column
         prop="product_name"
+        width="300px"
         label="产品名称">
         <template slot-scope="scope">
-          <span v-if="scope.row.products.length==1">{{scope.row.products[0].name}}</span>
-          <span v-else-if="scope.row.products.length>1"><span style="display:inline-block;width:150px;">{{scope.row.products[0].name}}...</span><i style="margin-left:20px" class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span>
+          <span v-if="scope.row.products.length==1"><span style="display:inline-block;width:100px;">{{scope.row.products[0].name}}</span> </span>
+          <span v-else-if="scope.row.products.length>1"><span style="display:inline-block;width:100px;">{{scope.row.products[0].name}}...</span><i style="margin-left:20px" class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span>
         </template>
       </el-table-column>
        <el-table-column
@@ -332,6 +335,10 @@ export default {
     pay(row){
       console.log(row)
       this.$router.push({path: 'pay', query: {order:row.id}})
+    },
+    // 去订单详情
+    goOrderDetail(row){
+      this.$router.push({path: 'orderDetails', query: {orderId:row.id}})
     }
   },
   mounted() {
