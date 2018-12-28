@@ -6,11 +6,11 @@
       
       <div>
         <el-button
-        size="small"
-        class="addNewProduct"
-        @click="addTab(editableTabsValue2)">
-        增加新产品
-      </el-button>
+          size="small"
+          class="addNewProduct"
+          @click="addTab(editableTabsValue2)">
+          增加新产品
+        </el-button>
         <el-tabs v-model="editableTabsValue2" type="card" closable @tab-remove="removeTab">
           <el-tab-pane
             v-for="(item, index) in editableTabs2"
@@ -206,7 +206,6 @@
         </el-form-item>
       </el-form>
     </div>
-
     <el-dialog
       :visible.sync="emailDialogVisible"
       title="新增报告接收电子邮箱"
@@ -240,7 +239,7 @@ import { addEmail, getdata } from '@/api/accountManagement'
 import {order , getOtherMessage} from '@/api/order'
 import upLoad from '@/components/Upload'
 export default {
-  name: '',
+  name: 'controlboard',
   components: {
     upLoad
   },

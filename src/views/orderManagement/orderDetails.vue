@@ -282,62 +282,67 @@ export default {
   }
 };
 </script>
-<style>
-.el-tabs__item.is-active {
-  color: #ffa800;
-  height: 40px;
-  line-height: 40px;
-  position: relative;
-  background-image: none;
-  background-color: #ffffff;
-  top: 0;
-  width: 100px;
-  text-align: center;
-}
-.el-tabs__nav-wrap {
-  margin-bottom: 0;
-}
-.el-tabs__item {
-  margin-right: 10px;
-  border: 1px solid #e6eaee;
-  line-height: 35px;
-  height: 35px;
-  /* // background-color: #ffffff; */
-  border-radius: 4px;
-  position: relative;
-  color: #768caa;
-  top: 5px;
-  background-image: linear-gradient(0deg, #f4f7fa 0%, #ffffff 100%);
-}
-.el-tabs__item:hover {
-  color: #ffa800;
-}
-.el-tabs--card > .el-tabs__header .el-tabs__nav {
-  border: none;
-}
-.el-tabs--card > .el-tabs__header .el-tabs__item:first-child {
-  border-left: 1px solid #e6eaee;
-}
-.el-tabs__nav-next,
-.el-tabs__nav-prev {
-  line-height: 50px;
-}
-.el-tabs--card > .el-tabs__header {
-  border-bottom: none;
-  margin: 0;
-}
-.el-form-item__label {
-  font-size: 14px;
-  color: #7c8fa6;
-}
-.el-form-item {
-    margin-bottom: 15px;
-}
-.el-table th {
-   background: #7DC855; 
-   color: #ffffff;
+<style rel="stylesheet/scss" lang="scss" >
+.order-detail{
+  .el-tabs__item.is-active {
+    color: #ffa800;
+    height: 40px;
+    line-height: 40px;
+    position: relative;
+    background-image: none;
+    background-color: #ffffff;
+    top: 0;
+    width: 100px;
+    text-align: center;
+  }
+  .el-tabs__nav-wrap {
+    margin-bottom: 0;
+  }
+  .el-tabs__item {
+    margin-right: 10px;
+    border: 1px solid #e6eaee;
+    line-height: 35px;
+    height: 35px;
+    /* // background-color: #ffffff; */
+    border-radius: 4px;
+    position: relative;
+    color: #768caa;
+    top: 5px;
+    background-image: linear-gradient(0deg, #f4f7fa 0%, #ffffff 100%);
+  }
+  .el-tabs__item:hover {
+    color: #ffa800;
+  }
+  .el-tabs--card > .el-tabs__header .el-tabs__nav {
+    border: none;
+  }
+  .el-tabs--card > .el-tabs__header .el-tabs__item:first-child {
+    border-left: 1px solid #e6eaee;
+  }
+  .el-tabs__nav-next,
+  .el-tabs__nav-prev {
+    line-height: 50px;
+  }
+  .el-tabs--card > .el-tabs__header {
+    border-bottom: none;
+    margin: 0;
+  }
+  .el-form-item__label {
+    font-size: 14px;
+    color: #7c8fa6;
+  }
+  .el-form-item {
+      margin-bottom: 15px;
+  }
+  .el-table th {
+    background: #7DC855; 
+    color: #ffffff;
+  }
 }
 </style>
+
+
+
 <style rel="stylesheet/scss" lang="scss" scoped>
 .order-detail {
   margin: 32px 0 0 100px;

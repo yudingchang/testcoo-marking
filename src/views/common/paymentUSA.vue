@@ -1,6 +1,6 @@
 <template>
-  <div class="paymentCHN">
-    <ul class="paymentCHN-ul">
+  <div class="paymentUSA">
+    <ul class="paymentUSA-ul">
         <!-- <li v-if="unionpay">
             <el-radio v-model="radio" label="1"/>
             <img src="../../../static/image/UnionPay.png" alt="">
@@ -24,29 +24,35 @@
         </li> -->
         <li v-for="(item,index) in data" :key="index">
              <el-radio v-model="radio" :label="item.id"/>
-             <template v-if="item.name=='unionpay'">
+             <template v-if="item.name=='paypal'">
                  <span class="lis1">
-                     <img src="../../../static/image/UnionPay.png" alt="">
-                     <span>银联</span>
+                     <img src="../../../static/image/paypal.png" alt="">
+                     <span>贝宝</span>
                  </span>
              </template>
-             <template v-if="item.name=='alipayment'">
+             <template v-if="item.name=='visa'">
                  <span class="lis2">
-                    <img src="../../../static/image/payment.png" alt="">
-                    <span>支付宝</span>
+                    <img src="../../../static/image/visa.png" alt="">
+                    <span>维萨</span>
                  </span>
              </template>
-             <template v-if="item.name=='testcoopay'">
+             <template v-if="item.name=='mastercard'">
                  <span class="lis3">
-                     <span>测库月结</span>
-                     <span>(你还有一份账单未结算)</span>
+                    <img src="../../../static/image/mastercard.png" alt="">
+                    <span>万事达信用卡</span>
                  </span>
              </template>
              <template v-if="item.name=='wallet'">
                  <span class="lis4">
                      <span>钱包</span>
-                     <span>￥8989.89</span>
+                     <span>$8989.89</span>
                      <span>充值</span>
+                 </span>
+             </template>
+             <template v-if="item.name=='testcoopay'">
+                 <span class="lis5">
+                     <span>测库月结</span>
+                     <span>(你还有一份账单未结算)</span>
                  </span>
              </template>
         </li>
@@ -56,26 +62,30 @@
 
 <script>
 export default{
-  name: 'paymentCHN',
+  name: 'paymentUSA',
   data () {
       return {
         radio: "",
         data:[
             {
                 id:1,
-                name:"unionpay"
+                name:"paypal"
             },
             {
                 id:2,
-                name:"alipayment"
+                name:"visa"
             },
             {
                 id:3,
-                name:"testcoopay" 
+                name:"mastercard" 
             },
             {
                 id:4,
                 name:"wallet"
+            },
+            {
+                id:5,
+                name:"testcoopay"
             }
         ]
 
@@ -94,84 +104,16 @@ export default{
         //监听页面按钮点击触发的事件
         radio(val) {
             // console.log(val)
-            this.$emit("receiveDateChn",val)
+            this.$emit("receiveDateUsa",val)
             // console.log(val)
 
         }
     }
 }
 </script>
-<style rel="stylesheet" lang="scss" scoped>
-.paymentCHN{
-    height:100%;
-    margin-bottom:24px;
-    .paymentCHN-ul{
-        li{
-            height:80px;
-            line-height: 80px;
-            border-bottom:1px solid #C0C4CC;
-            padding-left:55px;
-        }
-        .lis1{
-            img{
-                margin:0 75px 0 64px;
-                vertical-align: middle;
-            }
-            span{
-                font-size:18px;
-                color:#50688C;
-            }
-        }
-        .lis2{
-            img{
-                margin:0 40px 0 24px;
-                vertical-align: middle;
-            }
-            span{
-                font-size:18px;
-                color:#50688C;
-            }
-        }
-        .lis3{
-            span:nth-child(1){
-                margin-left:24px;
-                font-size:18px;
-                color:#50688C;
-            }
-            span:nth-child(2){
-                font-size:18px;
-                color:#606266;
-            }
-        }
-        .lis4{
-            span:nth-child(1){
-                margin-left:24px;
-                font-size:18px;
-                color:#606266;
-            }
-            span:nth-child(2){
-                margin:0 218px 0 32px;
-                font-size:22px;
-                color:#158BE4; 
-            }
-            span:nth-child(3){
-                width:100px;
-                height:32px;
-                display:inline-block;
-                background:#67C23A;
-                text-align: center;
-                line-height: 32px;
-                border-radius:4px;
-                color:#fff;
-                cursor:pointer;
-            }
-        }
-    }
-}
-</style>
 <style rel="stylesheet/scss" lang="scss">
-.paymentCHN{
-  //取消单选按钮el-radio__label的样式
+.paymentUSA{
+    //取消单选按钮el-radio__label的样式
   .el-radio{
     .el-radio__input{
       .el-radio__inner{
@@ -195,7 +137,87 @@ export default{
     }
   }
 }
-
 </style>
 
+<style rel="stylesheet" lang="scss" scoped>
+.paymentUSA{
+    height:100%;
+    margin-bottom:24px;
+    .paymentUSA-ul{
+        li{
+            height:80px;
+            line-height: 80px;
+            border-bottom:1px solid #C0C4CC;
+            padding-left:55px;
+        }
+        .lis1{
+            img{
+                margin:0 31px 0 29px;
+                vertical-align: middle;
+            }
+            span{
+                font-size:18px;
+                color:#50688C;
+            }
+        }
+        .lis2{
+            img{
+                margin:0 44px 0 41px;
+                vertical-align: middle;
+            }
+            span{
+                font-size:18px;
+                color:#50688C;
+            }
+        }
+        .lis3{
+            img{
+                margin:0 70px 0 68px;
+                vertical-align: middle;
+            }
+            span{
+                font-size:18px;
+                color:#50688C;
+            }
+        }
+        .lis4{
+            span:nth-child(1){
+                margin-left:24px;
+                font-size:18px;
+                color:#606266;
+            }
+            span:nth-child(2){
+                display:inline-block;
+                margin:0 218px 0 32px;
+                font-size:22px;
+                color:#158BE4;
+                line-height: 24px;
+                height:24px; 
+            }
+            span:nth-child(3){
+                width:100px;
+                height:32px;
+                display:inline-block;
+                background:#67C23A;
+                text-align: center;
+                line-height: 32px;
+                border-radius:4px;
+                color:#fff;
+                cursor:pointer;
+            }
+        }
+        .lis5{
+            span:nth-child(1){
+                margin-left:24px;
+                font-size:18px;
+                color:#50688C;
+            }
+            span:nth-child(2){
+                font-size:18px;
+                color:#606266;
+            }
+        }
+    }
+}
+</style>
 

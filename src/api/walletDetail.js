@@ -8,7 +8,15 @@ export function tableDate(query) {
   })
 }
 
-export function tradeTypeDetail(query){
+export function queryList(query) {
+  return request({
+    url: '/v1/payment/money/list',
+    method: 'get',
+    params: query
+  })
+}
+
+export function tradeTypeDetail(query) {
   return request({
     url: '/v1/payment/money',
     method: 'get',

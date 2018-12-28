@@ -78,16 +78,23 @@ export const constantRouterMap = [
   {
     path: '',
     component: Layout,
-    redirect: 'dashboard',
+    redirect: 'controlboardIndex',
     children: [
       {
-        path: 'dashboard',
-        component: () => import('@/views/controlboard/index'),
-        name: 'Dashboard',
+        path: 'controlboardIndex',
+        component: () => import('@/views/controlboard/controlboardIndex'),
+        name: 'controlboardIndex',
         meta: { title: '控制台', icon: 'dashboard', noCache: true }
       },
       {
+        path: 'index',
+        name:'controlboard',
+        component: () => import('@/views/controlboard/index'),
+        hidden: true
+      },
+      {
         path: 'checkoutSuccess',
+        name:'checkoutSuccess',
         component: () => import('@/views/controlboard/checkoutSuccess'),
         hidden: true
       }
@@ -294,43 +301,7 @@ export const asyncRouterMap = [
   //     }
   //   ]
   // },
-  // 账户管理
-  {
-    path: '/accountManagement',
-    component: Layout,
-    redirect: '/accountManagement/personalInformation',
-    name: 'accountManagement',
-    meta: {
-      title: '账户信息',
-      icon: 'excel'
-    },
-    children: [
-      {
-        path: 'personalInformation',
-        component: () => import('@/views/accountManagement/personalInformation'),
-        name: 'personalInformation',
-        meta: { title: '个人信息' }
-      },
-      {
-        path: 'companyInformation',
-        component: () => import('@/views/accountManagement/companyInformation'),
-        name: 'companyInformation',
-        meta: { title: '企业信息' }
-      },
-      {
-        path: 'accountSetting',
-        component: () => import('@/views/accountManagement/accountSetting'),
-        name: 'accountSetting',
-        meta: { title: '账户设置' }
-      },
-      {
-        path: 'dataSetting',
-        component: () => import('@/views/accountManagement/dataSetting'),
-        name: 'dataSetting',
-        meta: { title: '资料设置' }
-      }
-    ]
-  },
+  
   // 订单管理
   {
     path: '/orderManagement',
@@ -365,6 +336,37 @@ export const asyncRouterMap = [
       }
     ]
   },
+  //报告管理
+  {
+    path: '/reportManagement',
+    component: Layout,
+    alwaysShow: true,
+    redirect: '/reportManagement/ReportManagement',
+    name: 'reportManagement',
+    meta:{
+      title: '报告管理',
+      icon: 'excel'
+    },
+    children: [
+      {
+        path: 'ReportManagement',
+        // hidden: true,
+        component: () => import('@/views/reportManagement/ReportManagement'),
+        name: 'ReportManagement',
+        meta: { title: '报告管理', keepAlive: true },
+        children: [
+          {
+            path: 'inspectionReport',
+            component: () => import('@/views/common/inspectionReport'),
+            name: 'inspectionReport',
+            meta: { title: '网页报告'},
+            hidden: true
+          }
+        ]
+      }
+    ]
+  },
+
   // 资金管理
   {
     path: '/fundManagement',
@@ -392,6 +394,52 @@ export const asyncRouterMap = [
     ]
   },
 
+  // 账户管理
+  {
+    path: '/accountManagement',
+    component: Layout,
+    redirect: '/accountManagement/personalInformation',
+    name: 'accountManagement',
+    meta: {
+      title: '账户管理',
+      icon: 'excel'
+    },
+    children: [
+      {
+        path: 'personalInformation',
+        component: () => import('@/views/accountManagement/personalInformation'),
+        name: 'personalInformation',
+        meta: { title: '个人信息' }
+      },
+      {
+        path: 'companyInformation',
+        component: () => import('@/views/accountManagement/companyInformation'),
+        name: 'companyInformation',
+        meta: { title: '企业信息' }
+      },
+      {
+        path: 'accountSetting',
+        component: () => import('@/views/accountManagement/accountSetting'),
+        name: 'accountSetting',
+        meta: { title: '账户设置' , keepAlive: true },
+        children: [
+          {
+            path: 'accountResetLoginPassword',
+            component: () => import('@/views/accountManagement/accountResetLoginPassword'),
+            name: 'accountResetLoginPassword',
+            meta: { title: '登录密码重置',},
+            hidden: true
+          }
+        ]
+      },
+      {
+        path: 'dataSetting',
+        component: () => import('@/views/accountManagement/dataSetting'),
+        name: 'dataSetting',
+        meta: { title: '资料设置' }
+      }
+    ]
+  },
   // {
   //   path: '/zip',
   //   component: Layout,

@@ -157,4 +157,30 @@ export function removeaddress(data) {
   })
 }
 
+//保存企业信息
+export function saveCompanyInformation(data) {
+  return request({
+    url: '/v1/personal',
+    method: 'post',
+    data
+  })
+}
 
+// 获取企业信息
+export function getCompanyInformation(data) {
+  return request({
+    url: '/v1/personal',
+    method: 'get',
+    params: data
+  })
+}
+
+
+// 获取账户信息
+export function getAccountInformation(data) {
+  return request({
+    url: '/v1/personal',
+    method: 'get',
+    params: data
+  })
+}

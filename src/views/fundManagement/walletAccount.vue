@@ -30,8 +30,8 @@
             <li>
               <div class="block">
                 <el-date-picker
-                 
-                  v-model="value10"
+                  value-format="yyyy-MM-dd"
+                  v-model="created_at[0]"
                   type="date"
                   placeholder="选择日期"
                   format="yyyy 年 MM 月 dd 日"/>
@@ -41,7 +41,8 @@
             <li>
               <div class="block">
                 <el-date-picker
-                  v-model="value11"
+                  value-format="yyyy-MM-dd"
+                  v-model="created_at[1]"
                   type="date"
                   placeholder="选择日期"
                   format="yyyy 年 MM 月 dd 日"/>
@@ -49,9 +50,9 @@
             </li>
             <li>交易类型</li>
             <li>
-              <el-select v-model="value1" placeholder="请选择">
+              <el-select v-model="transactionTypevalue" placeholder="请选择">
                 <el-option
-                  v-for="item in options1"
+                  v-for="item in transactionType"
                   :key="item.value"
                   :label="item.label"
                   :value="item.value"/>
@@ -59,15 +60,15 @@
             </li>
             <li>状态</li>
             <li>
-              <el-select v-model="value2" placeholder="请选择">
+              <el-select v-model="transactionStatevalue" placeholder="请选择">
                 <el-option
-                  v-for="item in options2"
+                  v-for="item in transactionState"
                   :key="item.value"
                   :label="item.label"
                   :value="item.value"/>
               </el-select>
             </li>
-            <li>查询</li>
+            <li @click="queryList">查询</li>
           </ul>
           <ul class="wallet-tableDate-ul">
            <el-table
@@ -142,27 +143,17 @@
       <p>人民币充值</p>
       <ul class="wallet-pay-Rmb-ul">
         <li>充值金额</li>
-        <!-- <li @click="sumMin" :calss="{'class-G':isG0,'class-B':isB0}">{{ sum.min }}元</li> -->
-        <!-- <li @click="sumMin" :class="{'class-G':isG0,'class-B':isB0}">{{ sum.min }}元</li>
-        <li @click="sumMinA" :class="{'class-G':isGA,'class-B':isBA}">{{ sum.minA }}元</li>
-        <li @click="sumMinAA" :class="{'class-G':isGAA,'class-B':isBAA}">{{ sum.minAA }}元</li>
-        <li @click="sumMinAAA" :class="{'class-G':isGAAA,'class-B':isBAAA}">{{ sum.minAAA }}元</li> -->
-        <el-row>
-          <el-button>{{sum.min}}元</el-button>
-          <el-button>{{sum.minA}}元</el-button>
-          <el-button>{{sum.minAA}}元</el-button>
-          <el-button>{{sum.minAAA}}元</el-button>
-        </el-row>
+        <li @click="sumMin(item)" :class="{'class-G':item.show}" v-for="(item,index) in sum" :key="index">{{ item.count }}元</li>
       </ul>
       <p>
-        <input id="sumFin" v-model="sumFin" type="text" placeholder="输入" @click="sumMinDown">
+        <input id="sumFin" v-model="sumFin" type="text" placeholder="输入">
         <span>元</span>
       </p>
       <div class="payment">
         <p>付款方式</p>
         <div class="paymentAll">
-          <!-- 引入组件 -->
-          <pay-ment-chn @receiveDate="paymentWay"></pay-ment-chn>
+          <!-- 引入组件CHN -->
+          <pay-ment-chn @receiveDateChn="paymentWayChn"></pay-ment-chn>
         </div>
       </div>
       <!-- 点击提交 -->
@@ -185,21 +176,18 @@
       <p>美元充值</p>
       <ul class="wallet-pay-Rmb-ul">
         <li>充值金额</li>
-        <!-- <li @click="sumMin" :calss="{'class-G':isG0,'class-B':isB0}">{{ sum.min }}元</li> -->
-        <li @click="sumMin" :class="{'class-G':isG0,'class-B':isB0}">{{ us.min }}美元</li>
-        <li @click="sumMinA" :class="{'class-G':isGA,'class-B':isBA}">{{ us.minA }}美元</li>
-        <li @click="sumMinAA" :class="{'class-G':isGAA,'class-B':isBAA}">{{ us.minAA }}美元</li>
-        <li @click="sumMinAAA" :class="{'class-G':isGAAA,'class-B':isBAAA}">{{ us.minAAA }}美元</li>
+        <li @click="sumMinUs(item)" :class="{'class-G':item.show}" v-for="(item,index) in us" :key="index">{{ item.count }}美元</li>
       </ul>
       <p>
-        <input id="sumFin" v-model="sumFinDollar" type="text" placeholder="输入" @click="sumMinDown">
+        <input id="sumFin" v-model="sumFinDollar" type="text" placeholder="输入">
         <span>美元</span>
       </p>
       <div class="payment">
         <p>付款方式</p>
         <div class="paymentAll">
-          <!-- 引入组件 -->
+          <!-- 引入组件USA -->
           <!-- <pay-ment-chn></pay-ment-chn> -->
+          <pay-ment-usa @receiveDateUsa="paymentWayUsa"></pay-ment-usa>
         </div>
       </div>
       <!-- 点击提交 -->
@@ -209,8 +197,8 @@
           :visible.sync="centerDialogVisible"
           width="30%"
           center>
-          <p class="su-payment" v-on:receiveDate="paymentWay($event)">你正在使用支付宝充值</p>
-          <p class="su-payaccount">充值金额￥1000.00</p>
+          <p class="su-payment" v-on:receiveDateUsa="paymentWayUsa($event)">你正在使用{{detailPayWayInMessageUsa}}充值</p>
+          <p class="su-payaccount">充值金额${{sumFinDollar}}</p>
           <span slot="footer" class="dialog-footer">
             <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
             <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
@@ -265,53 +253,57 @@
 </template>
 
 <script>
-import { tableDate,tradeTypeDetail } from '@/api/walletDetail'//列表请求数据
+import { tableDate,queryList,tradeTypeDetail } from '@/api/walletDetail'//列表请求数据
 import payMentChn from '../common/paymentCHN.vue'
+import payMentUsa from '../common/paymentUSA.vue'
 export default {
-    watch:{//监听点击事件
-       
-    },
+  watch:{
+   
+  },
   name: 'WalletAccount',
-  components: { payMentChn },
+  components: { payMentChn ,payMentUsa},
   data() {
     return {
+      created_at:[],
       a:"+",
       value10: '',
       value11: '',
-      // options1交易类型
-      options1: [{
-        value: '选项1',
+      // transactionType交易类型
+      transactionType: [{
+        value: '1',
         label: '订单付款'
       }, {
-        value: '选项2',
+        value: '3',
         label: '月结还款'
       }, {
-        value: '选项3',
+        value: '0',
         label: '充值'
       }, {
-        value: '选项4',
+        value: '2',
         label: '订单退款'
       }],
-      // options2状态
-      options2: [{
-        value: '选项1',
+      // transactionState状态
+      transactionState: [{
+        value: '0',
         label: '待付款'
       },{
-        value: '选项2',
+        value: '2',
         label: '成功'
       },{
-        value: '选项3',
-        label: '失败'
+        value: '1',
+        label: '付款中'
       }, {
-        value: '选项4',
+        value: '-1',
         label: '已关闭'
       }],
-      // value1是交易类型数据
-      value1: '',
-      // value2是状态类型数据
-      value2: '',
+      // transactionTypevalue是交易类型数据
+      transactionTypevalue: '',
+      // transactionStatevalue是状态类型数据
+      transactionStatevalue: '',
       // 钱包明细表格数据tableData
       tableData: [],
+      //钱包明细表格数据查询tableDateQuery
+      tableDateQuery:[],
       currentPage: 1, // 初始页
       pagesize:9, // 每页的数据
 
@@ -321,32 +313,48 @@ export default {
       walletPayRmb: false,
       walletPayDollar:false,
       //美元选择数据
-      us:{
-         min: '119',
-         minA: '500',
-         minAA: '1000',
-         minAAA: '2000'
-      },
+      us: [
+         {
+           count:119,
+           show:true
+         },
+         {
+           count:500,
+           show:false
+         },
+         {
+           count:1000,
+           show:false
+         },
+         {
+           count:2000,
+           show:false
+         }
+      ],
       //人民币选择数据
-      sum: {
-        min: '700',
-        minA: '1000',
-        minAA: '5000',
-        minAAA: '10000'
-      },
+      sum: [
+         {
+           count:700,
+           show:true
+         },
+         {
+           count:1000,
+           show:false
+         },
+         {
+           count:5000,
+           show:false
+         },
+         {
+           count:10000,
+           show:false
+         }
+      ],
       //sumFinchinese支付双向数据绑定data
       sumFin: '',
       //sumFinDollarUS支付双向数据绑定data
       sumFinDollar:'',
       radio: '1',
-      isG0:false,
-      isB0:false,
-      isGA:false,
-      isBA:false,
-      isGAA:false,
-      isBAA:false,
-      isGAAA:false,
-      isBAAA:false,
       //点击提交数据
       centerDialogVisible: false,
 
@@ -372,8 +380,10 @@ export default {
        tableDataadd:false,
        tableDatareduce:false,
 
-      //判断支付方式途径传递传出框中数据
+      //判断支付方式途径传递传出框中数据chn
       detailPayWayInMessage:"",
+      //判断支付方式途径传递传出框中数据usa
+      detailPayWayInMessageUsa:"",
 
       //判断tableDate返回回来的值正负
       tf:""
@@ -396,6 +406,28 @@ export default {
     
   },
   methods: {
+    //钱包明细根据条件查询列表数据
+    // queryList:function(){
+    //   queryList({
+    //     created_at:this.created_at,
+    //     type:this.value1,
+    //     status:this.value2
+    //   }).then(response => {
+    //     if(response.data.code == 0){
+    //       // this.tableDateQuery=response.data.data
+    //       this.tableData=response.data.data
+    //       console.log(this.tableData)
+    //       // this.tableData=this.tableDateQuery
+    //     }
+    //   })
+    // },
+    queryList(){
+      this.tableDateA({
+        created_at:this.created_at,
+        type:this.value1,
+        status:this.value2
+      })
+    },
     // 初始页currentPage、初始每页数据数pagesize和数据data
     handleSizeChange: function(size) {
       this.pagesize = size
@@ -407,8 +439,8 @@ export default {
 
     },
     // 获取钱包明细状态信息
-    tableDateA() {
-      tableDate().then(response => {
+    tableDateA(val) {
+      tableDate(val).then(response => {
         
         if (response.data.code == 0) {
           this.tableData = response.data.data.list
@@ -437,11 +469,7 @@ export default {
               this.tableData[i].status="已关闭"
             }
             //判断拿回来的数据进行金额数据判断
-            // if(this.tableData[i].plus_minus==true){
-            //   this.tf="+"
-            // }else if(this.tableData[i].plus_minus==false){
-            //   this.tf="-"
-            // }
+           
           }
           
         }
@@ -458,12 +486,9 @@ export default {
           if(response.data.code == 0){
             this.jumpDetailDate=response.data.list;
           }
-          // console.log(this.jumpDetailDate)
-          // console.log('')
+          
         })
-        // if(response.data.id=="1"){
-
-        // }
+        
       },
     // 跳转支付
     jumpPayRmb() {
@@ -475,50 +500,29 @@ export default {
       this.walletPayDollar=true
     },
     // walletPayRmb
-    sumMin() {
-      this.sumFin = this.sum.min
-      this.sumFinDollar=this.us.min
-      this.isG0=true
-      this.isB0=false
-      this.isBA=true
-      this.isBAA=true
-      this.isBAAA=true
+    
+    sumMin(item) {
+      for(let i=0;i<this.sum.length;i++){
+        this.sum[i].show=false
+      }
+      item.show=!item.show
+      this.sumFin=item.count
     },
-    sumMinA() {
-      this.sumFin = this.sum.minA
-      this.sumFinDollar=this.us.minA
-      this.isGA=true
-      this.isB0=true
-      this.isBA=false
-      this.isBAA=true
-      this.isBAAA=true
+    sumMinUs(item){
+      for(let i=0;i<this.us.length;i++){
+        this.us[i].show=false
+      }
+      item.show=!item.show
+      this.sumFinDollar=item.count
     },
-    sumMinAA() {
-      this.sumFin = this.sum.minAA
-      this.sumFinDollar=this.us.minAA
-      this.isGAA=true
-      this.isB0=true
-      this.isBA=true
-      this.isBAA=false
-      this.isBAAA=true
-    },
-    sumMinAAA() {
-      this.sumFin = this.sum.minAAA
-      this.sumFinDollar=this.us.minAAA
-      this.isGAAA=true
-      this.isB0=true
-      this.isBA=true
-      this.isBAA=true
-      this.isBAAA=false
-    },
-    sumMinDown(){
-      this.isB0=true
-      this.isBA=true
-      this.isBAA=true
-      this.isBAAA=true
-    },
-    // 提交传递数据
-    paymentWay(evl){
+    // sumMinDown(){
+    //   this.isB0=true
+    //   this.isBA=true
+    //   this.isBAA=true
+    //   this.isBAAA=true
+    // },
+    // 提交传递数据CHN
+    paymentWayChn(evl){
       if(evl=="1"){
         this.detailPayWayInMessage="银联";
       }else if(evl=="2"){
@@ -527,6 +531,22 @@ export default {
         this.detailPayWayInMessage="测库月结";
       }else if(evl=="4"){
         this.detailPayWayInMessage="钱包";
+      }
+      
+      console.log(evl)
+    },
+    //提交传递数据USA
+    paymentWayUsa(evl){
+      if(evl=="1"){
+        this.detailPayWayInMessageUsa="贝宝";
+      }else if(evl=="2"){
+         this.detailPayWayInMessageUsa="维萨";
+      }else if(evl=="3"){
+        this.detailPayWayInMessageUsa="万事达信用卡";
+      }else if(evl=="4"){
+        this.detailPayWayInMessageUsa="钱包";
+      }else if(evl=="5"){
+        this.detailPayWayInMessageUsa="测库月结";
       }
       
       console.log(evl)
@@ -552,13 +572,6 @@ export default {
         height:36px !important;
       }
     }
-    
-
-
-
-
-
-
       //改变钱包明细列表样式
       .wallet-tableDate-ul{
         //表头部分header
@@ -584,13 +597,10 @@ export default {
           .el-button--text{
             color:#FFA800;
           }
-        
-        
       }  
   }
   // pagination
   .el-pagination {
-    
     //当前总页数
     .el-pagination__total{
       color:#7F8FA4 !important;
@@ -671,7 +681,6 @@ export default {
           .el-input__inner{
             border:none;
             border-radius: 0 !important;
-            
           }
         }
     }
@@ -694,31 +703,29 @@ export default {
 
       }
     }
-    
-
-    //取消单选按钮el-radio__label的样式
-  .el-radio{
-    .el-radio__input{
-      .el-radio__inner{
-        width:26px !important;
-        height:26px !important;
-      }
-    }
-    .el-radio__input.is-checked .el-radio__inner{
-      background:#F5A623;
-      border-color:#F5A623;
-    }
-    .el-radio__inner:hover{
-      border-color:#F5A623;
-    }
-    .el-radio__inner::after{
-      width:6px !important;
-      height:6px !important;
-    }
-    .el-radio__label{
-      display:none !important;
-    }
-  }
+  //   //取消单选按钮el-radio__label的样式
+  // .el-radio{
+  //   .el-radio__input{
+  //     .el-radio__inner{
+  //       width:26px !important;
+  //       height:26px !important;
+  //     }
+  //   }
+  //   .el-radio__input.is-checked .el-radio__inner{
+  //     background:#F5A623;
+  //     border-color:#F5A623;
+  //   }
+  //   .el-radio__inner:hover{
+  //     border-color:#F5A623;
+  //   }
+  //   .el-radio__inner::after{
+  //     width:6px !important;
+  //     height:6px !important;
+  //   }
+  //   .el-radio__label{
+  //     display:none !important;
+  //   }
+  // }
   //弹出框样式调整
   .pay-rmb-submit{
     //点击按钮
@@ -728,6 +735,7 @@ export default {
       height:50px;
       border-radius:4px;
       background:#FFA800;
+      border:none;
       span{
         color:#fff;
         font-size:18px;
@@ -774,7 +782,6 @@ export default {
               font-size:14px !important;
               color:#fff;
             }
-            
           }
           button:nth-child(2){
             background:#fff;
@@ -889,6 +896,7 @@ export default {
     }
     .walletAccount-detail{
       width:1420px;
+      
         // background:#fff;
         .walletAccount-detail-name{
             height:33px;
@@ -966,7 +974,7 @@ export default {
     }
     // wallet-pay
     .wallet-pay-Rmb,.wallet-pay-Dollar{
-        padding-left:100px;
+        // padding-left:100px;
         padding-top:38px;
         p:nth-child(1){
             height:25px;
@@ -999,18 +1007,28 @@ export default {
                 text-align: left;
                 color:#7F8FA4;
             }
-            .addBg{
-                background:#67C23A;
-                color:#fff;
+            div{
+              .el-radio-group{
+                .el-radio-button__inner{
+                  width:140px !important;
+                }
+              }
             }
+            // .addBg{
+            //     background:#67C23A;
+            //     color:#fff;
+            // }
             .class-G{
                 background:#67C23A;
                 color:#fff;
             }
-            .class-B{
-                background:#F3F6F9;
-                color:#909399;
-            }
+            // .class-B{
+            //     background:#F3F6F9;
+            //     color:#909399;
+            // }
+            //radio3的样式
+           
+            
         }
         p:nth-child(3){
             height:40px;
@@ -1039,7 +1057,7 @@ export default {
         }
         //payment
         .payment{
-            height:320px;
+            height:400px;
             margin-bottom:24px;
             p{
                 height:80px;
@@ -1052,7 +1070,7 @@ export default {
             }
             .paymentAll{
                 float:left;
-                height:320px;
+                height:400px;
                 width:660px;
             }
 

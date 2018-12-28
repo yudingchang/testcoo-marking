@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="examine-good-title">
     <div class="examine-good">
       <div class="tab-content clear-fixed">
         <div class="top-form">
@@ -95,10 +95,8 @@
           <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" v-if="scope.row.can.pay==true">查看退单</el-button>
           <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" v-if="scope.row.can.pay==true">查看报告</el-button>
           <el-button style="color:#FFA800;margin-right:10px;" type="text" size="small" v-if="scope.row.can.close==true">关闭</el-button>
-          <span style="vertical-align: bottom;
-    display: inline-block;margin-right:10px;"><img src="/static/image/vedio.png" alt=""></span>
+          <span style="vertical-align: bottom;display: inline-block;margin-right:10px;"><img src="/static/image/vedio.png" alt=""></span>
           <el-button style="color:#FFA800" type="text" size="small">复制订单</el-button>
-          
         </template>
       </el-table-column>
     </el-table>
@@ -347,6 +345,7 @@ export default {
 };
 </script>
 <style rel="stylesheet/scss" lang="scss">
+.examine-good-title{
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 
@@ -404,7 +403,7 @@ export default {
   clear: both;
   content: "";
   visibility: hidden;
-  height: 0;
+  height: 0px;
 }
 .detail-dialog .el-dialog__header {
   text-align: center;
@@ -417,6 +416,7 @@ export default {
 span + span {
 &::before {
 content: '/ ';
+}
 }
 }
 }
