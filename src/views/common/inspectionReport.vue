@@ -160,7 +160,7 @@
                     <p class="conclusion-remark">备注</p>
                     <div class="conclusion-remark-table">
                         <table cellspacing="0" cellpadding="0" width="100%" height="100%">
-                            <tr height="60px" v-for="(item,index) in conclusionData.remarks" :key="index">
+                            <tr height="60px" v-for="(item,index) in conclusionData.remarks" :key="index+'-conclusion'">
                                 <td width="100px">{{index+1}}</td>
                                 <td width="1359px">{{item.remark}}</td>
                             </tr>
@@ -201,7 +201,7 @@
                                 <td>已包装</td>
                                 <td>未包装</td>
                             </tr>
-                            <tr height="60px" v-for="(item,index) in QuantityData.products" :key="index">
+                            <tr height="60px" v-if="QuantityData.products" v-for="(item,index) in _.get(QuantityData, 'products',[])" :key="index+'Quantity'">
                                 <td>{{item.section_number}}</td>
                                 <td>{{item.order_number}}</td>
                                 <td>{{item.order_quantity}}</td>
@@ -212,30 +212,6 @@
                                 <td>{{item.packaged}}</td>
                                 <td>{{item.check_quantity}}</td>
                                 <td>{{item.check_package_quantity}}</td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
                             </tr>
                             <tr height="60px">
                                 <td colspan="2">总数</td>
@@ -259,7 +235,7 @@
                     <div class="interface-Quantity-images clearfix">
                         <div>图片:</div>
                         <div class="content">
-                            <p v-for="(item,index) in QuantityData.files" :key="index" >
+                            <p v-for="(item,index) in QuantityData.files" :key="index+'-Quantity-images'" >
                                 <img v-if="item" :src="item && item.url" alt="">
                                 <span>{{item.name}}</span>
                             </p>
@@ -270,9 +246,9 @@
                 <div class="Report-interface-packageLogo">
                     <p class="packageLogo-p1">B、包装/标识/标签</p>
                     <p class="packageLogo-p2">包装符合型</p>
-                    <div class="packageLogo-packageInfo1" v-for="(item,index) in packageLogoData.packing" :key="index">
-                        <p class="packageInfo1-p1">1、款号/型号123456</p>
-                        <p class="packageInfo1-p2"><span>结论</span><span :class="addClass(item.conclusion)">{{ _.get(_.find( configs.inspectionTypes, {value : packageLogoData.inspection_type}), 'label') }}</span></p>
+                    <div class="packageLogo-packageInfo1" v-if="packageLogoData.packing.products" v-for="(item,index) in _.get(packageLogoData.packing, 'products', [])" :key="index+'-Info1'">
+                        <p class="packageInfo1-p1">{{index+1}}、{{item.name}}/型号{{item.number}}</p>
+                        <p class="packageInfo1-p2"><span>结论</span><span :class="addClass(item.conclusion)">{{ _.get(_.find( configs.conclusionOptions, {value : item.conclusion}), 'label') }}</span></p>
                         <div class="packageInfo1-table">
                             <table cellspacing="0" cellpadding="0" width="100%" height="100%">
                                 <tr height="60px">
@@ -282,84 +258,76 @@
                                 <tr height="60px">
                                     <td width="180px">单个包装</td>
                                     <td width="235px">
-                                        <span>包装:</span><span>{{1}}</span>
+                                        <span>包装:</span><span>{{  _.get(_.find( configs.packageOptions.single, {value : item.single.package}), 'label')}}</span>
                                     </td>
                                     <td width="206px" colspan="3">
-                                        <span>说明:</span><span>{{2}}</span>
+                                        <span>说明:</span><span>{{item.single.description}}</span>
                                     </td>
                                 </tr>
                                 <tr height="60px">
                                     <td>内包装</td>
                                     <td>
-                                        <span>入数:</span><span>{{item.inner}}</span>
+                                        <span>入数:</span><span>{{item.inner.quantity}}</span>
                                     </td>
                                     <td width="206px">
-                                        <span>包装:</span><span>{{2}}</span>
+                                        <span>包装:</span><span>{{ _.get(_.find( configs.packageOptions.inner, {value : item.inner.package}), 'label')}}</span>
                                     </td>
                                     <td colspan="2">
-                                        <span>说明:</span><span>{{3}}</span>
+                                        <span>说明:</span><span>{{item.inner.description}}</span>
                                     </td>
                                 </tr>
                                 <tr height="60px">
                                     <td>外包装</td>
                                     <td>
-                                        <span>外包装</span><span>{{item.outer}}</span>
+                                        <span>入数</span><span>{{item.outer.quantity}}</span>
                                     </td>
                                     <td>
-                                        <span>包装:</span><span>{{4}}</span>
+                                        <span>包装:</span><span>{{_.get(_.find( configs.packageOptions.outer, {value : item.outer.package}), 'label')}}</span>
                                     </td>
                                     <td colspan="2">
-                                        <span>说明:</span><span>{{2}}</span>
+                                        <span>说明:</span><span>{{item.outer.description}}</span>
                                     </td>
                                 </tr>
                                 <tr height="54px">
                                     <td></td>
                                     <td></td>
                                     <td colspan="2">
-                                        <span>外箱尺寸:</span><span>100（L） x 90（W） x 80（H）cm</span>
+                                        <span>外箱尺寸:</span><span>{{item.outer.size_length}}（L） x {{item.outer.size_width}}（W） x {{ item.outer.size_height}}（H）{{_.get(_.find( configs.packageOptions.size, {value : item.outer.size_unit}), 'label')}}</span>
                                     </td>
                                     <td width="564px">
-                                        <span>外箱毛重:</span><span>5kg</span>
+                                        <span>外箱毛重:</span><span>{{item.outer.weight}}{{_.get(_.find( configs.packageOptions.weight, {value : item.outer.weight_unit}), 'label')}}</span>
                                     </td>
                                 </tr>
                             </table>
                         </div>
                         <div class="packageInfo1-remark clearfix">
                             <p>备注:</p>
-                            <p class="content">相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注相关备注相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注信息相关备注</p>
+                            <p class="content">{{item.remark_content}}</p>
                         </div>
                         <div class="packageInfo1-picture clearfix">
                             <div>图片:</div>
                             <div class="content">
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
+                                <p v-for="(Image,index) in item.files" :key="index+'-Info1-picture'">
+                                    <img :src="Image && Image.url" alt="">
+                                    <span>{{item.files.name}}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
                     <p class="packageLogo-p3">唛头/标识</p>
-                    <div class="packageLogo-identify">
-                        <p class="identify-p1">1、款号/型号123456</p>
-                        <p class="identify-p2"><span>结论</span><span>符合</span></p>
+                    <div class="packageLogo-identify" v-if="packageLogoData.marking.products" v-for="(item,index) in _.get(packageLogoData.marking, 'products', [])" :key="index+'-identify'">
+                        <p class="identify-p1">{{index+1}}、{{item.name}}/型号{{item.number}}</p>
+                        <p class="identify-p2"><span>结论</span><span :class="addClass(item.conclusion)">{{ _.get(_.find( configs.conclusionOptions, {value : item.conclusion}), 'label') }}</span></p>
                         <div class="identify-remark clearfix">
                             <p>备注:</p>
-                            <p class="content"></p>
+                            <p class="content">{{item.remark_content}}</p>
                         </div>
                         <div class="identify-images clearfix">
                             <div>图片:</div>
                             <div class="content">
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
+                                <p v-for="(Image,index) in item.files" :key="index+'-identify-images'">
+                                    <img :src="Image && Image.url" alt="">
+                                    <span>{{ Image.name }}</span>
                                 </p>
                             </div>    
                         </div>
@@ -369,23 +337,19 @@
                 <div class="Report-interface-goodsInfo">
                     <p class="goodsInfo-p1">C、产品符合性</p>
                     <p class="goodsInfo-p2">款式/材料/颜色符合型</p>
-                    <div class="goodsInfo-detail">
-                        <p class="detail-p1">1、款号/型号123456</p>
-                        <p class="detail-p2"><span>结论</span><span>符合</span></p>
+                    <div class="goodsInfo-detail" v-if="goodsInfoData.products" v-for="(item,index) in _.get(goodsInfoData, 'products', [])" :key="index+'-Info-detail'">
+                        <p class="detail-p1">{{index+1}}、{{item.name}}/型号{{ item.number }}</p>
+                        <p class="detail-p2"><span>结论</span><span :class="addClass(item.conclusion)">{{ _.get(_.find( configs.conclusionOptions, {value : item.conclusion}), 'label') }}</span></p>
                         <div class="detail-remark clearfix">
                             <p>备注:</p>
-                            <p class="content"></p>
+                            <p class="content">{{ item.remark_content }}</p>
                         </div>
                         <div class="detail-images clearfix">
                            <div>图片:</div>
                             <div class="content">
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
+                                <p v-for="(Image,index) in item.files" :key="index+'-detail-images'">
+                                    <img :src="Image && Image.url" alt="">
+                                    <span>{{Image.name}}</span>
                                 </p>
                             </div> 
                         </div>
@@ -404,70 +368,26 @@
                                 <td width="123px">测试数量</td>
                                 <td width="209px">测试结论</td>
                             </tr>
-                            <tr height="80px">
-                                <td>测试结论</td>
-                                <td>用要求的电压(电压根据产品类别或根根下面的确定电压）作用于要测试的部件…</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>符合</td>
-                            </tr>
-                            <tr height="80px">
-                                <td>接地测试</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="80px">
-                                <td>功耗检查 或输入功率/电流检查</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="80px">
-                                <td>漏气检查</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="80px">
-                                <td>产品尺寸/ 电源线长度/重量测量</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="80px">
-                                <td>产品尺寸/ 电源线长度/重量测量</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                            <tr height="80px" v-if="gaugeData.checkitems" v-for="(item,index) in gaugeData.checkitems" :key="index+'-gauge-table'">
+                                <td>{{ item.title }}</td>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.message }}</td>
+                                <td>{{ _.toString(item.products) }}</td>
+                                <td>{{ item.check_quantity }}</td>
+                                <td :class="addClass(item.conclusion)"> {{ _.get(_.find( configs.conclusionOptions, {value : item.conclusion}), 'label') }} </td>
                             </tr>
                         </table>
                     </div>
                     <div class="gauge-remark clearfix">
                         <p>备注:</p>
-                        <p class="content"></p>
+                        <p class="content">{{ gaugeData.remark_content }}</p>
                     </div>
                     <div class="gauge-images clearfix">
                         <div>图片:</div>
                         <div class="content">
-                            <p>
-                                <img src="../../../static/image/homebackground.png" alt="">
-                                <span>图标名字1</span>
-                            </p>
-                            <p>
-                                <img src="../../../static/image/homebackground.png" alt="">
-                                <span>图标名字1</span>
+                            <p v-for="(Image,index) in gaugeData.files" :key="index+'-gauge-images'">
+                                <img :src="Image && Image.url" alt="">
+                                <span>{{Image}}</span>
                             </p>
                         </div> 
                     </div>
@@ -480,7 +400,6 @@
                             <tr height="60px">
                                 <td width="270px">检验标准</td>
                                 <td width="395px" colspan="3">ANSI/ASQ Z1.4 Single Sampling Plan</td>
-                                
                             </tr>
                             <tr height="60px">
                                 <td>检验水平</td>
@@ -489,39 +408,39 @@
                             <tr height="60px">
                                 <td>缺陷分类</td>
                                 <td>致命缺陷</td>
-                                <td width="395px"></td>
-                                <td width="397px"></td>
+                                <td width="395px">严重缺陷</td>
+                                <td width="397px">轻微缺陷</td>
                             </tr>
                             <tr height="60px">
                                 <td>可接受质量限(AQL)</td>
                                 <td>20</td>
-                                <td></td>
-                                <td></td>
+                                <td>20</td>
+                                <td>20</td>
                             </tr>
                             <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td>抽样数量</td>
+                                <td>20</td>
+                                <td>20</td>
+                                <td>20</td>
                             </tr>
                             <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td>最大允许量</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
                             </tr>
                             <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td>实际发现</td>
+                                <td>{{ exteriorData.real_fatal_defect }}</td>
+                                <td>{{ exteriorData.real_serious_defect }}</td>
+                                <td>{{ exteriorData.real_minor_defect }}</td>
                             </tr>
                         </table>
                     </div>
-                    <div class="exterior-detail">
+                    <div class="exterior-detail" v-for="(item,index) in _.get(exteriorData, 'products', [])" :key="index+'-exterior-detail'">
                         <p class="exterior-detail-p">
-                            <span>1、款号/型号123456</span>
-                            <span>抽样数300</span>
+                            <span>{{index+1}}、{{ item.name }}/型号{{ item.number }}</span>
+                            <span>抽样数{{item.check_quantity}}</span>
                         </p>
                         <div class="exterior-detail-div">
                             <table border="1" cellspacing="0" cellpadding="0" width="100%" height="100%">
@@ -532,84 +451,50 @@
                                     <td width="152px">严重缺陷</td>
                                     <td width="158px">轻微缺陷</td>
                                 </tr>
-                                <tr height="60px">
-                                    <td>安装性</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr height="60px">
-                                    <td>功能性</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr height="60px">
-                                    <td>功能性</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr height="60px">
-                                    <td>功能性</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr height="60px">
-                                    <td>功能性</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
+                                <tr height="60px" v-for="(item,index) in item.defective_items" :key="index+'-detail-div'">
+                                    <td>{{ _.get(_.find( configs.defectiveCategories, {value : item.title}), 'label') }}</td>
+                                    <td>{{item.description}}</td>
+                                    <td>{{item.fatal_defect}}</td>
+                                    <td>{{item.serious_defect}}</td>
+                                    <td>{{item.minor_defect}}</td>
                                 </tr>
                             </table>
                         </div>
-                    </div>
-                    <div class="exterior-remark clearfix">
-                        <p>备注:</p>
-                        <p class="content"></p>
-                    </div>
-                    <div class="exterior-images clearfix">
-                        <div>图片:</div>
-                        <div class="content">
-                            <p>
-                                <img src="../../../static/image/homebackground.png" alt="">
-                                <span>图标名字1</span>
-                            </p>
-                            <p>
-                                <img src="../../../static/image/homebackground.png" alt="">
-                                <span>图标名字1</span>
-                            </p>
+                        <div class="exterior-remark clearfix">
+                            <p>备注:</p>
+                            <p class="content">{{item.remark_content}}</p>
+                        </div>
+                        <div class="exterior-images clearfix">
+                            <div>图片:</div>
+                            <div class="content">
+                                <p v-for="(item,index) in item.files" :key="index+'-exterior-images'">
+                                    <img :src="item && item.url" alt="">
+                                    <span>{{item.name}}</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
+                    
+                    
                 </div>
                 <!-- F、客户特殊要求 -->
                 <div class="Report-interface-special">
                     <p class="special-p1"> 
                         F、客户特殊要求
                     </p>
-                    <div class="special-detail">
-                        <p class="special-detail-p1">1、款号/型号123456</p>
-                        <p class="special-detail-p2"><span>结论</span><span>符合</span></p>
+                    <div class="special-detail" v-for="(item,index) in _.get(specialData, 'products', [])" :key="index+'-special'">
+                        <p class="special-detail-p1">{{index+1}}、{{item.name}}/型号N/A</p>
+                        <p class="special-detail-p2"><span>结论</span><span :class="addClass(item.conclusion)">{{ _.get(_.find( configs.conclusionOptions, {value : item.conclusion}), 'label') }}</span></p>
                         <div class="special-detail-remark clearfix">
                             <p>备注:</p>
-                            <p class="content"></p>
+                            <p class="content">{{ item.remark_content }}</p>
                         </div>
                         <div class="special-detail-images clearfix">
                             <div>图片:</div>
                             <div class="content">
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
+                                <p v-for="(item,index) in item.files" :key="index+'-detail-images'">
+                                    <img :src="item && item.url" alt="">
+                                    <span>{{ item.name }}</span>
                                 </p>
                             </div>
                         </div>
@@ -619,42 +504,30 @@
                 <div class="Report-interface-appendix">
                     <p class="appendix-p1">G、附录</p>
                     <p class="appendix-p2"><span>附录 I</span><span>取样信息</span></p>
-                    <div class="appendix-sample">
-                        <p class="appendix-sample-p1">1、款号/型号123456</p>
+                    <div class="appendix-sample" v-for="(item,index) in _.get(appendixData, 'sampling_information', [])" :key="index+'-appendix-sample'">
+                        <p class="appendix-sample-p1">{{ index+1 }}、{{ item.sampling_number }}/型号123456</p>
                         <div class="appendix-sampl-table">
                             <div class="appendix-sampl-table-top">
                                 <div class="appendix-sampl-table-top-left">
                                     <p>取样信息</p>
-                                    <p><span>取样数量:</span><span>20</span></p>
-                                    <p><span>取样原因:</span><span></span></p>
-                                    <p><span>收件公司:</span><span></span></p>
-                                    <p><span>收件人:</span><span></span></p>
-                                    <p><span>收件地址:</span><span>相关地址信息相关地址信息相关地址信息相关地址信息 相关地址信息相关地址信息相关地址</span></p>
-                                    <p><span>备注信息:</span><span></span></p>
+                                    <p><span>取样数量:</span><span>{{ item.sampling_quantity }}</span></p>
+                                    <p><span>取样原因:</span><span>{{ item.sampling_reason }}</span></p>
+                                    <p><span>收件公司:</span><span>{{ item.receive_company }}</span></p>
+                                    <p><span>收件人:</span><span>{{ item.receive_person }}</span></p>
+                                    <p><span>收件地址:</span><span>{{ item.receive_address }}</span></p>
+                                    <p><span>备注信息:</span><span>{{ item.remark }}</span></p>
                                 </div>
                                 <div class="appendix-sampl-table-top-right">
                                     <p>其他信息</p>
-                                    <p><span>快递公司:</span><span>顺丰快递</span></p>
-                                    <p><span>快递单号:</span><span>12345678978956456213</span></p>
-                                    <p><span>备注信息:</span><span>注意样品已破损，注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损注意样品已破损</span></p>
+                                    <p><span>快递公司:</span><span>{{ item.courier_company }}</span></p>
+                                    <p><span>快递单号:</span><span>{{ item.courier_number }}</span></p>
+                                    <p><span>备注信息:</span><span>{{ item.courier_remark }}</span></p>
                                 </div>
                             </div>
                             <div class="appendix-sampl-table-bottom clearfix">
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
-                                </p>
-                                <p>
-                                    <img src="../../../static/image/homebackground.png" alt="">
-                                    <span>图标名字1</span>
+                                <p v-for="(item,index) in item.files" :key="index+'appendix-sampl'">
+                                    <img :src="item && item.url" alt="">
+                                    <span>{{ item.name }}</span>
                                 </p>
                             </div>
                         </div>
@@ -669,74 +542,20 @@
                                 <td width="280px">有效日期</td>
                                 <td width="260px">来源</td>
                             </tr>
-                            <tr height="60px">
-                                <td>金属探测仪</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td>扭力计</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr height="60px">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                            <tr height="60px" v-for="(item,index) in _.get(appendixData, 'tools', [])" :key="index+'-appendix-table'">
+                                <td>{{ _.get(_.find( _.get(configs.appendix, 'tools' ,[]), {value : item.name}), 'label') }}</td>
+                                <td>{{ item.number }}</td>
+                                <td>{{ item.calibrated_at }}</td>
+                                <td>{{ item.effected_at }}</td>
+                                <td>{{ item.source }}</td>
                             </tr>
                         </table>
                     </div>
                     <p class="appendix-p4"><span>附录Ⅱ</span><span>其他图片( 廉政声明、工厂大门，仓储，测量图标，包装清单等)</span></p>
                     <div class="appendix-otherImages clearfix">
-                        <p>
-                            <img src="../../../static/image/homebackground.png" alt="">
-                            <span>图标名字1</span>
-                        </p>
-                        <p>
-                            <img src="../../../static/image/homebackground.png" alt="">
-                            <span>图标名字1</span>
-                        </p>
-                        <p>
-                            <img src="../../../static/image/homebackground.png" alt="">
-                            <span>图标名字1</span>
-                        </p>
-                        <p>
-                            <img src="../../../static/image/homebackground.png" alt="">
-                            <span>图标名字1</span>
+                        <p v-for="(item,index) in _.get(appendixData, 'files', [])" :key="index+'-otherImages'">
+                            <img :src="item && item.url" alt="">
+                            <span>{{ item.name }}</span>
                         </p>
                     </div>
                 </div>
@@ -1892,7 +1711,6 @@ export default {
             }
             .gauge-table{
                 width:1460px;
-                height:547px;
                 background:rgba(255,255,255,1);
                 border-radius:4px;
                 border:1px solid rgba(215,220,227,1);
@@ -2039,115 +1857,116 @@ export default {
             }
             .exterior-detail{
                 margin-bottom:24px;
-                .exterior-detail-p{
-                    height:21px;
-                    line-height: 21px;
-                    margin-bottom:22px;
-                    span{
+                    .exterior-detail-p{
+                        height:21px;
+                        line-height: 21px;
+                        margin-bottom:22px;
+                        span{
+                            font-size:16px;
+                            color:rgba(80,104,140,1);
+                        }
+                        span:nth-child(1){
+                            margin-right:16px;
+                        }
+                    }
+                    .exterior-detail-div{
+                        width:1460px;
+                        // height:121px;
+                        background:rgba(255,255,255,1);
+                        border-radius:4px;
+                        border:1px solid rgba(215,220,227,1);
+                        overflow: hidden;
+                        border-collapse: collapse;
+                        margin-bottom:24px;
+                        table{
+                            tr{
+                                border-bottom:1px solid rgba(215,220,227,1);
+                                td{
+                                    border-left:1px solid rgba(215,220,227,1);
+                                    text-align: center;
+                                    vertical-align: middle;
+                                    font-size:14px;
+                                    color:rgba(80,104,140,1);
+                                }
+                                td:nth-child(1){
+                                    border-left:none;
+                                }
+                            }
+                            tr:nth-child(1){
+                                background:rgba(127,143,164,1);
+                                td{
+                                    color:rgba(255,255,255,1);
+                                }
+                            }
+                            tr:last-child{
+                                border-bottom:none;
+                            }
+                        }
+                    }
+                    .exterior-remark{
+                        margin-bottom:24px;
+                    p{
+                        float:left;
+                    }
+                    p:nth-child(1){
+                        width:36px;
+                        margin-right:21px;
                         font-size:16px;
                         color:rgba(80,104,140,1);
+                        padding:18px 0 0 0;
                     }
-                    span:nth-child(1){
-                        margin-right:16px;
-                    }
+                    p:nth-child(2){
+                        width:1403px;
+                        border-radius:4px;
+                        border:1px solid rgba(215,220,227,1);
+                        padding:17px 24px 15px;
+                        font-size:14px;
+                        color:rgba(80,104,140,1);
+                        vertical-align: middle;
+                    }  
                 }
-                .exterior-detail-div{
-                    width:1460px;
-                    // height:121px;
-                    background:rgba(255,255,255,1);
-                    border-radius:4px;
-                    border:1px solid rgba(215,220,227,1);
-                    overflow: hidden;
-                    border-collapse: collapse;
-                    table{
-                        tr{
-                            border-bottom:1px solid rgba(215,220,227,1);
-                            td{
-                                border-left:1px solid rgba(215,220,227,1);
-                                text-align: center;
-                                vertical-align: middle;
-                                font-size:14px;
-                                color:rgba(80,104,140,1);
-                            }
-                            td:nth-child(1){
-                                border-left:none;
-                            }
-                        }
-                        tr:nth-child(1){
-                            background:rgba(127,143,164,1);
-                            td{
-                                color:rgba(255,255,255,1);
-                            }
-                        }
-                        tr:last-child{
-                            border-bottom:none;
-                        }
-                    }
-                }
-                
-            }
-            .exterior-remark{
-                margin-bottom:24px;
-                p{
-                    float:left;
-                }
-                p:nth-child(1){
-                    width:36px;
-                    margin-right:21px;
-                    font-size:16px;
-                    color:rgba(80,104,140,1);
-                    padding:18px 0 0 0;
-                }
-                p:nth-child(2){
-                    width:1403px;
-                    border-radius:4px;
-                    border:1px solid rgba(215,220,227,1);
-                    padding:17px 24px 15px;
-                    font-size:14px;
-                    color:rgba(80,104,140,1);
-                    vertical-align: middle;
-                }  
-            }
-            .exterior-images{
-                div{
-                    float:left;
-                }
-                div:nth-child(1){
-                    font-size:16px;
-                    color:rgba(80,104,140,1);
-                    padding:15px 0 0 0;
-                    margin-right:21px;
-                }
-                div:nth-child(2){
-                    width:1403px;
-                    word-wrap: break-word;
-                    word-break: normal;
-                    p{
-                        width:624px;
-                        height:468px;
-                        position:relative;
+                .exterior-images{
+                    div{
                         float:left;
-                        margin:0 24px 24px 0;
-                        img{
-                            width:100%;
-                            height:100%;
-                        }
-                        span{
-                            display: block;
-                            width:100%;
-                            height:40px;
-                            font-size:14px;
-                            color:rgba(22,64,97,1);
-                            position:absolute;
-                            left:0;
-                            bottom:0;
-                            background:rgba(255,255,255,0.2);
-                            text-align: center;
-                            line-height: 40px;
+                    }
+                    div:nth-child(1){
+                        font-size:16px;
+                        color:rgba(80,104,140,1);
+                        padding:15px 0 0 0;
+                        margin-right:21px;
+                    }
+                    div:nth-child(2){
+                        width:1403px;
+                        word-wrap: break-word;
+                        word-break: normal;
+                        p{
+                            width:624px;
+                            height:468px;
+                            position:relative;
+                            float:left;
+                            margin:0 24px 24px 0;
+                            img{
+                                width:100%;
+                                height:100%;
+                            }
+                            span{
+                                display: block;
+                                width:100%;
+                                height:40px;
+                                font-size:14px;
+                                color:rgba(22,64,97,1);
+                                position:absolute;
+                                left:0;
+                                bottom:0;
+                                background:rgba(255,255,255,0.2);
+                                text-align: center;
+                                line-height: 40px;
+                            }
                         }
                     }
                 }
             }
+            
         }
         .Report-interface-special{
             margin-bottom:56px;
@@ -2549,7 +2368,7 @@ export default {
             }
             .approval-table{
                 width:1460px;
-                height:370px;
+                // height:370px;
                 border-radius:4px;
                 border:1px solid rgba(215,220,227,1);
                 overflow: hidden;
@@ -2603,6 +2422,7 @@ export default {
                    
                 }
                 tr:nth-child(3){
+                    border-bottom:none;
                     td:nth-child(2){
                         padding:15px 0 18px 32px;
                         p:nth-child(1){
@@ -2627,19 +2447,19 @@ export default {
     }
     //公共样式 结论字体颜色
     .conslusionAccord{
-        color:rgba(103,194,58,1);       //符合
+        color:rgba(103,194,58,1) !important;       //符合
     }
     .conslusionUnAccord{
         color:rgba(239,53,53,1) !important;        //不符合
     }   
     .indeterminate{
-        color:rgba(244,179,71,1);       //待定
+        color:rgba(244,179,71,1) !important;       //待定
     }
     .emptying{
-        color:rgba(74,144,226,1);       //放空
+        color:rgba(74,144,226,1) !important;       //放空
     }
     .inadequacy{
-        color:rgba(74,144,226,1);       //不适合
+        color:rgba(74,144,226,1) !important;       //不适合
     }
     
 }
