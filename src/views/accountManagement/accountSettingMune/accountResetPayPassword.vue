@@ -1,23 +1,23 @@
 <template>
-    <div class="accountResetLoginPassword">
+    <div class="accountResetPayPassword">
         <el-row>
             <!-- 登录密码重置 -->
-            <el-col :span="24" class="ResetLoginPassword-index">
-                <div class="ResetLoginPassword">
-                    <div :class="{commonColor:first }" @click="first = true,second = false ,third = false">
+            <el-col :span="24" class="ResetPayPassword-index">
+                <div class="ResetPayPassword">
+                    <div>
                         <p><i class="iconfont icon-denglumimazhongzhi1"></i></p>
                         <p>通过登录密码重置</p>
-                        <p>立即重置</p>
+                        <p  @click="resetByPassword">立即重置</p>
                     </div>
-                    <div :class="{commonColor:second }" @click="first = false,second = true ,third = false">
+                    <div>
                         <p><i class="iconfont icon-dianziyouxiangzhongzhi1"></i></p>
                         <p>通过电子邮箱重置</p>
-                        <p>立即重置</p>
+                        <p  @click="resetByEmail">立即重置</p>
                     </div>
-                    <div :class="{commonColor:third }" @click="first = false,second = false ,third = true">
+                    <div>
                         <p><i class="iconfont icon-hebingxingzhuang6"></i></p>
                         <p>通过手机号码重置</p>
-                        <p>立即重置</p>
+                        <p  @click="resetByTelephone">立即重置</p>
                     </div>
                 </div>
             </el-col>
@@ -27,13 +27,28 @@
 
 <script>
 export default {
-    name: 'accountResetLoginPassword',
+    name: 'accountResetPayPassword',
     data(){
         return {
-            first: true ,
-            second: false ,
-            third: false ,
+            
         }
+    },
+    methods:{
+        //resetByPassword通过登录密码重置
+        resetByPassword(){
+            this.$router.push({ path: 'resetByPassword' })
+        },
+
+        //resetByEmail通过电子邮箱重置
+        resetByEmail(){
+            this.$router.push({ path: 'resetByEmail' })
+        },
+
+        //resetByTelephone通过电话号码
+        resetByTelephone(){
+            this.$router.push({ path: 'resetByTelephone' })
+        }
+
     }
 }
 </script>
@@ -41,10 +56,10 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 //普通样式
-.accountResetLoginPassword{
-    .ResetLoginPassword-index{
-        padding:128px 0 0 90px;
-        .ResetLoginPassword{
+.accountResetPayPassword{
+    .ResetPayPassword-index{
+        padding:168px 231px 0;
+        .ResetPayPassword{
             div{
                 float:left;
                 width:300px;
@@ -54,6 +69,7 @@ export default {
                 text-align: center;
                 margin-right:120px;
                 cursor:pointer;
+                box-sizing: border-box;
                 p:nth-child(1){
                     width:90px;
                     height:100px;
@@ -88,6 +104,22 @@ export default {
             }
             div:last-child{
                 margin-right:0;
+            }
+            div:hover{
+                border:2px solid rgba(255,168,0,1) !important;
+                p:nth-child(1){
+                    i{
+                        color:rgba(255,168,0,1) !important;
+                    }
+                }
+                p:nth-child(2){
+                    color:rgba(255,168,0,1) !important;
+                }
+                p:nth-child(3){
+                    background:rgba(255,168,0,1);
+                    border:none !important;
+                    color:rgba(255,255,255,1) !important;
+                }
             }
         }
         .commonColor{

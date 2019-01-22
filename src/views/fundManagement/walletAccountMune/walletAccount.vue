@@ -1,7 +1,7 @@
 <template>
   <div class="walletAccount">
     <!-- wallet-index -->
-    <div v-if="walletIndex" class="wallet-index">
+    <div class="wallet-index">
       <div class="walletAccount-Ac">
         <p class="walletAccount-Ac-name">钱包账户</p>
         <div class="walletAccount-Ac-recharge">
@@ -117,7 +117,7 @@
                 label="操作"
                 width="381">
                 <template slot-scope="scope">
-                    <el-button @click="handleClick(scope.row, scope.$index)" type="text" size="small">详情</el-button>
+                    <el-button @click="handleClickDetail(scope.row, scope.$index)" type="text" size="small">详情</el-button>
                     <el-button type="text" size="small"></el-button>
                 </template>
                 </el-table-column>
@@ -138,136 +138,21 @@
         </div>
       </div>
     </div>
-    <!-- wallet-pay -->
-    <div v-if="walletPayRmb" class="wallet-pay-Rmb">
-      <p>人民币充值</p>
-      <ul class="wallet-pay-Rmb-ul">
-        <li>充值金额</li>
-        <li @click="sumMin(item)" :class="{'class-G':item.show}" v-for="(item,index) in sum" :key="index">{{ item.count }}元</li>
-      </ul>
-      <p>
-        <input id="sumFin" v-model="sumFin" type="text" placeholder="输入">
-        <span>元</span>
-      </p>
-      <div class="payment">
-        <p>付款方式</p>
-        <div class="paymentAll">
-          <!-- 引入组件CHN -->
-          <pay-ment-chn @receiveDateChn="paymentWayChn"></pay-ment-chn>
-        </div>
-      </div>
-      <!-- 点击提交 -->
-      <div class="pay-rmb-submit">
-        <el-button type="text" @click="centerDialogVisible = true">确定付款</el-button>
-        <el-dialog
-          :visible.sync="centerDialogVisible"
-          width="30%"
-          center>
-          <p class="su-payment">你正在使用{{detailPayWayInMessage}}付款</p>
-          <p class="su-payaccount">充值金额￥{{sumFin}}</p>
-          <span slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
-            <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
-          </span>
-        </el-dialog>
-      </div>
-    </div>
-    <div v-if="walletPayDollar" class="wallet-pay-Dollar">
-      <p>美元充值</p>
-      <ul class="wallet-pay-Rmb-ul">
-        <li>充值金额</li>
-        <li @click="sumMinUs(item)" :class="{'class-G':item.show}" v-for="(item,index) in us" :key="index">{{ item.count }}美元</li>
-      </ul>
-      <p>
-        <input id="sumFin" v-model="sumFinDollar" type="text" placeholder="输入">
-        <span>美元</span>
-      </p>
-      <div class="payment">
-        <p>付款方式</p>
-        <div class="paymentAll">
-          <!-- 引入组件USA -->
-          <!-- <pay-ment-chn></pay-ment-chn> -->
-          <pay-ment-usa @receiveDateUsa="paymentWayUsa"></pay-ment-usa>
-        </div>
-      </div>
-      <!-- 点击提交 -->
-      <div class="pay-rmb-submit">
-        <el-button type="text" @click="centerDialogVisible = true">确定付款</el-button>
-        <el-dialog
-          :visible.sync="centerDialogVisible"
-          width="30%"
-          center>
-          <p class="su-payment" v-on:receiveDateUsa="paymentWayUsa($event)">你正在使用{{detailPayWayInMessageUsa}}充值</p>
-          <p class="su-payaccount">充值金额${{sumFinDollar}}</p>
-          <span slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="centerDialogVisible = false">确定</el-button>
-            <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
-          </span>
-        </el-dialog>
-      </div>
-    </div>
-    <!-- wallet-detailGo -->
-    <div v-if="walletDetail" class="wallet-detailGo">
-      <p>钱包详情</p>
-      <!-- ul待付款倒计时提示 -->
-      <ul v-show="false">
-        <li>
-          <span>系统将在1天23小时59分59秒后自动关闭</span>
-          <span id="obligation">付款</span>
-        </li>
-      </ul>
-      <!-- ul钱包详情 -->
-      <ul>
-        <li>
-          <span>{{jumpDetailKeyValue.detailStatus}}</span>
-          <span>{{jumpDetailDate}}</span>
-        </li>
-        <li>
-          <span>{{jumpDetailKeyValue.detailCreateTime}}</span>
-          <span></span>
-        </li>
-        <li>
-          <span>{{jumpDetailKeyValue.detailSerial}}</span>
-          <span></span>
-        </li>
-        <li>
-          <span>{{jumpDetailKeyValue.detailTradeType}}</span>
-          <span></span>
-        </li>
-        <li>
-          <span>{{jumpDetailKeyValue.detailBill}}</span>
-          <span></span>
-        </li>
-        <li>
-          <span>{{jumpDetailKeyValue.detailAmount}}</span>
-          <span></span>
-        </li>
-        <li>
-          <span>{{jumpDetailKeyValue.detailPayTime}}</span>
-          <span></span>
-        </li>
-      </ul>
-      <!-- ul汇款转账预留 -->
-    </div>
   </div>
 </template>
 
 <script>
 import { tableDate,queryList,tradeTypeDetail } from '@/api/walletDetail'//列表请求数据
-import payMentChn from '../common/paymentCHN.vue'
-import payMentUsa from '../common/paymentUSA.vue'
 export default {
   watch:{
    
   },
   name: 'WalletAccount',
-  components: { payMentChn ,payMentUsa},
+  components: { },
   data() {
     return {
       created_at:[],
       a:"+",
-      value10: '',
-      value11: '',
       // transactionType交易类型
       transactionType: [{
         value: '1',
@@ -306,60 +191,7 @@ export default {
       tableDateQuery:[],
       currentPage: 1, // 初始页
       pagesize:9, // 每页的数据
-
-      // walletindex
-      walletIndex: true,
-      // walletPay
-      walletPayRmb: false,
-      walletPayDollar:false,
-      //美元选择数据
-      us: [
-         {
-           count:119,
-           show:true
-         },
-         {
-           count:500,
-           show:false
-         },
-         {
-           count:1000,
-           show:false
-         },
-         {
-           count:2000,
-           show:false
-         }
-      ],
-      //人民币选择数据
-      sum: [
-         {
-           count:700,
-           show:true
-         },
-         {
-           count:1000,
-           show:false
-         },
-         {
-           count:5000,
-           show:false
-         },
-         {
-           count:10000,
-           show:false
-         }
-      ],
-      //sumFinchinese支付双向数据绑定data
-      sumFin: '',
-      //sumFinDollarUS支付双向数据绑定data
-      sumFinDollar:'',
       radio: '1',
-      //点击提交数据
-      centerDialogVisible: false,
-
-      //点击详情跳转查看
-      walletDetail:false,
 
       //详情页面的数据origin
       jumpDetailDate:[],
@@ -390,37 +222,10 @@ export default {
     }
 
   },
-  computed: {
-    // cachedViews() {
-    //   return this.$store.state.tagsView.cachedViews
-    // },
-    // key() {
-    //   return this.$route.fullPath
-    // }
-  },
   created() {
     this.tableDateA()
   },
-  mounted() {
-    // console.log(this.$route.fullPath)
-    
-  },
   methods: {
-    //钱包明细根据条件查询列表数据
-    // queryList:function(){
-    //   queryList({
-    //     created_at:this.created_at,
-    //     type:this.value1,
-    //     status:this.value2
-    //   }).then(response => {
-    //     if(response.data.code == 0){
-    //       // this.tableDateQuery=response.data.data
-    //       this.tableData=response.data.data
-    //       console.log(this.tableData)
-    //       // this.tableData=this.tableDateQuery
-    //     }
-    //   })
-    // },
     queryList(){
       this.tableDateA({
         created_at:this.created_at,
@@ -477,81 +282,15 @@ export default {
     },
     //table表格操作click详情方法
     handleClick(row,index) {
-        console.log(row);
-        console.log(index);
-        this.walletIndex=false
-        this.walletDetail=true
-        tradeTypeDetail("/v1/payment/money/info/"+"row.id").then(response =>{
-          console.log(response)
-          if(response.data.code == 0){
-            this.jumpDetailDate=response.data.list;
-          }
-          
-        })
-        
+       this.$router.push( { path: 'walletDetail',query: { OrderId: row.id } } ) 
       },
     // 跳转支付
     jumpPayRmb() {
-      this.walletIndex = false,
-      this.walletPayRmb = true
+      this.$router.push({ path: 'walletRechargeRmb', query: {} })
     },
     jumpDollar(){
-      this.walletIndex = false,
-      this.walletPayDollar=true
+      this.$router.push({ path:'walletRechargeDollar', query: {} })
     },
-    // walletPayRmb
-    
-    sumMin(item) {
-      for(let i=0;i<this.sum.length;i++){
-        this.sum[i].show=false
-      }
-      item.show=!item.show
-      this.sumFin=item.count
-    },
-    sumMinUs(item){
-      for(let i=0;i<this.us.length;i++){
-        this.us[i].show=false
-      }
-      item.show=!item.show
-      this.sumFinDollar=item.count
-    },
-    // sumMinDown(){
-    //   this.isB0=true
-    //   this.isBA=true
-    //   this.isBAA=true
-    //   this.isBAAA=true
-    // },
-    // 提交传递数据CHN
-    paymentWayChn(evl){
-      if(evl=="1"){
-        this.detailPayWayInMessage="银联";
-      }else if(evl=="2"){
-         this.detailPayWayInMessage="支付宝";
-      }else if(evl=="3"){
-        this.detailPayWayInMessage="测库月结";
-      }else if(evl=="4"){
-        this.detailPayWayInMessage="钱包";
-      }
-      
-      console.log(evl)
-    },
-    //提交传递数据USA
-    paymentWayUsa(evl){
-      if(evl=="1"){
-        this.detailPayWayInMessageUsa="贝宝";
-      }else if(evl=="2"){
-         this.detailPayWayInMessageUsa="维萨";
-      }else if(evl=="3"){
-        this.detailPayWayInMessageUsa="万事达信用卡";
-      }else if(evl=="4"){
-        this.detailPayWayInMessageUsa="钱包";
-      }else if(evl=="5"){
-        this.detailPayWayInMessageUsa="测库月结";
-      }
-      
-      console.log(evl)
-    }
-
   }
 }
 </script>
@@ -561,7 +300,6 @@ export default {
 .walletAccount{
   //walletAccount-detail
   .walletAccount-detail{
-    //
     .walletAccount-detail-list ul:nth-child(1){
       .el-date-editor.el-input{
         width:200px;
@@ -687,116 +425,92 @@ export default {
     
   }
   //rmb充值页面wallet-pay-Rmb
-  .wallet-pay-Rmb,.wallet-pay-Dollar{
-    //充值金额
-    .el-button--medium{
-      width:140px;
-      height:40px;
-      // border:1px solid #C0C4CC;
-      background:#F3F6F9;
-      margin:0;
-      border:1px solid #C0C4CC;
-      margin-right:30px;
-      span{
-        font-size:14px !important;
-        color:#909399;
+//   .wallet-pay-Rmb,.wallet-pay-Dollar{
+//     //充值金额
+//     .el-button--medium{
+//       width:140px;
+//       height:40px;
+//       // border:1px solid #C0C4CC;
+//       background:#F3F6F9;
+//       margin:0;
+//       border:1px solid #C0C4CC;
+//       margin-right:30px;
+//       span{
+//         font-size:14px !important;
+//         color:#909399;
 
-      }
-    }
-  //   //取消单选按钮el-radio__label的样式
-  // .el-radio{
-  //   .el-radio__input{
-  //     .el-radio__inner{
-  //       width:26px !important;
-  //       height:26px !important;
-  //     }
-  //   }
-  //   .el-radio__input.is-checked .el-radio__inner{
-  //     background:#F5A623;
-  //     border-color:#F5A623;
-  //   }
-  //   .el-radio__inner:hover{
-  //     border-color:#F5A623;
-  //   }
-  //   .el-radio__inner::after{
-  //     width:6px !important;
-  //     height:6px !important;
-  //   }
-  //   .el-radio__label{
-  //     display:none !important;
-  //   }
-  // }
-  //弹出框样式调整
-  .pay-rmb-submit{
-    //点击按钮
-    .el-button--medium{
-      margin-left:146px;
-      width:250px;
-      height:50px;
-      border-radius:4px;
-      background:#FFA800;
-      border:none;
-      span{
-        color:#fff;
-        font-size:18px;
-      }
-    }
-    //弹出框界面
-    .el-dialog__wrapper{
-      .el-dialog--center{
-        width:600px !important;
-        height:360px !important;
-        border-radius:8px;
-        border:none;
-        //弹出框header
-        .el-dialog__header{
-          height:48px;
-          margin-bottom:49px;
-          .el-dialog__headerbtn{
-            i{
-              font-size:32px;
-              color:#909399;
-              font-weight:600;
-            }
-          }
-        }
-        //弹出框body
-        .el-dialog__body{
-          padding:0;
-          margin-bottom:27px;
-        }
-        //弹出框footer
-        .el-dialog__footer{
-          padding:0;
-          button{
-            margin-left:210px !important;
-            width:180px !important;
-            height:40px !important;
-            border:none;
-            padding: 0;
-            display:block;
-          }
-          button:nth-child(1){
-            margin-bottom:16px;
-            span{
-              font-size:14px !important;
-              color:#fff;
-            }
-          }
-          button:nth-child(2){
-            background:#fff;
-            border:1px solid #909399;
-            span{
-              color:#909399;
-              font-size:14px !important;
-            }
-          }
-        }
-      }
-      
-    }
-  }
-}
+//       }
+//     }
+//   //弹出框样式调整
+//   .pay-rmb-submit{
+//     //点击按钮
+//     .el-button--medium{
+//       margin-left:146px;
+//       width:250px;
+//       height:50px;
+//       border-radius:4px;
+//       background:#FFA800;
+//       border:none;
+//       span{
+//         color:#fff;
+//         font-size:18px;
+//       }
+//     }
+//     //弹出框界面
+//     .el-dialog__wrapper{
+//       .el-dialog--center{
+//         width:600px !important;
+//         height:360px !important;
+//         border-radius:8px;
+//         border:none;
+//         //弹出框header
+//         .el-dialog__header{
+//           height:48px;
+//           margin-bottom:49px;
+//           .el-dialog__headerbtn{
+//             i{
+//               font-size:32px;
+//               color:#909399;
+//               font-weight:600;
+//             }
+//           }
+//         }
+//         //弹出框body
+//         .el-dialog__body{
+//           padding:0;
+//           margin-bottom:27px;
+//         }
+//         //弹出框footer
+//         .el-dialog__footer{
+//           padding:0;
+//           button{
+//             margin-left:210px !important;
+//             width:180px !important;
+//             height:40px !important;
+//             border:none;
+//             padding: 0;
+//             display:block;
+//           }
+//           button:nth-child(1){
+//             margin-bottom:16px;
+//             span{
+//               font-size:14px !important;
+//               color:#fff;
+//             }
+//           }
+//           button:nth-child(2){
+//             background:#fff;
+//             border:1px solid #909399;
+//             span{
+//               color:#909399;
+//               font-size:14px !important;
+//             }
+//           }
+//         }
+//       } 
+//     }
+//   }
+// }
 
   
 }
@@ -973,135 +687,135 @@ export default {
         }
     }
     // wallet-pay
-    .wallet-pay-Rmb,.wallet-pay-Dollar{
-        // padding-left:100px;
-        padding-top:38px;
-        p:nth-child(1){
-            height:25px;
-            line-height: 25px;
-            font-size:16px;
-            color:#50688C;
-            margin-bottom:30px;
-        }
-        .wallet-pay-Rmb-ul{
-            height:40px;
-            padding:0;
-            margin-bottom:24px;
-            li{
-                width:140px;
-                height:100%;
-                border:1px solid #C0C4CC;
-                border-radius:4px;
-                float:left;
-                text-align:center;
-                line-height: 40px;
-                color:#909399;
-                font-size:14px;
-                margin-right:30px;
-                cursor:pointer;
-            }
-            li:nth-child(1){
-                border:none;
-                width:64px;
-                margin-right:26px;
-                text-align: left;
-                color:#7F8FA4;
-            }
-            div{
-              .el-radio-group{
-                .el-radio-button__inner{
-                  width:140px !important;
-                }
-              }
-            }
-            // .addBg{
-            //     background:#67C23A;
-            //     color:#fff;
-            // }
-            .class-G{
-                background:#67C23A;
-                color:#fff;
-            }
-            // .class-B{
-            //     background:#F3F6F9;
-            //     color:#909399;
-            // }
-            //radio3的样式
+    // .wallet-pay-Rmb,.wallet-pay-Dollar{
+    //     // padding-left:100px;
+    //     padding-top:38px;
+    //     p:nth-child(1){
+    //         height:25px;
+    //         line-height: 25px;
+    //         font-size:16px;
+    //         color:#50688C;
+    //         margin-bottom:30px;
+    //     }
+    //     .wallet-pay-Rmb-ul{
+    //         height:40px;
+    //         padding:0;
+    //         margin-bottom:24px;
+    //         li{
+    //             width:140px;
+    //             height:100%;
+    //             border:1px solid #C0C4CC;
+    //             border-radius:4px;
+    //             float:left;
+    //             text-align:center;
+    //             line-height: 40px;
+    //             color:#909399;
+    //             font-size:14px;
+    //             margin-right:30px;
+    //             cursor:pointer;
+    //         }
+    //         li:nth-child(1){
+    //             border:none;
+    //             width:64px;
+    //             margin-right:26px;
+    //             text-align: left;
+    //             color:#7F8FA4;
+    //         }
+    //         div{
+    //           .el-radio-group{
+    //             .el-radio-button__inner{
+    //               width:140px !important;
+    //             }
+    //           }
+    //         }
+    //         // .addBg{
+    //         //     background:#67C23A;
+    //         //     color:#fff;
+    //         // }
+    //         .class-G{
+    //             background:#67C23A;
+    //             color:#fff;
+    //         }
+    //         // .class-B{
+    //         //     background:#F3F6F9;
+    //         //     color:#909399;
+    //         // }
+    //         //radio3的样式
            
             
-        }
-        p:nth-child(3){
-            height:40px;
-            margin-left:90px;
-            position:relative;
-            width:300px;
-            margin-bottom:24px;
-            #sumFin{
-                width:284px;
-                height:100%;
-                border:1px solid #C0C4CC;
-                outline: none;
-                border-radius:4px;
-                color:#909399;
-                font-size:14px;
-                padding-left:16px;
-                background:#F3F6F9;
-            }
-            span{
-                color:#909399;
-                font-size:14px;
-                position:absolute;
-                right:26px;
-                top:13px;
-            }
-        }
-        //payment
-        .payment{
-            height:400px;
-            margin-bottom:24px;
-            p{
-                height:80px;
-                color:#7F8FA4;
-                font-size:14px;
-                float:left;
-                line-height:80px;
-                margin-right:34px;
+    //     }
+    //     p:nth-child(3){
+    //         height:40px;
+    //         margin-left:90px;
+    //         position:relative;
+    //         width:300px;
+    //         margin-bottom:24px;
+    //         #sumFin{
+    //             width:284px;
+    //             height:100%;
+    //             border:1px solid #C0C4CC;
+    //             outline: none;
+    //             border-radius:4px;
+    //             color:#909399;
+    //             font-size:14px;
+    //             padding-left:16px;
+    //             background:#F3F6F9;
+    //         }
+    //         span{
+    //             color:#909399;
+    //             font-size:14px;
+    //             position:absolute;
+    //             right:26px;
+    //             top:13px;
+    //         }
+    //     }
+    //     //payment
+    //     .payment{
+    //         height:400px;
+    //         margin-bottom:24px;
+    //         p{
+    //             height:80px;
+    //             color:#7F8FA4;
+    //             font-size:14px;
+    //             float:left;
+    //             line-height:80px;
+    //             margin-right:34px;
 
-            }
-            .paymentAll{
-                float:left;
-                height:400px;
-                width:660px;
-            }
+    //         }
+    //         .paymentAll{
+    //             float:left;
+    //             height:400px;
+    //             width:660px;
+    //         }
 
-        }
-        //propsData
-        .propsData{
-            width:250px;
-            height:50px;
-            border:none;
-            border-radius:4px;
-            text-align: center;
-            line-height: 50px;
-            background:#FFA800;
-            color:#fff;
-            font-size:18px;
-            margin-left:147px;
-            cursor:pointer;
-        }
-        //pay-rmb-submit
-        .pay-rmb-submit{
-          p{
-            height:28px;
-            text-align: center;
-            font-size:20px;
-            color:#6F90AE;
-          }
-          .su-payment{
-            margin-bottom:0;
-          }
-        }
-    }
+    //     }
+    //     //propsData
+    //     .propsData{
+    //         width:250px;
+    //         height:50px;
+    //         border:none;
+    //         border-radius:4px;
+    //         text-align: center;
+    //         line-height: 50px;
+    //         background:#FFA800;
+    //         color:#fff;
+    //         font-size:18px;
+    //         margin-left:147px;
+    //         cursor:pointer;
+    //     }
+    //     //pay-rmb-submit
+    //     .pay-rmb-submit{
+    //       p{
+    //         height:28px;
+    //         text-align: center;
+    //         font-size:20px;
+    //         color:#6F90AE;
+    //       }
+    //       .su-payment{
+    //         margin-bottom:0;
+    //       }
+    //     }
+    // }
     //wallet-detailGo
     .wallet-detailGo{
       padding-top:40px;

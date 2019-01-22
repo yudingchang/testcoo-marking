@@ -1,6 +1,6 @@
 <template>
     <div class="ReportManagement">
-        <el-row v-if="this.$route.meta.keepAlive">
+        <el-row>
             <el-col :span="24" class="ReportManagement-info">
                 <ul class="ReportManagement-info-query">
                     <li>验货开始时间</li>
@@ -168,17 +168,14 @@
                 </div>
             </el-col>
         </el-row>
-        <!-- 网页报告页面组件 -->
-        <inspection-report></inspection-report>
     </div>
 </template>
 
 <script>
 import {getReportManagement} from '@/api/reportManagement'
-import inspectionReport from '../common/inspectionReport.vue'
 export default {
     name:'ReportManagement',
-    components:{inspectionReport},
+    components:{},
     data(){
         return{
             startqueryTimevalue: '',  //startqueryTimevalue开始时间
@@ -265,6 +262,7 @@ export default {
 
         //checkNameHandleClick 点击查看全部名称展开
         checkNameHandleClick(row){
+            console.log(row)
             this.reportProductsDialog2 = true
             this.ProductsNameTableData = row
 
@@ -274,7 +272,7 @@ export default {
         webpageHandleClick(row){
             // console.log(row,index);
             this.$route.meta.keepAlive = false
-            this.$router.push({ name: 'inspectionReport', params:{ accountApi:row._links.self.substring(4)}})
+            this.$router.push({ path: 'inspectionReport', query:{ accountApi:row._links.self.substring(4)}})
         }, 
 
         //PDFHandleClick 点击PDF报告
@@ -299,6 +297,8 @@ export default {
                     this.reportTableData = response.data.data
                     // console.log(response.data.data)
                 }
+            }).catch(error => {
+                console.log(error)
             })
         },
 

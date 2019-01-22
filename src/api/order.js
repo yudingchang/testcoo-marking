@@ -11,6 +11,15 @@ export function order(data) {
     }
   })
 }
+
+//通过Id请求数据
+export function orderId(ID) {
+  return request({
+    url: '/v1/inspection'+ID,
+    method: 'get',
+  })
+}
+
 // 根据供应商名字查找其他信息
 export function getOtherMessage(data) {
   return request({
@@ -19,6 +28,8 @@ export function getOtherMessage(data) {
     params: data
   })
 }
+
+// 获取所有的订单
 export function getList(data) {
   return request({
     url: '/v1/inspection',
@@ -31,6 +42,45 @@ export function getList(data) {
     }
   })
 }
+
+//根据订单ID关闭订单
+export function CloseOrder(data){
+  return request({
+    url: `/v1/inspection/${data.orderId}/close`,
+    method: 'put',
+    params: data,
+    paramsSerializer: function(params) {
+      return qs.stringify(params, { indices: true })
+    }
+  })
+}
+
+//根据订单ID删除订单
+export function DeleteOrder(data){
+  return request({
+    url: `/v1/inspection/${data.orderId}`,
+    method: 'delete',
+    params: data,
+    paramsSerializer: function(params) {
+      return qs.stringify(params, { indices: true })
+    }
+  })
+}
+
+//根据订单ID退单
+export function RefundOrder(data){
+  return request({
+    url: `/v1/order/${data.orderId}/refund`,
+    method: 'put',
+    params: data,
+    paramsSerializer: function(params) {
+      return qs.stringify(params, { indices: true })
+    }
+  })
+}
+
+
+
 // 获取订单前期数据
 export function orderDetail(data) {
   return request({
@@ -63,3 +113,15 @@ export function getOrderList(data) {
     //   params:data
     })
   }      
+
+  //put放保存修改后的订单信息
+  export function orderRevise(data) {
+    return request({
+      url: '/v1/inspection/'+data.orderId,
+      method: 'put',
+      data: data,
+      paramsSerializer: function(params) {
+        return qs.stringify(params, { indices: true })
+      }
+    })
+  }

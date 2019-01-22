@@ -24,25 +24,25 @@
         </li> -->
         <li v-for="(item,index) in data" :key="index">
              <el-radio v-model="radio" :label="item.id"/>
-             <template v-if="item.name=='unionpay'">
+             <template v-if=" payment == 0 ">
                  <span class="lis1">
                      <img src="../../../static/image/UnionPay.png" alt="">
                      <span>银联</span>
                  </span>
              </template>
-             <template v-if="item.name=='alipayment'">
+             <template v-if=" payment == 1 ">
                  <span class="lis2">
                     <img src="../../../static/image/payment.png" alt="">
                     <span>支付宝</span>
                  </span>
              </template>
-             <template v-if="item.name=='testcoopay'">
+             <template v-if=" payment == 2 ">
                  <span class="lis3">
                      <span>测库月结</span>
                      <span>(你还有一份账单未结算)</span>
                  </span>
              </template>
-             <template v-if="item.name=='wallet'">
+             <template v-if=" payment == 3 ">
                  <span class="lis4">
                      <span>钱包</span>
                      <span>￥8989.89</span>
@@ -82,7 +82,7 @@ export default{
         
       };
     },
-    props:[],
+    props:['payment'],
     methods:{
        
     },

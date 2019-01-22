@@ -325,7 +325,7 @@ export const asyncRouterMap = [
         hidden: true,
         name: 'pay',
         component: () => import('@/views/orderManagement/pay'),
-        meta: { title: '验货订单' }
+        meta: { title: '验货付款' }
       },
       {
         path: 'orderDetails',
@@ -333,6 +333,13 @@ export const asyncRouterMap = [
         name: 'orderDetails',
         component: () => import('@/views/orderManagement/orderDetails'),
         meta: { title: '订单详情' }
+      },
+      {
+        path: 'orderRefundDetail',
+        hidden: true,
+        name: 'orderRefundDetail',
+        component: () => import('@/views/orderManagement/orderRefundDetail'),
+        meta: { title: '退单详情' }
       }
     ]
   },
@@ -340,7 +347,6 @@ export const asyncRouterMap = [
   {
     path: '/reportManagement',
     component: Layout,
-    alwaysShow: true,
     redirect: '/reportManagement/ReportManagement',
     name: 'reportManagement',
     meta:{
@@ -350,19 +356,17 @@ export const asyncRouterMap = [
     children: [
       {
         path: 'ReportManagement',
-        // hidden: true,
         component: () => import('@/views/reportManagement/ReportManagement'),
         name: 'ReportManagement',
-        meta: { title: '报告管理', keepAlive: true },
-        children: [
-          {
-            path: 'inspectionReport',
-            component: () => import('@/views/common/inspectionReport'),
-            name: 'inspectionReport',
-            meta: { title: '网页报告'},
-            hidden: true
-          }
-        ]
+        // meta: { title: '报告管理' },
+        hidden: true
+      },
+      {
+        path: 'inspectionReport',
+        component: () => import('@/views/reportManagement/inspectionReport'),
+        name: 'inspectionReport',
+        meta: { title: '网页报告' },
+        hidden: true
       }
     ]
   },
@@ -371,8 +375,7 @@ export const asyncRouterMap = [
   {
     path: '/fundManagement',
     component: Layout,
-    redirect: '/fundManagement/walletAccount',
-    alwaysShow: true,
+    redirect: '/fundManagement/wallet/walletAccount',
     name: 'fundManagement',
     meta: {
       title: '资金管理',
@@ -380,16 +383,91 @@ export const asyncRouterMap = [
     },
     children: [
       {
-        path: 'walletAccount',
-        component: () => import('@/views/fundManagement/walletAccount'),
-        name: 'walletAccount',
-        meta: { title: '钱包账户' }
+        path: 'wallet',
+        component: () => import('@/views/fundManagement/wallet'),
+        name: 'wallet',
+        redirect: '/fundManagement/wallet/walletAccountIndex',
+        meta: { title: '钱包账户' },
+        children: [
+          {
+            path: 'walletAccountIndex',
+            component: () => import('@/views/fundManagement/walletAccountMune/walletAccountIndex'),
+            name: 'walletAccountIndex',
+            // meta: { title: '账户设置' },
+            hidden: true
+          },
+          {
+            path: 'walletRechargeDollar',
+            component: () => import('@/views/fundManagement/walletAccountMune/walletRechargeDollar'),
+            name: 'walletRechargeDollar',
+            // meta: { title: '账户设置' },
+            hidden: true
+          },
+          {
+            path: 'walletRechargeRmb',
+            component: () => import('@/views/fundManagement/walletAccountMune/walletRechargeRmb'),
+            name: 'walletRechargeRmb',
+            hidden: true
+          },
+          {
+            path: 'walletDetail',
+            component: () => import( '@/views/fundManagement/walletAccountMune/walletDetail' ),
+            name: 'walletDetail',
+            meta: { title: '钱包详情' },
+            hidden: true
+          }
+
+        ]
       },
       {
         path: 'monthlyState',
         component: () => import('@/views/fundManagement/monthlyState'),
         name: 'monthlyState',
-        meta: { title: '测库月结' }
+        redirect: '/fundManagement/monthlyState/monthlyStateIndex',
+        meta: { title: '测库月结' },
+        children: [
+          {
+            path: 'monthlyStateIndex',
+            component: () => import('@/views/fundManagement/monthlyStateMune/monthlyStateIndex'),
+            name: 'monthlyStateIndex',
+            hidden: true
+          },
+          {
+            path: 'monthlyBillDetail',
+            component: () => import('@/views/fundManagement/monthlyStateMune/monthlyBillDetail'),
+            name: 'monthlyBillDetail',
+            meta: { title: '账单详情' },
+            hidden: true
+          },
+          {
+            path: 'monthlypayDetail',
+            component: () => import('@/views/fundManagement/monthlyStateMune/monthlypayDetail'),
+            name: 'monthlypayDetail',
+            meta: { title: '还款' },
+            hidden: true
+          },
+          {
+            path: 'monthlyReimbursement',
+            component: () => import('@/views/fundManagement/monthlyStateMune/monthlyReimbursement'),
+            name: 'monthlyReimbursement',
+            // meta: { title: '已还款明细' },
+            hidden: true
+          },
+          {
+            path: 'OutstandingAccountDe',
+            component: () => import('@/views/fundManagement/monthlyStateMune/OutstandingAccountDe'),
+            name: 'OutstandingAccountDe',
+            // meta: { title: '未出账明细' },
+            hidden: true
+          },
+          // {
+          //   path: 'ReimbursementDetail',
+          //   component: () => import('@/views/fundManagement/monthlyStateMune/ReimbursementDetail'),
+          //   name: 'ReimbursementDetail',
+          //   meta: { title: '' },
+          //   hidden: true
+          // }
+        ]
       }
     ]
   },
@@ -421,13 +499,69 @@ export const asyncRouterMap = [
         path: 'accountSetting',
         component: () => import('@/views/accountManagement/accountSetting'),
         name: 'accountSetting',
-        meta: { title: '账户设置' , keepAlive: true },
+        redirect: '/accountManagement/accountSetting/accountSettingIndex',
+        meta: { title: '账户设置' },
         children: [
           {
+            path: 'accountSettingIndex',
+            component: () => import('@/views/accountManagement/accountSettingMune/accountSettingIndex'),
+            name: 'accountSettingIndex',
+            hidden: true
+          },
+          {
             path: 'accountResetLoginPassword',
-            component: () => import('@/views/accountManagement/accountResetLoginPassword'),
+            component: () => import('@/views/accountManagement/accountSettingMune/accountResetLoginPassword'),
             name: 'accountResetLoginPassword',
-            meta: { title: '登录密码重置',},
+            meta: { title: '登录密码重置'},
+            hidden: true
+          },
+          {
+            path: 'resetByPassword',
+            component: () => import('@/views/accountManagement/accountSettingMune/resetByPassword'),
+            name: 'resetByPassword',
+            meta: { title: '登录密码重置' },
+            hidden: true
+          },
+          {
+            path: 'resetByEmail',
+            component: () => import('@/views/accountManagement/accountSettingMune/resetByEmail'),
+            name: 'resetByEmail',
+            meta: { title: '登录密码重置' },
+            hidden: true
+          },
+          {
+            path: 'resetByTelephone',
+            component: () => import('@/views/accountManagement/accountSettingMune/resetByTelephone'),
+            name: 'resetByTelephone',
+            meta: { title: '登录密码重置' },
+            hidden: true
+          },
+          {
+            path: 'accountResetPayPassword',
+            component: () => import('@/views/accountManagement/accountSettingMune/accountResetPayPassword'),
+            name: 'accountResetPayPassword',
+            meta: { title: '支付密码重置' },
+            hidden: true
+          },
+          {
+            path: 'resetPayByPassword',
+            component: () => import('@/views/accountManagement/accountSettingMune/resetPayByPassword'),
+            name: 'resetPayByPassword',
+            meta: { title: '支付密码重置' },
+            hidden: true
+          },
+          {
+            path: 'resetPayByEmail',
+            component: () => import('@/views/accountManagement/accountSettingMune/resetPayByEmail'),
+            name: 'resetPayByEmail',
+            meta: { title: '支付密码重置' },
+            hidden: true
+          },
+          {
+            path: 'resetPayByTelephone',
+            component: () => import('@/views/accountManagement/accountSettingMune/resetPayByTelephone'),
+            name: 'resetPayByTelephone',
+            meta: { title: '支付密码重置' },
             hidden: true
           }
         ]

@@ -15,15 +15,16 @@
               </p>
               <div class="Success-prompt-continue">
                   <p>
-                    <i>√</i>
+                    <i class="iconfont icon-duihao1"></i>
                   </p>
                   <p>
-                      <span>倒计时</span>
+                      <!-- <span>倒计时</span>
                       <span>23</span>
                       <span>:</span>
                       <span>59</span>
                       <span>:</span>
-                      <span>50</span>
+                      <span>50</span> -->
+                      <time :endTime="1490761620" :callback="callback" :endText="已经结束了"></time>
                   </p>
                   <p>
                       测库的工作人员将在24小时内给您报价，请耐心等待
@@ -48,12 +49,20 @@
               <div>
                   <ul>
                     <li>
-                        <i>√</i>
+                        <i class="iconfont icon-hebingxingzhuang1"></i>
                         <span>审核</span>
-                        <i>√</i>
+                        <i class="iconfont icon-hebingxingzhuang1"></i>
                     </li>
-                    <li></li>
-                    <li></li>
+                    <li>
+                        <i class="iconfont icon-FillCopy"></i>
+                        <span>监装</span>
+                        <i class="iconfont icon-FillCopy"></i>
+                    </li>
+                    <li>
+                        <i class="iconfont icon-hebingxingzhuang2"></i>
+                        <span>取样</span>
+                        <i class="iconfont icon-hebingxingzhuang2"></i>
+                    </li>
                 </ul>
               </div>
               <p>其他业务下单</p>
@@ -63,9 +72,10 @@
 </template>
 
 <script>
+import Time from '../common/Time'
 export default {
   name: 'checkoutSuccess',
-  components: {  },
+  components: { Time },
   computed: {
     // cachedViews() {
     //   return this.$store.state.tagsView.cachedViews
@@ -79,7 +89,7 @@ export default {
   },
   data(){
       return{
-
+          
       }
   },
   methods:{
@@ -93,6 +103,11 @@ export default {
 
       HomePage(){       //返回首页
         this.$router.push({name:'controlboardIndex'})
+      },
+
+      callback(val){
+          console.log(val)
+
       }
   },
   
@@ -127,15 +142,17 @@ export default {
             p:nth-child(1){
                 width:160px;
                 height:160px;
-                background:rgba(103,194,58,1);
-                border-radius:50%;
                 margin:0 auto;
                 text-align: center;
                 line-height: 160px;
                 margin-bottom:24px;
+                vertical-align: middle;
+                background:rgba(103,194,58,1);
+                border-radius:50%;
                 i{
-                    font-size:60px;
+                    font-size:161px;
                     color:rgba(255,255,255,1);
+                    border-radius:50%;
                 }
             }
             p:nth-child(2){
@@ -260,10 +277,52 @@ export default {
                 }
                 li:nth-child(2){
                     background:linear-gradient(135deg,rgba(98,178,255,1) 0%,rgba(134,162,253,1) 100%);
+                    position:relative;
+                    overflow: hidden;
+                    i:nth-child(1){
+                        margin-left:24px;
+                        color:rgba(255,255,255,1);
+                        font-size:30px;
+                    }
+                    span{
+                        margin-left:17px;
+                        color:rgba(255,255,255,1);
+                        font-size:28px;
+                    }
+                    i:nth-child(3){
+                        margin-left:92px;
+                        color:rgba(255,255,255,1);
+                        font-size:130px;
+                        position:absolute;
+                        top:30px;
+                        right:15px;
+                        opacity:0.2;
+                    }
                 }
                 li:nth-child(3){
                     background:linear-gradient(136deg,rgba(54,200,196,1) 0%,rgba(22,161,207,1) 100%);
                     margin:0;
+                    position:relative;
+                    overflow: hidden;
+                    i:nth-child(1){
+                        margin-left:24px;
+                        color:rgba(255,255,255,1);
+                        font-size:30px;
+                    }
+                    span{
+                        margin-left:17px;
+                        color:rgba(255,255,255,1);
+                        font-size:28px;
+                    }
+                    i:nth-child(3){
+                        margin-left:92px;
+                        color:rgba(255,255,255,1);
+                        font-size:130px;
+                        position:absolute;
+                        top:30px;
+                        right:15px;
+                        opacity:0.2;
+                    }
                 }
             }
         }

@@ -37,7 +37,7 @@
             v-model="loginForm.password"
             placeholder="输入登录密码"
             name="username"
-            type="text"
+            type="password"
             class="email-content"     
           />            
         </el-form-item>
@@ -74,7 +74,7 @@
             v-model="phoneLoginForm.password"
             placeholder="输入登录密码"
             name="username"
-            type="text"
+            type="password"
             class="email-content"     
           />            
         </el-form-item>
@@ -1661,6 +1661,7 @@ $light_gray: #eee;
         text-align: center;
         font-size: 18px;
         color: #dadada;
+        cursor:pointer;
       }
     }
     .text1 {

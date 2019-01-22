@@ -1,13 +1,13 @@
 <template>
-    <div class="OutstandingAccountDe">
+    <div class="monthlyReimbursement">
         <el-row>
-            <el-col :span="24" class="AccountDe-info">
-                <div class="AccountDe-info-title">
-                    <p>未出账明细</p>
+            <el-col :span="24" class="Reimbursement-info">
+                <div class="Reimbursement-info-title">
+                    <p>已还款明细</p>
                 </div>
-                <div class="AccountDe-info-tableDetail">
-                    <ul class="AccountDe-info-tableDetail-query">
-                        <li>创建时间</li>
+                <div class="Reimbursement-info-tableDetail">
+                    <ul class="Reimbursement-info-tableDetail-query">
+                        <li>月份</li>
                         <li>
                             <el-date-picker
                             v-model="queryStartTime"
@@ -29,49 +29,46 @@
                             </el-date-picker>
                         </li>
                     </ul>
-                    <div class="AccountDe-info-tableDetail-data">
+                    <div class="Reimbursement-info-tableDetail-data">
                          <el-table
-                            :data="AccountDeTableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
+                            :data="ReimbursementTableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
                             style="width: 100%">
                             <el-table-column
                             prop="year_month"
-                            label="创建时间"
+                            label="月份"
                             width="250">
                             </el-table-column>
                             <el-table-column
-                            label="订单号"
-                            width="210">
-                            <template slot-scope="scope">
-                                <el-button @click="handleClick(scope.row,scope.$index)" type="text" size="small">{{scope.row.year_month}}</el-button>
-                            </template>
-                            </el-table-column>
-                            <el-table-column
-                            prop="year_month"
-                            label="币种"
+                            prop="order_id"
+                            label="流水号"
                             width="210">
                             </el-table-column>
                             <el-table-column
-                            prop="year_month"
+                            prop="status"
+                            label="支付方式"
+                            width="210">
+                            </el-table-column>
+                            <el-table-column
+                            prop="price"
                             label="总金额"
                             width="210">
                             </el-table-column>
                             <el-table-column
-                            prop="year_month"
+                            prop="repayment_days"
                             label="到账时间"
                             width="210">
                             </el-table-column>
                             <el-table-column
-                            label="状态"
-                            prop="year_month"
+                            label="操作"
                             >
-                            <!-- <template slot-scope="scope">
+                            <template slot-scope="scope">
                                 <el-button @click="handleClick(scope.row,scope.$index)" type="text" size="small">查看详情</el-button>
-                            </template> -->
+                            </template>
                             </el-table-column>
                         </el-table>
                     </div>
                 </div>
-                <div class="AccountDe-info-pages">
+                <div class="Reimbursement-info-pages">
                     <el-pagination
                         @size-change="handleSizeChange"
                         @current-change="handleCurrentChange"
@@ -79,7 +76,7 @@
                         :page-sizes="[6]" 
                         :page-size="pagesize"        
                         layout="total, sizes, prev, pager, next, jumper"
-                        :total="AccountDeTableData.length">    
+                        :total="ReimbursementTableData.length">    
                     </el-pagination>
                 </div>
             </el-col>
@@ -87,29 +84,27 @@
     </div>    
 </template>
 <script>
-import {AccountDeData} from '@/api/monthlyState'
+import {ReimbursementData} from '@/api/monthlyState'
 export default {
-    name:"OutstandingAccountDe",
+    name:"monthlyReimbursement",
     data(){
         return{
             // queryStartTime查询起始时间
             queryStartTime:null,
             // queryEndTime查询截止时间
             queryEndTime:null,
-            //AccountDeTableData接收数据
-            AccountDeTableData:[],
+            //ReimbursementTableData接收数据
+            ReimbursementTableData:[],
             currentPage:1, //初始页
             pagesize:6,    //每页的数据
         }
     },
     created(){
-        this.AccountDetailTableData()
+        this.handleReimbursementTableData()
     },
     methods:{
         handleClick(row,index) {
-            console.log(row.order_id);
-            // console.log(index)
-            this.$emit("ReimbursementD",row.order_id)
+          this.$router.push({ path: 'monthlyBillDetail', query: {OrderId: row.id}})
         },
       // 初始页currentPage、初始每页数据数pagesize和数据data
         handleSizeChange: function (size) {
@@ -120,20 +115,22 @@ export default {
                 this.currentPage = currentPage;
                 console.log(this.currentPage)   //点击第几页
         },
-        AccountDetailTableData(val){  //请求数据的方法
-            AccountDeData(val).then(response =>{
+        handleReimbursementTableData(val){  //请求数据的方法
+            ReimbursementData(val).then(response =>{
                 if(response.data.code == 0){
-                    this.AccountDeTableData=response.data.data.list
+                    this.ReimbursementTableData=response.data.data.list
+                    // console.log(response.data.data)
                 }
             })
         },
         dateRange(){
-            this.AccountDetailTableData({
+            this.handleReimbursementTableData({
                 year_month:{
                     key:'year_month',
                     s:{0:this.queryStartTime,1:this.queryEndTime}
                 }
             })
+            console.log("光标离开")
         }
     }
 }
@@ -141,10 +138,10 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 //普通样式
-.OutstandingAccountDe{
-    margin-right:100px;
-    .AccountDe-info{
-        .AccountDe-info-title{
+.monthlyReimbursement{
+    padding:40px 100px 0;
+    .Reimbursement-info{
+        .Reimbursement-info-title{
             margin-bottom:24px;
             p{
                 height:33px;
@@ -153,13 +150,13 @@ export default {
                 font-size:18px;
             }
         }
-        .AccountDe-info-tableDetail{
+        .Reimbursement-info-tableDetail{
             height:535px;
             border:1px solid #E6EAEE;
             border-radius:4px;
             background:#FFFFFF;
             margin-bottom:24px;
-            .AccountDe-info-tableDetail-query{
+            .Reimbursement-info-tableDetail-query{
                 height:76px;
                 line-height: 76px;
                 li{
@@ -184,7 +181,7 @@ export default {
                 }
             }
         }
-        .AccountDe-info-pages{
+        .Reimbursement-info-pages{
             height:36px;
             padding-left:313px;
         }
@@ -194,8 +191,8 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss" >
 //element-ui组件样式
-.OutstandingAccountDe{
-    .AccountDe-info-tableDetail-data{
+.monthlyReimbursement{
+    .Reimbursement-info-tableDetail-data{
         .el-table th{
             height:60px;
         }
@@ -217,11 +214,10 @@ export default {
             padding-left:40px;
         }
         .el-button--text{
-            color:#158BE4;
-            font-size:14px;
+            color:#FFA800;
         }
     }
-    .AccountDe-info-pages{
+    .Reimbursement-info-pages{
         .el-pagination__total{
             width:88px;
             height:36px;

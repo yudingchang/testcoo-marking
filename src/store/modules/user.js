@@ -6,6 +6,10 @@ const user = {
     user: '',
     status: '',
     code: '',
+    personal:'',
+    email: '',
+    phonenumber: '',
+    is_paypassword: '',
     token: getToken(),
     name: '',
     avatar: '',
@@ -34,6 +38,18 @@ const user = {
     },
     SET_NAME: (state, name) => {
       state.name = name
+    },
+    SET_PERSONAL: (state, personal) => {
+      state.personal = personal
+    },
+    SET_EMAIL: (state, email) => {
+      state.email = email
+    },
+    SET_PHONENUMBER: (state, phonenumber) => {
+      state.phonenumber = phonenumber
+    },
+    SET_PAYPASSWORD: (state, is_paypassword) => {
+      state.is_paypassword = is_paypassword
     },
     SET_AVATAR: (state, avatar) => {
       state.avatar = avatar
@@ -79,6 +95,10 @@ const user = {
           }
 
           commit('SET_NAME', data.name)
+          commit('SET_PERSONAL', data.personal)
+          commit('SET_PHONENUMBER', data.phone_number)
+          commit('SET_EMAIL', data.email)
+          commit('SET_PAYPASSWORD', data.is_paypassword)
           commit('SET_AVATAR', data.avatar)
           commit('SET_INTRODUCTION', data.introduction)
           resolve(response)

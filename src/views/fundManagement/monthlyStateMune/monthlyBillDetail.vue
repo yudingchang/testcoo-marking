@@ -17,7 +17,7 @@
                             <p>
                                 <span>人民币</span><span>￥8989.89</span>
                             </p>
-                            <p>人民币还款</p>
+                            <p @click="repaymentRmb">人民币还款</p>
                         </li>
                         <li></li>
                         <li>
@@ -115,6 +115,11 @@ export default {
         this.currentPage = currentPage
         console.log(this.currentPage) // 点击第几页
         },
+
+        //repaymentRmb人民币还款
+        repaymentRmb(){
+            this.$router.push({ path: 'monthlypayDetail' })
+        }
     }
 }
 </script>
@@ -123,7 +128,8 @@ export default {
 <style rel="styelsheet/scss" lang="scss" scoped>
 //monthlyBillDetail普通样式
 .monthlyBillDetail{
-    margin-right:100px;
+    // margin-right:100px;
+    padding:40px 100px 0;
     .BillDetail-info{
         .BillDetail-info-totalInfo{
             height:200px;

@@ -154,7 +154,7 @@
                     width="31%"
                     center>
                     <div>
-                        <i>√</i>
+                        <i class="iconfont icon-Fill4"></i>
                         <p>还款成功</p>
                     </div>
                     <span slot="footer" class="dialog-footer">
@@ -169,8 +169,8 @@
 </template>
 
 <script>
-import paymentChn from '../common/paymentCHN.vue'
-import paymentUsa from '../common/paymentUSA.vue'
+import paymentChn from '../../common/paymentCHN.vue'
+import paymentUsa from '../../common/paymentUSA.vue'
 import {editFormVisibleData} from '@/api/monthlyState'
 export default {
     watch:{
@@ -197,10 +197,13 @@ export default {
             paymentUSA:false,
 
             invoiceType:"1",
+
             //显示隐藏开票公司
             makeInvoice:false,
+
             //显示隐藏发票收件人
             invoicePersonVif:false,
+
             //显示隐藏支付密码
             payPassword:false,
 
@@ -312,14 +315,7 @@ export default {
                 this.paymentUSA = true
                 this.paymentCHN = false
             }
-            // console.log(this.outAccountPayMay)
-            // if(this.outAccountPayMay == 0){
-            //     this.paymentCHN = true
-            //     this.paymentUSA = false
-            // }else if(this.outAccountPayMay == 1){
-            //     this.paymentUSA = true
-            //     this.paymentCHN = false
-            // }
+
         },
 
 
@@ -401,7 +397,8 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 // monthlypayDetail
 .monthlypayDetail{
-    margin-bottom:61px;
+    // margin-bottom:61px;
+    padding:40px 0 88px 100px;
     .payDetail-info{
         .payDetail-info-total{
             width:1000px;
@@ -918,16 +915,35 @@ export default {
             }
             .el-dialog__body{
                 padding:0;
-                height:147px;
+                // height:147px;
                 text-align:center;
+                margin-bottom:32px;
                 i{
-                    font-size:88px;
-                    color:#67C23A;
+                    font-size:108px;
+                    color:rgba(103,194,58,1);
+                    display: inline-block;
+                    width:108px;
+                    height:108px;
+                    line-height:108px;
+                    margin-bottom:14px;
                 }
                 p{
-                    height:25px;
-                    font-size:14px;
-                    color:#50688C;
+                    height:24px;
+                    font-size:18px;
+                    color:rgba(80,104,140,1);
+                }
+            }
+            .el-dialog__footer{
+                padding:0;
+                .el-button--primary{
+                    width:240px;
+                    height:50px;
+                    background:rgba(255,168,0,1);
+                    border-radius:4px;
+                    border:none;
+                    font-size:18px;
+                    font-weight:500;
+                    color:rgba(255,255,255,1);
                 }
             }
         }

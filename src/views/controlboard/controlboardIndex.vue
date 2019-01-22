@@ -9,24 +9,24 @@
                 </ul>
                 <ul>
                     <li @click="OrderImmediateExamine">
-                        <i></i>
+                        <i class="iconfont icon-hebingxingzhuangcopy"></i>
                         <span>验货</span>
-                        <i></i>
+                        <i class="iconfont icon-hebingxingzhuangcopy"></i>
                     </li>
                     <li @click="OrderImmediateAufiting">
-                        <i></i>
+                        <i class="iconfont icon-hebingxingzhuang1"></i>
                         <span>审核</span>
-                        <i></i>
+                        <i class="iconfont icon-hebingxingzhuang1"></i>
                     </li>
                     <li @click="OrderImmediateSupervision">
-                        <i></i>
+                        <i class="iconfont icon-FillCopy"></i>
                         <span>监装</span>
-                        <i></i>
+                        <i class="iconfont icon-FillCopy"></i>
                     </li>
                     <li @click="OrderImmediateSample">
-                        <i></i>
+                        <i class="iconfont icon-hebingxingzhuang2"></i>
                         <span>取样</span>
-                        <i></i>
+                        <i class="iconfont icon-hebingxingzhuang2"></i>
                     </li>
                 </ul>
             </el-col>
@@ -47,7 +47,7 @@
                     </ul>
                     <ul>
                         <li><span>收件地址（2）</span><span @click="ViewDeliveryAddress">查看</span></li>
-                        <li><span>支付密码设置</span><span @click="setPayPassword">去设置</span></li>
+                        <li><span>支付密码设置</span><span @click="setPayPassword" v-if="!is_paypassword">去设置</span><span v-if="is_paypassword" @click="modifyPassword">修改</span></li>
                     </ul>
                     <ul>
                         <li><span>接受报告邮箱（0）</span><span @click="ViewReportBox">查看</span></li>
@@ -60,18 +60,18 @@
                 <ul>
                     <li></li>
                     <li>钱包余额</li>
-                    <li>
-                        <span>明细</span><i>》</i>
+                    <li @click="WalletBalance">
+                        <span>明细</span><i class="iconfont icon-hebingxingzhuang7"></i>
                     </li>
                 </ul>
                 <ul>
                     <li>
-                        <p><span>人民币</span><span>￥8989.89</span></p>
+                        <p><span>人民币</span><span>￥{{ userAccountBalance[0].price }}</span></p>
                         <p @click="rechargeRmb">去充值</p>
                     </li>
                     <li></li>
                     <li>
-                        <p><span>美元</span><span>$8989.89</span></p>
+                        <p><span>美元</span><span>${{ userAccountBalance[1].price }}</span></p>
                         <p @click="rechargeDollar">去充值</p>
                     </li>
                 </ul>
@@ -174,7 +174,7 @@
                 <ul class="latestOrder-ul">
                     <li></li>
                     <li>最新订单</li>
-                    <li><span>更多</span><i>》</i></li>
+                    <li><span>更多</span><i class="iconfont icon-hebingxingzhuang7"></i></li>
                 </ul>
                 <div class="latestOrder-div">
                     <el-table
@@ -230,7 +230,7 @@
                             <el-button @click="CopyhandleClick(scope.row)" v-if="false" type="text" size="small">复制</el-button>
                             <el-button @click="CheckhandleClick(scope.row)" v-if="false" type="text" size="small">查看原因</el-button>
                             <el-button @click="BackhandleClick(scope.row)" type="text" size="small">退单</el-button>
-                            <el-button @click="VideohandleClick(scope.row)" type="text" size="small"><i>√</i>  视频</el-button>
+                            <el-button @click="VideohandleClick(scope.row)" type="text" size="small"><i class="iconfont icon-sanjiaoxing"></i>  视频</el-button>
                         </template>
                         </el-table-column>
                     </el-table>
@@ -249,11 +249,17 @@
                     prop=""
                     label="序号"
                     width="108">
+                    <template slot-scope="scope">
+                        {{ scope.$index+1 }}
+                    </template>
                     </el-table-column>
                     <el-table-column
                     prop=""
                     label="产品名称"
                     >
+                    <template slot-scope="scope">
+                        {{ scope.row }}
+                    </template>
                     </el-table-column>
                 </el-table>
                 </el-dialog>
@@ -263,7 +269,7 @@
                 <ul class="latestRepot-ul">
                     <li></li>
                     <li>最新报告</li>
-                    <li><span>更多</span><i>》</i></li>
+                    <li><span>更多</span><i class="iconfont icon-hebingxingzhuang7"></i></li>
                 </ul>
                 <div class="latestRepot-div">
                     <el-table
@@ -346,14 +352,18 @@
                     border
                     style="width: 100%">
                     <el-table-column
-                    prop=""
                     label="序号"
                     width="108">
+                    <template slot-scope="scope">
+                        {{ scope.$index+1 }}
+                    </template>
                     </el-table-column>
                     <el-table-column
-                    prop=""
                     label="产品名称"
                     >
+                    <template slot-scope="scope">
+                        {{ scope.row }}
+                    </template>
                     </el-table-column>
                 </el-table>
                 </el-dialog>
@@ -363,10 +373,18 @@
 </template>
 
 <script>
+import {MoneyBlanace } from '@/api/walletDetail' //钱包余额请求数据
+import { mapGetters } from 'vuex'
+import store from '../../store'
 export default {
     name: 'controlboardIndex',
     data(){
         return{
+            //钱包余额
+            userAccountBalance: [],     //用户钱包余额
+
+
+
             //最新订单
             latestOrderTableData:[         //最新订单latestOrderTableData数据
                 {order:"123456789123456毛绒玩具1,毛绒玩具2,毛绒玩具3,毛绒玩具4"},
@@ -393,10 +411,13 @@ export default {
             latestRepotDialog6:false,     //最新报告latestRepotDialog6 产品名称
             RproductOrderTableData: [{a:"1"},{a:"2"},{a:"1"},{a:"1"},{a:"1"},{a:"1"},{a:"1"}],    //产品货号 展开列表
             RproductNameTableData: [{a:"1"},{a:"2"},{a:"1"},{a:"1"},{a:"1"},{a:"1"},{a:"1"}],     //产品名称  展开列表
+
+           
         }
     },
     created(){
-
+        this.getMoneyBlanaceData();
+        console.log(this.is_paypassword)
     },
     methods:{
 
@@ -405,27 +426,27 @@ export default {
             this.$router.push({name:"controlboard",params:{}}) //路由 跳转
         },
         OrderImmediateAufiting(){      //审核
-
+            this.$message("线上暂时未开通此服务，如您需要请联系测库工作人员 联系电话: 18292669357")
         },
         OrderImmediateSupervision(){      //监装
-
+            this.$message("线上暂时未开通此服务，如您需要请联系测库工作人员 联系电话: 18292669357")
         },
         OrderImmediateSample(){      //取样
-
+            this.$message("线上暂时未开通此服务，如您需要请联系测库工作人员 联系电话: 18292669357")
         },
 
 
         // 完善信息
         ViewVendorInfo(){    //ViewVendorInfo查看供应商信息
-
+            this.$router.push({ path:'/accountManagement/dataSetting', query:{ tabsIndex:1 } })
         },
 
         PerfectingPerInfo(){    //PerfectingPerInfo完善个人信息
-
+            this.$router.push({ path: '/accountManagement/personalInformation' })
         },
 
         ViewInvoiceInfo(){    //ViewInvoiceInfo查看发票信息
-
+            this.$router.push({ path:'/accountManagement/dataSetting', query:{ tabsIndex:2 } })
         },
 
         PerfectingCompInfo(){    //PerfectingCompInfo完善企业信息
@@ -433,24 +454,40 @@ export default {
         },
 
         ViewDeliveryAddress(){    //ViewDeliveryAddress查看收件地址
-
+            this.$router.push({ path: '/accountManagement/dataSetting', query:{ tabsIndex:3 } })
         },
 
         setPayPassword(){    //setPayPassword设置支付密码
+            this.$router.push({ path:'/accountManagement/accountSetting/accountSettingIndex' })
+        },
 
+        modifyPassword(){      //modifyPassword修改支付密码
+            this.$router.push({ path: '/accountManagement/accountSetting/accountResetPayPassword' })
         },
 
         ViewReportBox(){    //ViewReportBox查看报告邮箱
-
+            this.$router.push({ path:'/accountManagement/dataSetting', query:{ tabsIndex:0 } })
         },
 
         //钱包余额
+        
+        getMoneyBlanaceData(){      //获取用户账户人民币和美元余额
+            MoneyBlanace().then( response => {
+                if( response.data.code == 0 ){
+                    this.userAccountBalance = response.data.data.list
+                    console.log(this.userAccountBalance)
+                }
+            })
+        },
         rechargeRmb(){     //rechargeRmb人民币充值入口
-
+            this.$router.push({ path: '/fundManagement/wallet/walletRechargeRmb', query: {} })
         },
 
         rechargeDollar(){   //rechargeDollar美元充值入口
-
+            this.$router.push({ path:'/fundManagement/wallet/walletRechargeDollar', query: {} })
+        },
+        WalletBalance(){     //查看钱包明细
+            this.$router.push({ path: '/fundManagement/wallet/walletAccountIndex', query: {} })
         },
 
         //测库月结
@@ -535,6 +572,11 @@ export default {
 
         }
     },
+    computed: {
+        ...mapGetters([
+            'is_paypassword',
+        ])
+    }
 }
 </script>
 
@@ -560,7 +602,8 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
+                font-weight:400;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -578,18 +621,30 @@ export default {
                 width:370px;
                 height:120px;
                 background:linear-gradient(315deg,rgba(140,129,246,1) 0%,rgba(200,109,215,1) 100%);
-                border-radius:4px;
-                margin-right:20px;
+                border-radius: 4px;
+                margin-right: 20px;
+                position: relative;
+                overflow: hidden;
                 i:nth-child(1){
-
+                    font-size:30px;
+                    color:rgba(255,255,255,1);
+                    margin-left:26px;
                 }
                 span{
                     height:37px;
-                    font-size:28px;
+                    font-size:24px;
                     font-family:MicrosoftYaHei;
                     color:rgba(255,255,255,1);
                     line-height:37px;
                     margin-left:16px;
+                }
+                i:nth-child(3){
+                    position:absolute;
+                    top:30px;
+                    right:15px;
+                    font-size:142px;
+                    color: rgba(255,255,255,1);
+                    opacity: 0.2;
                 }
             }
             li:nth-child(2){
@@ -598,16 +653,28 @@ export default {
                 background:linear-gradient(131deg,rgba(234,124,97,1) 0%,rgba(254,113,151,1) 100%);
                 border-radius:4px;
                 margin-right:20px;
-                 i:nth-child(1){
-
+                position: relative;
+                overflow: hidden;
+                i:nth-child(1){
+                    font-size:30px;
+                    color:rgba(255,255,255,1);
+                    margin-left:26px;
                 }
                 span{
                     height:37px;
-                    font-size:28px;
+                    font-size:24px;
                     font-family:MicrosoftYaHei;
                     color:rgba(255,255,255,1);
                     line-height:37px;
                     margin-left:16px;
+                }
+                i:nth-child(3){
+                    position:absolute;
+                    top:30px;
+                    right:15px;
+                    font-size:142px;
+                    color: rgba(255,255,255,1);
+                    opacity: 0.2;
                 }
             }
             li:nth-child(3){
@@ -616,16 +683,28 @@ export default {
                 background:linear-gradient(135deg,rgba(98,178,255,1) 0%,rgba(134,162,253,1) 100%);
                 border-radius:4px;
                 margin-right:20px;
-                 i:nth-child(1){
-
+                position: relative;
+                overflow: hidden;
+                i:nth-child(1){
+                    font-size:30px;
+                    color:rgba(255,255,255,1);
+                    margin-left:26px;
                 }
                 span{
                     height:37px;
-                    font-size:28px;
+                    font-size:24px;
                     font-family:MicrosoftYaHei;
                     color:rgba(255,255,255,1);
                     line-height:37px;
                     margin-left:16px;
+                }
+                i:nth-child(3){
+                    position:absolute;
+                    top:30px;
+                    right:15px;
+                    font-size:142px;
+                    color: rgba(255,255,255,1);
+                    opacity: 0.2;
                 }
             }
             li:nth-child(4){
@@ -633,16 +712,28 @@ export default {
                 height:120px;
                 background:linear-gradient(136deg,rgba(54,200,196,1) 0%,rgba(22,161,207,1) 100%);
                 border-radius:4px;
-                 i:nth-child(1){
-
+                position: relative;
+                overflow: hidden;
+                i:nth-child(1){
+                    font-size:30px;
+                    color:rgba(255,255,255,1);
+                    margin-left:26px;
                 }
                 span{
                     height:37px;
-                    font-size:28px;
+                    font-size:24px;
                     font-family:MicrosoftYaHei;
                     color:rgba(255,255,255,1);
                     line-height:37px;
                     margin-left:16px;
+                }
+                i:nth-child(3){
+                    position:absolute;
+                    top:30px;
+                    right:15px;
+                    font-size:142px;
+                    color: rgba(255,255,255,1);
+                    opacity: 0.2;
                 }
             }
         }
@@ -665,7 +756,8 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
+                font-weight:400;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -743,7 +835,8 @@ export default {
             li:nth-child(2){
                 float:left;
                 height:33px;
-                font-size:24px;
+                font-size:20px;
+                font-weight:400;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -753,6 +846,7 @@ export default {
                 float:right;
                 height:33px;
                 line-height: 33px;
+                cursor: pointer;
                 span{
                     font-size:16px;
                     font-family:PingFang-SC-Medium;
@@ -761,9 +855,8 @@ export default {
                     margin-right:8px;
                 }
                 i{
-                    font-size:16px;
+                    font-size:14px;
                     color:rgba(245,166,35,1);
-                    // text-align: right; 
                 }
             }
         }
@@ -786,12 +879,12 @@ export default {
                     line-height: 37px;
                     margin:32px 0 23px 0;
                     span:nth-child(1){
-                        font-size:28px;
+                        font-size:24px;
                         color:rgba(80,104,140,1);
                         margin-right:32px;
                     }
                     span:nth-child(2){
-                        font-size:30px;
+                        font-size:26px;
                         color:rgba(21,139,228,1);
                     }
                 }
@@ -801,7 +894,7 @@ export default {
                     background:rgba(103,194,58,1);
                     border-radius:4px;
                     line-height: 40px;
-                    font-size:20px;
+                    font-size:16px;
                     color:rgba(255,255,255,1);
                     margin-left:132px;
                     cursor: pointer;
@@ -832,7 +925,7 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -867,7 +960,7 @@ export default {
                         margin-left:50px;
                     }
                     li:nth-child(2),li:nth-child(5){
-                        font-size:30px;
+                        font-size:28px;
                         color:rgba(21,139,228,1);
                         margin-left:24px;
                     }
@@ -905,7 +998,7 @@ export default {
                         margin-left:50px;
                     }
                     li:nth-child(2),li:nth-child(5){
-                        font-size:30px;
+                        font-size:28px;
                         color:rgba(21,139,228,1);
                         margin-left:24px;
                     }
@@ -961,7 +1054,8 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
+                font-weight:400;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -1045,7 +1139,7 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -1080,7 +1174,7 @@ export default {
                     border-radius:50%;
                 }
                 p:nth-child(2){
-                    font-size:24px;
+                    font-size:20px;
                     font-weight:500;
                     color:rgba(255,168,0,1);
                     text-decoration: underline;
@@ -1104,7 +1198,7 @@ export default {
                     border-radius:50%;
                 }
                 p:nth-child(2){
-                    font-size:24px;
+                    font-size:20px;
                     font-weight:500;
                     color:rgba(255,168,0,1);
                     text-decoration: underline;
@@ -1136,7 +1230,8 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
+                font-weight:400;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -1154,7 +1249,7 @@ export default {
                     margin-right:8px;
                 }
                 i{
-                    font-size:16px;
+                    font-size:14px;
                     color:rgba(245,166,35,1);
                     // text-align: right; 
                 }
@@ -1213,7 +1308,7 @@ export default {
             }
             li:nth-child(2){
                 height:33px;
-                font-size:24px;
+                font-size:20px;
                 font-family:PingFang-SC-Medium;
                 font-weight:500;
                 color:rgba(80,104,140,1);
@@ -1231,7 +1326,7 @@ export default {
                     margin-right:8px;
                 }
                 i{
-                    font-size:16px;
+                    font-size:14px;
                     color:rgba(245,166,35,1);
                     // text-align: right; 
                 }
@@ -1344,6 +1439,8 @@ export default {
         }
         .el-table td:nth-child(8) div .el-button--text:last-child span i{
             margin-right:12px;
+            font-size:12px;
+            color:rgba(255,255,255,1);
         }
 
         //Dialog Table

@@ -11,7 +11,6 @@ export function getReportManagement(data) {
 
 //报告详情页面
 export function getReportSelf(url) {
-  console.log('222',url)
   return request({
     url: url,
     method: 'get',

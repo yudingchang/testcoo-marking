@@ -8,7 +8,7 @@
                     <ul>
                         <li><a href="#"><img src="../../../static/image/LogoReport.png" alt=""></a></li>
                         <li>检验报告</li>
-                        <li >返回上一页</li>
+                        <li @click="goBack">返回上一页</li>
                     </ul>
                     <p>基本信息</p>
                     <div class="interface-baseInfo-table">
@@ -612,17 +612,12 @@ export default {
         return{
             //基础信息table数据
             baseInfoData: [],
-
-            baseImg: [],     //imgUrl
             
             //检验结论table数据
             conclusionData: [],
 
             //A、数量符合性table数据
             QuantityData: [],
-
-            QuantityImg: [],    //imgUrl
-
 
             //B、包装/标识/标签table数据
             packageLogoData: [],
@@ -652,8 +647,7 @@ export default {
         }
     },
     created(){
-        console.log(this.$route.query)
-        // this.getInspectionReportData(this.$route.query.accountApi)
+        this.getInspectionReportData(this.$route.query.accountApi)
     },
     methods:{
         //获取网页报告预览页面数据
@@ -683,7 +677,6 @@ export default {
 
                     //接收数量符合性数据
                     this.QuantityData = response.data.data.review.quantity_conformity
-                    console.log(this.QuantityData.files)
 
                     //接收特殊要求数据
                     this.specialData = response.data.data.review.special_attention
@@ -719,6 +712,11 @@ export default {
             }else if(value == '不符合'){
                 return  'conslusionUnAccord';
             }
+        },
+
+        //返回上一页面
+        goBack(){
+            this.$router.go(-1)
         }
 
     },

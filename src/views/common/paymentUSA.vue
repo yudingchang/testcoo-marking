@@ -65,7 +65,7 @@ export default{
   name: 'paymentUSA',
   data () {
       return {
-        radio: "",
+        radio: 1,
         data:[
             {
                 id:1,
@@ -103,7 +103,7 @@ export default{
     watch:{
         //监听页面按钮点击触发的事件
         radio(val) {
-            // console.log(val)
+            console.log(val)
             this.$emit("receiveDateUsa",val)
             // console.log(val)
 

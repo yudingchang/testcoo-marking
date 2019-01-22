@@ -1,14 +1,14 @@
 <template>
   <div class="personalInformation">                                     
-      <div v-if="editMessage" :model="fitter">
+      <div v-if="!personal" :model="fitter">
             <div class="content">
                 <!-- {{ fitter }} -->
                 <!-- <el-form ref="form" :model="fitter" label-width="80px"> -->
                 <div class="left">                                                                          
-                    <div class="gender">                                 
+                    <!-- <div class="gender">                                 
                         <img :src="fitter.avatar"/>
-                        <!-- <span :class="{male:male,female:female,neuter:neuter}"></span> -->
-                    </div>
+                        <span :class="{male:male,female:female,neuter:neuter}"></span>
+                    </div> -->
                     <!-- <el-upload
                         v-if="action"
                         :on-remove="handleRemove"
@@ -24,10 +24,23 @@
                         list-type="picture-card">
                         <i class="el-icon-plus"/>
                     </el-upload> -->
-                    <div class="inputFill">
+                    <!-- <div class="inputFill">
                         <p>上传头像</p>
                         <input type="file" accept="image/*" @change="handleFile" class="hiddenInput"/>
-                    </div>      
+                    </div>       -->
+                    <el-upload
+                    class="avatar-uploader"
+                    :action='uploadUrl'
+                    :show-file-list="false"
+                    :on-success="handleAvatarSuccess"
+                    :before-upload="beforeAvatarUpload">
+                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                    <!-- <i v-else class="el-icon-plus avatar-uploader-icon"></i> -->
+                    <div v-else >
+                        <img src="/static/image/male.png" style="width:120px;height:120px;">
+                        <p style="color:#7C8FA6;font-size:14px">上传头像</p>
+                    </div>
+                    </el-upload>
                 </div>
                 <div class="right">
                     <div class="right-content">
@@ -97,7 +110,7 @@
             </div>
             <div class="save" :disabled="((fitter.first_name == ''))" @click="save()">保存</div>
       </div> 
-      <div v-if="normalStatu">
+      <div v-if="personal">
           <div class="content">
                 <div class="left">
                     <span class="gender">
@@ -171,68 +184,71 @@
 <script>
 import {getpersonalInformation , savePersonalInformation} from "@/api/accountManagement";
 import { getToken } from '@/utils/auth'
+import { mapGetters } from 'vuex'
 export default {
   name: "",
   components: {},
   data() {
     return {
+        imageUrl: '',
         userInfo: {
-        avatar: 'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
+            avatar: 'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
         },
         action: {
-      type: Boolean,
-      default: true
-    },
-    uploadingFiles: [],
-      options: [
-        {
-          value: "86",
-          label: "86"
+            type: Boolean,
+            default: true
         },
-        // {
-        //   value: "中国大陆 +86",
-        //   label: "中国大陆 +86"
-        // },
-        // {
-        //   value: "中国大陆 +86",
-        //   label: "中国大陆 +86"
-        // },
-        // {
-        //   value: "中国大陆 +86",
-        //   label: "中国大陆 +86"
-        // }
-      ],
-      value: "",
-      male: true,
-      female:false,
-      neuter:false,
-      radio2: 1,
-      id:3,
-      editMessage: false,
-      normalStatu:true,
-      fitter:{
-          name:'',
-          first_name:'',
-          last_name:'',
-          gender:'',
-          department:'',
-          position:'',
-          telephone:'',
-          telephone_code:'',
-          skype:'',
-          qq:'',
-          wechat:'',
-        //   avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg',
-          avatar:''
-      }
-      
+        uploadingFiles: [],
+        options: [
+            {
+            value: "86",
+            label: "86"
+            },
+            // {
+            //   value: "中国大陆 +86",
+            //   label: "中国大陆 +86"
+            // },
+            // {
+            //   value: "中国大陆 +86",
+            //   label: "中国大陆 +86"
+            // },
+            // {
+            //   value: "中国大陆 +86",
+            //   label: "中国大陆 +86"
+            // }
+        ],
+        value: "",
+        male: true,
+        female:false,
+        neuter:false,
+        radio2: 1,
+        id:3,
+        editMessage: false,
+        normalStatu:true,
+        uploadUrl: process.env.BASE_API +'v1/upload',
+        fitter:{
+            name:'',
+            first_name:'',
+            last_name:'',
+            gender:'',
+            department:'',
+            position:'',
+            telephone:'',
+            telephone_code:'',
+            skype:'',
+            qq:'',
+            wechat:'',
+            avatar: '',
+            //   avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg',
+            // avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
+        }
     };
   },
   created() {
       this.getpersonalInformation();
-      this.uploadUrl = process.env.BASE_API + 'v1/inspectioninfo/'+this.id+'/upload'
-      this.uploadHeaders = { Authorization: 'Bearer ' + getToken() }
-      console.log( { Authorization: 'Bearer ' + getToken() })
+    //   this.uploadUrl = process.env.BASE_API + 'v1/inspectioninfo/'+this.id+'/upload'
+    //   this.uploadHeaders = { Authorization: 'Bearer ' + getToken() }
+    //   console.log( { Authorization: 'Bearer ' + getToken() })
   },
   computed: {
     // uploadUrl() {
@@ -291,11 +307,32 @@ export default {
     save(){
         savePersonalInformation(this.fitter).then(response =>{
             if(response.data.code == 0){
-                this.editMessage = false
-                this.normalStatu = true
+                console.log("保存成功")
+                store.dispatch('GetUserInfo')
             }
         })
+    },
+
+    //handleAvatarSuccess
+    handleAvatarSuccess(res, file) {
+        this.imageUrl = URL.createObjectURL(file.raw);
+        console.log(file)
+    },
+
+    //beforeAvatarUpload
+    beforeAvatarUpload(file) {
+    const isJPG = file.type === 'image/jpeg';
+    const isLt2M = file.size / 1024 / 1024 < 2;
+
+    if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!');
     }
+    if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+    }
+    return isJPG && isLt2M;
+    }
+    
 
   },
   computed: {
@@ -305,6 +342,9 @@ export default {
     // key() {
     //   return this.$route.fullPath
     // }
+    ...mapGetters([
+        'personal'
+    ])
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -431,6 +471,13 @@ export default {
         //     font-size: 16px;
         //     color: #7C8FA6;
         // }
+        .avatar-uploader{
+            img{
+                width:120px;
+                height:120px;
+                border-radius:50%;
+            }
+        }
     }
     .right {
       float: left;

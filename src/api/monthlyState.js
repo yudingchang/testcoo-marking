@@ -20,7 +20,7 @@ export function monthlyBillData(query) {
 
 export function ReimbursementData(query) {
   return request({
-    url: '/v1/payment/iou/bill/already/37',
+    url: '/v1/payment/iou/bill/reimbursement',
     method: 'get',
     params: query
   })

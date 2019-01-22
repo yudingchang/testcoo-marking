@@ -59,7 +59,7 @@ export function userRegister(data) {
 
 export function logout() {
   return request({
-    url: '/login/logout',
+    url: 'v1/user/logout',
     method: 'post'
   })
 }
