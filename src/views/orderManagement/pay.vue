@@ -16,7 +16,7 @@
                         label="产品名称">
                         <template slot-scope="scope">
                             <span v-if="scope.row.products.length==1">{{scope.row.products[0]}}</span>
-                            <span v-else-if="scope.row.products.length>1"><span style="display:inline-block;width:150px;">{{scope.row.products[0]}}...</span><i style="margin-left:20px" class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span>
+                            <span v-else-if="scope.row.products.length>1"><span>{{scope.row.products[0]}}</span><i class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -98,7 +98,7 @@
                         <ul class="paystyle" v-if="USDPayShow">
                             <li v-for="(item,index) in USDPay" :key="index">
                                 <span v-if="item.id==5"><el-radio v-model="paymentTypeId" :label="item.id"><img src="../../../static/image/paypal.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
-                                <span v-if="item.id==12"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>￥{{999}}</span><span @click="PayRechargeRmb">充值</span></el-radio></span>
+                                <span class="payrechargeUsa" v-if="item.id==12"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>￥{{999}}</span><span @click="PayRechargeDollar">充值</span></el-radio></span>
                                 <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span></el-radio></span>
                                 <!-- <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span> -->
                             </li>
@@ -114,7 +114,7 @@
                         <el-button type="warning" class="confirmPay" :disabled="PayPassword == true && password == ''" @click="confirmPayButton()">确定付款</el-button>
                     </el-form-item>                                                            
                 </el-form>
-                <el-dialog title="新增发票信息" :visible.sync="dialogFormVisible" width="600px" center>
+                <el-dialog title="新增发票信息" :visible.sync="dialogFormVisible" width="600px" center class="addInvoice">
                     <el-form :model="form" :rules="rules" ref="form" :label-width="formLabelWidth">
                         <el-form-item label="公司名称：" prop="company_name">
                             <el-input v-model="form.company_name"></el-input>
@@ -131,9 +131,9 @@
                         <el-form-item label="单位电话：" prop="telephone">
                             <el-input placeholder="请输入内容" v-model="form.telephone" class="input-with-select">
                                 <el-select v-model="form.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                                <el-option label="86" value="1"></el-option>
-                                <el-option label="86" value="2"></el-option>
-                                <el-option label="86" value="3"></el-option>
+                                <el-option label="+86" value="1"></el-option>
+                                <el-option label="+86" value="2"></el-option>
+                                <el-option label="+86" value="3"></el-option>
                                 </el-select>
                             </el-input>
                         </el-form-item>
@@ -226,15 +226,15 @@
                         <table border="1" cellspacing="0" cellpadding="0"  height="100%">
                             <tr height="56px">
                                 <td width="200px">工作量</td>
-                                <td width="450px">1MD（¥799.00）</td>
+                                <td width="450px">{{workload}}MD（{{shouldpay}}）</td>
                             </tr>
-                            <tr v-if="true">
+                            <tr>
                                 <td>其他费用</td>
-                                <td>￥500.00 (车票￥50.00、住宿￥450.00）</td>
+                                <td v-if="true">￥500.00 (车票￥50.00、住宿￥450.00）</td>
                             </tr>
                             <tr>
                                 <td>订单金额</td>
-                                <td>¥1499.00</td>
+                                <td>{{shouldpay}}</td>
                             </tr>
                         </table>
                     </div>
@@ -309,6 +309,7 @@ export default {
       USDPay:[],
       CNYPayShow:true,
       USDPayShow:false,
+      workload:'',
       total: 0,
       shouldpay: "",
       password:'',
@@ -473,6 +474,7 @@ export default {
               this.CNYShouldPay = response.data.data.payment.price.CNY.fee
               this.USDShouldPay = response.data.data.payment.price.USD.fee
               this.shouldpay = "¥" + this.CNYShouldPay
+              this.workload = response.data.data.workload
               console.log(response.data.data.payment.price.CNY.fee) 
           })  
       },
@@ -556,9 +558,12 @@ export default {
 
     // PayRecharge 支付页面充值
     PayRechargeRmb(){
-        this.$router.push({ path: '' })
+        this.$router.push({ path: '/fundManagement/wallet/walletRechargeRmb' })
+    },
+    //PayRechargeDollar 支付页面充值
+    PayRechargeDollar(){
+        this.$router.push({ path: '/fundManagement/wallet/walletRechargeDollar' })
     }
-
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -622,39 +627,38 @@ export default {
         padding-left:38px;
     }
     .form-content{
-        .el-radio:nth-child(2){
-            margin-left:32px;
-        }
-        .el-radio:nth-child(3){
-            margin-left:32px;
-        }
-        .el-form-item__label{
-            font-size:16px;
-            color:rgba(127,143,164,1);
-            margin-right:26px;
-            text-align: left;
-            padding:0;
-            width:64px !important;
-        }
-        .el-form-item:nth-child(1),.el-form-item:nth-child(2){
-            .el-form-item__content{
-                .el-radio__inner{
-                    width:16px;
-                    height:16px;
-                    border-color: rgba(151,151,151,1);
-                    // background: #ffa500;
-                    // border:1px solid rgba(151,151,151,1);
-                }
-                .el-radio__input.is-checked .el-radio__inner{
-                    border-color:rgba(255,168,0,1);
-                }
-                .el-radio__inner:hover{
-                    color:rgba(255,168,0,1);
-                }
-                .el-radio__label{
-                    font-size:16px;
-                    color:rgba(144,147,153,1);
-                }
+    .el-radio:nth-child(2){
+        margin-left:32px;
+    }
+    .el-radio:nth-child(3){
+        margin-left:32px;
+    }
+    .el-form-item__label{
+        font-size:16px;
+        color:rgba(127,143,164,1);
+        margin-right:26px;
+        text-align: left;
+        padding:0;
+        width:64px !important;
+    }
+    .el-form-item:nth-child(1),.el-form-item:nth-child(2){
+        .el-form-item__content{
+            .el-radio__inner{
+                width:16px;
+                height:16px;
+                border-color: rgba(151,151,151,1);
+                // background: #ffa500;
+                // border:1px solid rgba(151,151,151,1);
+            }
+            .el-radio__input.is-checked .el-radio__inner{
+                border-color:rgba(255,168,0,1);
+            }
+            .el-radio__inner:hover{
+                color:rgba(255,168,0,1);
+            }
+            .el-radio__label{
+                font-size:16px;
+                color:rgba(144,147,153,1);
             }
         }
     }
@@ -773,8 +777,29 @@ export default {
                     color:rgba(96,98,102,1);
                 }
             }
+            .payrechargeUsa{
+                .el-radio__label{
+                    span:nth-child(2){
+                        margin-left:32px;
+                        font-size:18px;
+                        color:rgba(21,139,228,1);
+                    }
+                    span:nth-child(3){
+                        display:inline-block;
+                        width:100px;
+                        height:32px;
+                        background:rgba(103,194,58,1);
+                        border-radius:4px;
+                        margin-left:218px;
+                        text-align: center;
+                        line-height: 32px;
+                        color:rgba(255,255,255,1);
+                    }
+                }
+            }
         }
     }
+ }
     .ConfirmPayDialog{
         .el-dialog{
             width:900px;
@@ -835,10 +860,12 @@ export default {
                             color:rgba(255,255,255,1);
                         }
                     }
+                   
                     tr:last-child{
                         border:none;
                         td:last-child{
                             color:rgba(239,53,53,1);
+                            border-top:1px solid rgba(230,234,238,1);
                         }
                     }
                 }
@@ -921,6 +948,14 @@ export default {
             }
         }
     }
+    //addInvoice
+    .addInvoice{
+        .el-dialog__body{
+            .el-form-item:nth-child(3){
+
+            }
+        }
+    }
 }
 </style>
 
@@ -954,7 +989,7 @@ content: ' ) ';
   }
 }
 .pay {
-  margin: 22px 50px 0 100px;
+  padding:22px 270px 114px 100px;
   .t1 {
     font-size: 16px;
     color: #6f90ae;

@@ -24,7 +24,7 @@
         </li> -->
         <li v-for="(item,index) in data" :key="index">
              <el-radio v-model="radio" :label="item.id"/>
-             <template v-if=" payment == 0 ">
+             <template v-if="true ">
                  <span class="lis1">
                      <img src="../../../static/image/UnionPay.png" alt="">
                      <span>银联</span>

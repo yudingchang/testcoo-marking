@@ -155,7 +155,7 @@
                         <span class="left30">{{supplierFullName}}</span>
                 </el-form-item> -->
                 <el-form-item label="预计验货时间" prop="name">
-                        <span class="left30">{{inspection_dates}}</span>
+                        <span class="left30">{{_.forEach(inspection_dates, function(value){ return value })}}</span>
                 </el-form-item>
                 <el-form-item label="实际验货时间" prop="name" v-if="marking != 'INIT' && 'WAIT_QUOTE'">
                         <span class="left30">{{inspection_first_date}}</span>
