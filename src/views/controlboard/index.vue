@@ -451,6 +451,7 @@ export default {
           ]
         },
       )
+
       this.$nextTick(() => {
         this.editableTabsValue2 = 'tab' + (this.editableTabs2.length)
       })
@@ -516,6 +517,10 @@ export default {
     },
     //下单
     order(){
+      if( this.editableTabs2[0].name == '' ){
+        this.$message("产品信息的产品名称是必填的")
+        return false
+      }
       var _this =this
       var p1=new Promise(function(resolve, reject) {
         

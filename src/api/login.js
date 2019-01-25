@@ -70,4 +70,11 @@ export function getUserInfo(token) {
     method: 'get'
   })
 }
+//加载配置文件
+export function getConfigs() {
+  return request({
+    url: '/v1/config/info',
+    method: 'get'
+  })
+}
 

@@ -97,5 +97,14 @@ export function forgotpaypassword(query) {
     })
   }
 
+  //发送验证码
+  export function sendMa(data) {
+    return request({
+      url: '/v1/verificationcode/send',
+      method: 'GET',
+      params: data
+    })
+  }
+
 
 

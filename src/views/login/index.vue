@@ -3,7 +3,6 @@
     <!-- 头部 -->
     <div class='hometop'>
         <span class="logo">
-         
         </span>
         <span>
           400-627-8168
@@ -49,19 +48,19 @@
       <el-form v-if="num==1" class="login-form" :model="phoneLoginForm">
         <el-form-item prop="username" class="phone-email clearfloat">
           <span class="phone-style">
-            {{areaselect}}
+            {{ phoneLoginForm.phone_number_code?phoneLoginForm.phone_number_code:'中国大陆 +86' }}
           </span>
           <span class="arrow-next" @click="getpopover()"></span>
           <el-input
             v-model="phoneLoginForm.phone_number"
-            placeholder="请输入电话号码"
+            placeholder="请输入手机号码"
             name="username"
             type="text"
             class="phone-email-content"     
           />   
           <div class="popover" v-show="popoverShow">
             <ul>
-              <li v-for="(item,index) in area" :key=index @click="selected(item)">{{item}}</li>
+              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selected(item)">{{item.label}}</li>
             </ul>
             <div class="popper-arrow"></div>
           </div>         
@@ -170,7 +169,7 @@
           />   
           <div class="popover" v-show="popoverShow">
             <ul>
-              <li v-for="(item,index) in area" :key=index @click="selected(item)">{{item}}</li>
+              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selected(item)">{{item.label}}</li>
             </ul>
             <div class="popper-arrow"></div>
           </div>         
@@ -225,7 +224,6 @@
         </div>
       </div>
     </el-form>
-
     <!-- 验证电子邮箱 -->
     <el-form class="verify-email" v-if="verifyEmail">
       <span class="email-img"></span>
@@ -262,7 +260,6 @@
         <div @click="userRegister()">继续</div>
       </div>
     </el-form>
-
     <!-- 密码找回 -->
     <el-form class="password-recovery" v-if="passwordRecoveryShow">
       <el-steps :active="active" finish-status="finish" align-center>
@@ -400,7 +397,6 @@
       
       <!-- <el-button style="margin-top: 12px;" @click="next">下一步</el-button> -->
     </el-form>
-
     <!-- 注册成功页面 -->
     <div class="registerResult"  v-if="registerResultShow">
       <el-form class="ma-content">
@@ -422,6 +418,7 @@ import {
 } from "@/api/login";
 import LangSelect from "@/components/LangSelect";
 import SocialSign from "./socialsignin";
+import { getConfigs } from '@/api/login'
 
 export default {
   name: "Login",
@@ -442,6 +439,7 @@ export default {
       }
     };
     return {
+      Configs:{},
       thirdStepForm: {
         password: "",
         confirmpassword: "",
@@ -577,6 +575,7 @@ export default {
     }
   },
   created() {
+    this.getConfigs()
     // window.addEventListener('hashchange', this.afterQRScan)
   },
   destroyed() {
@@ -928,8 +927,8 @@ export default {
       if (this.active++ > 3) this.active = 1;
     },
     selected(item) {
-      this.areaselect = item;
-      this.popoverShow = false;
+      this.phoneLoginForm.phone_number_code = item.value
+      this.popoverShow = false
     },
     tab(item, index) {
       this.denglustyle.forEach((item, index) => {
@@ -1040,6 +1039,14 @@ export default {
         console.log(index);
         if (index < 6) this.ipt[index].focus();
       }
+    },
+     // 加载配置文件
+    getConfigs(){
+      getConfigs().then(res=>{
+        if (res.data.code == 0){
+          this.Configs = res.data.data
+        }
+      })
     }
   },
   mounted() {
@@ -1367,6 +1374,7 @@ $light_gray: #eee;
             bottom: 0;
           }
           .arrow-next {
+            cursor:pointer;
             float: left;
             background: url(/static/image/arrow-next.png) no-repeat;
             background-size: 33%;
@@ -1613,6 +1621,9 @@ $light_gray: #eee;
   }
   .login-form-box {
     position: relative;
+    width:550px !important;
+    height:450px;
+    background:rgba(214,214,214,0.2);
     .errorPump {
       position: absolute;
       right: -370px;
@@ -1670,12 +1681,16 @@ $light_gray: #eee;
       font-size: 16px;
       color: #bbbbbb;
       cursor: pointer;
+      height:22px;
+      font-weight:500;
+      color:rgba(187,187,187,1);
+      line-height:22px;
+      margin-bottom:40px;
     }
     background: rgba(255, 255, 255, 0.2);
     position: absolute;
     left: 0;
     right: 0;
-    width: 520px;
     max-width: 100%;
     margin: 180px auto 0 auto;
   }
@@ -1691,6 +1706,7 @@ $light_gray: #eee;
         font-weight: normal;
       }
       .arrow-next {
+        cursor:pointer;
         float: left;
         background: url("/static/image/arrow-next.png") no-repeat;
         background-size: 33%;
@@ -1722,12 +1738,18 @@ $light_gray: #eee;
           overflow-y: scroll;
           list-style: none;
           margin-left: -20px;
+          padding-top:21px;
           li {
             color: #7c8ca5;
             font-size: 14px;
             height: 22px;
             line-height: 22px;
             margin-bottom: 10px;
+            padding-left:40px;
+            cursor:pointer;
+          }
+          li:active{
+            color:rgba(22,64,97,1);
           }
         }
         .popper-arrow:after {
@@ -1796,6 +1818,7 @@ $light_gray: #eee;
       text-align: center;
       font-size: 14px;
       color: #ffffff;
+      margin-top:12px;
       .agreement {
         margin-left: 8px;
       }

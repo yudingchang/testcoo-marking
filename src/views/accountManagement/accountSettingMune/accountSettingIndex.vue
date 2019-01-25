@@ -49,7 +49,7 @@
             </div>
             <p v-show="authCodePromt">{{authCodePromtValue}}</p>
             <div slot="footer" class="dialog-footer">
-              <el-button type="primary" @click="MobileBindTrue">确 定</el-button>
+              <el-button type="primary" :disabled="inputIdentify == ''" @click="MobileBindTrue">确 定</el-button>
             </div>
           </el-dialog>
         </div>
@@ -73,13 +73,14 @@
           <p>电子邮箱</p>
           <p>
             <span v-if="email==null">未绑定</span>
-            <span>{{ email }}</span>
-            <span @click="reviseMail">修改</span>
+            <span v-else>{{ email }}</span>
+            <span v-if="email==null" @click="reviseMail">绑定</span>
+            <span v-else @click="reviseMail">修改</span>
           </p>
         </div>
         <!-- 修改电子邮箱 -->
         <div class="reviseMailDialog">
-          <el-dialog title="修改电子邮箱" :visible.sync="dialogFormMail">
+          <el-dialog :title="EmailForm.emailText" :visible.sync="dialogFormMail">
             <div class="inputMailAddress">
               <el-input
                 placeholder="请输入电子邮箱"
@@ -98,7 +99,7 @@
             </div>
             <p class="mailPromt" v-show="mailPromtVS">{{mailPromtValue}}</p>
             <div slot="footer" class="dialog-footer">
-              <el-button type="primary" @click="ConfirmRevise">确 定</el-button>
+              <el-button type="primary" :disabled="inputMailValidate == ''" @click="ConfirmRevise">确 定</el-button>
             </div>
           </el-dialog>
         </div>
@@ -133,9 +134,10 @@
         <div class="Setting-info-payPassword">
           <p>支付密码</p>
           <p>
-            <span>{{ paymentPassword }}</span>
-            <span v-if="!is_paypassword" @click="SettingPay">点击设置</span>
-            <span v-if="is_paypassword" @click="revisePayDialog">修改</span>
+            <span v-if="is_paypassword==false">未设置</span>
+            <span v-else>*******</span>
+            <span v-if="is_paypassword==false" @click="SettingPay">点击设置</span>
+            <span v-else @click="revisePayDialog">修改</span>
           </p>
         </div>
         <!-- 支付密码设置 -->
@@ -153,7 +155,7 @@
                 </el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="submitSetForm('payForm')">确定</el-button>
+                <el-button type="primary" :disabled="payForm.password =='' || payForm.checkPassword==''" @click="submitSetForm('payForm')">确定</el-button>
               </el-form-item>
             </el-form>
           </el-dialog>
@@ -179,6 +181,7 @@
 
 <script>
 import { getAccountInformation } from '@/api/accountManagement.js'
+import { sendMa } from '@/api/accountSetting.js'
 import { changeUserInfo , set_password} from '@/api/accountSetting'
 import { mapGetters } from 'vuex'
 import store from '../../../store/'
@@ -264,6 +267,11 @@ export default {
 
       reviseMailSuccess: false,        //修改成功弹框
 
+      EmailForm:{
+        secondStepText:'获取验证码',
+        emailText:'绑定电子邮箱',
+      },
+
       //-------------------------------------------------
       loginPassword:'123456789',    // 登陆密码
 
@@ -291,6 +299,9 @@ export default {
   created(){
     // this.getAccountInfoData()
     // console.log(new Date)
+    let Configs = JSON.parse(window.localStorage.getItem('Configs'))
+    // this.areaPhoneOption = Configs.phone_number_codes
+    console.log(this.Configs)
   },
   methods:{
     //打开页面获取账户信息
@@ -298,6 +309,7 @@ export default {
       getAccountInformation().then(response =>{
         if(response.data.code == 0){
           this.AccountSettingData = response.data.data
+          console.log(this.AccountSettingData)
         }
       })
     },
@@ -324,6 +336,7 @@ export default {
         this.getAuthCode = false
         this.CountDown = true
         this.auth_time = 59
+        this.sendPhoneMa()
         let auth_timetimer =  setInterval(()=>{     //启动定时器,倒计时
           this.auth_time--;
               if( this.auth_time <=0 ){
@@ -334,15 +347,37 @@ export default {
         }, 1000)
       }
     },
+    sendPhoneMa(){
+      sendMa({
+        to: this.inputMobile,
+        type: 'phone_number'
+      }).then( response => {
+        if( response.data.code == 0){
+          console.log("手机验证码获取成功")
+        }
+      })
+    },
     //确定绑定成功的按钮
     MobileBindTrue(){
-      this.dialogFormMobile = false
-      this.dialogSuccess = true
+      changeUserInfo({
+        verification_code:this.inputIdentify,
+        type:'phone_number',
+        phone_number:this.inputMobile
+      }).then(response => {
+        if(response.data.code == 0){
+          this.dialogFormMobile = false
+          this.dialogSuccess = true
+          // this.getAccountInfoData()
+          store.dispatch('GetUserInfo')
+        }
+      }).catch(response => {
+        this.$message("验证码输入错误")
+      })
     },
 
     //修改手机号码
     reviseMobile(){
-      
+      this.dialogFormMobile = true
 
     },
 
@@ -363,6 +398,7 @@ export default {
         this.getMailValidateVS = false
         this.inputMailTimeVS = true
         this.auth_time_Validate = 59
+        this.sendEailMa()
         let auth_timetimer =  setInterval(()=>{     //启动定时器,倒计时
           this.auth_time_Validate--;
               if(this.auth_time_Validate<=0){
@@ -373,10 +409,30 @@ export default {
         }, 1000)
       }
     },
-
+    sendEailMa(){
+      sendMa({
+        to: this.inputMailInfo,
+        type: 'email'
+      }).then( response => {
+        if( response.data.code == 0){
+          console.log("邮件验证码获取成功")
+        }
+      })
+    },
     ConfirmRevise(){      //修改弹框确认修改
-        this.dialogFormMail = false
-        this.reviseMailSuccess = true
+        changeUserInfo({
+          verification_code:this.inputMailValidate,
+          type:'email',
+          email:this.inputMailInfo
+        }).then(response => {
+          if( response.data.code == 0 ){
+            this.dialogFormMail = false
+            this.reviseMailSuccess = true
+            store.dispatch('GetUserInfo')
+          }else if(response.data.code == 10002){
+            this.$message("该邮箱号码已被使用")
+          }
+        })
     },
 
     //重置登录密码
@@ -403,11 +459,11 @@ export default {
           if (valid) {
             // alert('submit!');
             console.log("输入密码是"+this.payForm.password)
-            this.payForm.DialogForm = false
-            this.payForm.DialogFormSuccess = true
-            this.whetherSeted = false
-            this.paymentPassword = "******"
-            store.dispatch('GetUserInfo')
+            // this.payForm.DialogForm = false
+            // this.payForm.DialogFormSuccess = true
+            // this.whetherSeted = false
+            // this.paymentPassword = "******"
+            // store.dispatch('GetUserInfo')
             set_password({
               password: this.payForm.password
             }).then( response => {

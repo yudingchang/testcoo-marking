@@ -149,7 +149,7 @@
                         <el-button type="primary" @click="submit()" class="submit">确 定</el-button>
                     </div>
                 </el-dialog>
-                <el-dialog title="新增寄送地址" :visible.sync="addressdialogFormVisible" width="600px" center>
+                <el-dialog title="新增寄送地址" :visible.sync="addressdialogFormVisible" width="600px" center class="add">
                     <el-form :model="addressform" :rules="addressrules" ref="addressform" :label-width="invoiceLabelWidth" :inline="true">
                         <el-form-item label="收件人姓：" label-width="130px" prop="company_name">
                             <el-input v-model="addressform.first_name"  style="width:160px"></el-input>

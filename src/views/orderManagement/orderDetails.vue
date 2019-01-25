@@ -4,47 +4,47 @@
       <el-col :span="24">
         <!-- 订单号orderNumber -->
         <div class="order-number">
-            <span>订单号: {{number}}</span><span class="greencolor orderstate">({{marking_name}})</span>
+            <span>订单号: {{number}}</span><span class="greencolor">({{marking_name}})</span>
             <span>下单时间: {{created_at}}</span>
-            <div class="payIcon closeIcon" @click="DetailPayment" v-if="can.pay">
+            <div @click="DetailPayment" v-if="can.pay" class="payImmedity">
               <i class="iconfont icon-fukuan"></i>
               <p>立即付款</p>
             </div>
-            <div class="closeIcon" v-if="can.close">
-                <i class="iconfont icon-guanbi_"/>
-                <p>关闭</p>
-            </div>
-            <div class="copyIcon closeIcon">
-                <i class="iconfont icon-fuzhi"/>
-                <p>复制</p>
-            </div>
-            <div class="modifyIcon closeIcon" v-if="can.modify">
+            <div v-if="can.modify" class="modify-Detail">
                 <i class="iconfont icon-fuzhi"/>
                 <p>修改</p>
             </div>
-            <div class="deleteIcon closeIcon" v-if="can.delete">
+            <div v-if="can.delete" class="delete-Detail">
                 <i class="iconfont icon-fuzhi"/>
                 <p>删除</p>
             </div>
-            <div class="refundIcon closeIcon" v-if="can.refund">
+            <div v-if="can.refund" class="refund-Detail">
                 <i class="iconfont icon-fuzhi"/>
                 <p>退单</p>
+            </div>
+            <div v-if="can.close" class="close-Detail">
+                <i class="iconfont icon-guanbi_"/>
+                <p>关闭</p>
+            </div>
+            <div class="copy-Detail">
+                <i class="iconfont icon-fuzhi"/>
+                <p>复制</p>
             </div>  
         </div>
         <!-- 关闭订单相关原因和备注 -->
-        <div class="OrderClosed" v-if="can.close">
+        <div class="OrderClosed" v-if="marking == 'CLOSED'">
           <p><span>关闭原因:</span><span>重复下单</span></p>
           <!-- <p><span>备注信息:</span><span>无</span></p> -->
         </div>
         <!-- 追加付款信息 -->
-        <div class="supplierInformation">
+        <div class="supplierInformation" v-if="!can.pay">
             <p>付款信息</p>
-            <p v-if=" can.later_pay "><span class="manDay">订单工作量{{workload}}MD需付款</span><span class="payNumber"><span>¥{{CNYpay}}</span><span>/${{USDpay}}</span></span><span class="btn" @click="payImmediately(orderId)">立即付款</span></p>  
+            <p v-if=" !can.later_pay "><span class="manDay">订单工作量{{workload}}MD需付款</span><span class="payNumber"><span>¥{{CNYpay}}</span><span>/${{USDpay}}</span></span><span class="btn" @click="payImmediately(orderId)">立即付款</span></p>  
         </div>
         <!-- 付款信息 -->
         <!-- <div class="paymentInfoTitle"><p>付款信息</p></div> -->
         <!-- 已付款信息框 -->
-        <div class="accountPaidInfo">
+        <div class="accountPaidInfo" v-if="can.pay">
           <ul>
             <li>订单金额</li>
             <li><span v-if="CNYpay != ''">￥{{ CNYpay }}</span><span v-if="CNYpay != '' && USDpay !=''">/</span><span v-if="USDpay !=''">${{ USDpay }}</span></li>
@@ -793,24 +793,169 @@ export default {
   }
   .order-number {
     width: 1000px;
-    background-color: #ffffff;
+    height:84px;
+    line-height:84px;
     color: #50688c;
-    padding: 18px 42px 32px;
+    border:1px solid rgba(230,234,238,1);
     border-left: 2px solid #158be4;
     margin-bottom:32px;
-    .orderstate {
-      margin-right: 32px;
+    background:rgba(255,255,255,1);
+    padding-left:42px;
+    span{
+      display:inline-block;
+      float:left;
     }
-    .closeIcon {
-      width: 40px;
-      text-align: center;
-      display: inline-block;
-      position: relative;
-      top: 9px;
-      margin-left: 32px;
-      cursor: pointer;
-      i {
-        color: #7c8ca5;
+    span:nth-child(1){
+      font-size:16px;
+      color:rgba(80,104,140,1);
+      margin-right:8px;
+    }
+    span:nth-child(2){
+      font-size:16px;
+      color:rgba(255,168,0,1);
+      margin-right:20px;
+    }
+    span:nth-child(3){
+      font-size:16px;
+      color:rgba(80,104,140,1);
+      margin-right:28px;
+    }
+    .payImmedity{
+      width:56px;
+      height:84px;
+      text-align:center;
+      line-height:84px;
+      float:left;
+      margin-right:24px;
+      cursor:pointer;
+      i{
+        display:block;
+        line-height:18px;
+        height:18px;
+        color:rgba(103,194,58,1);
+        margin-bottom:4px;
+        margin-top:21px;
+      }
+      p{
+        height:19px;
+        font-size:14px;
+        color:rgba(103,194,58,1);
+        line-height:19px;
+      }
+    }
+    .modify-Detail{
+      width:28px;
+      height:84px;
+      text-align:center;
+      line-height:84px;
+      float:left;
+      margin-right:24px;
+      cursor:pointer;
+      i{
+        display:block;
+        line-height:18px;
+        height:18px;
+        color:rgba(103,194,58,1);
+        margin-bottom:4px;
+        margin-top:21px;
+      }
+      p{
+        height:19px;
+        font-size:14px;
+        color:rgba(103,194,58,1);
+        line-height:19px;
+      }
+    }
+    .delete-Detail{
+      width:28px;
+      height:84px;
+      text-align:center;
+      line-height:84px;
+      float:left;
+      margin-right:24px;
+      cursor:pointer;
+      i{
+        display:block;
+        line-height:18px;
+        height:18px;
+        color:rgba(103,194,58,1);
+        margin-bottom:4px;
+        margin-top:21px;
+      }
+      p{
+        height:19px;
+        font-size:14px;
+        color:rgba(103,194,58,1);
+        line-height:19px;
+      }
+    }
+    .refund-Detail{
+      width:28px;
+      height:84px;
+      text-align:center;
+      line-height:84px;
+      float:left;
+      margin-right:24px;
+      cursor:pointer;
+      i{
+        display:block;
+        line-height:18px;
+        height:18px;
+        color:rgba(103,194,58,1);
+        margin-bottom:4px;
+        margin-top:21px;
+      }
+      p{
+        height:19px;
+        font-size:14px;
+        color:rgba(103,194,58,1);
+        line-height:19px;
+      }
+    }
+    .close-Detail{
+      width:28px;
+      height:84px;
+      text-align:center;
+      line-height:84px;
+      float:left;
+      margin-right:24px;
+      cursor:pointer;
+      i{
+        display:block;
+        line-height:18px;
+        height:18px;
+        color:rgba(124,140,165,1);
+        margin-bottom:4px;
+        margin-top:21px;
+      }
+      p{
+        height:19px;
+        font-size:14px;
+        color:rgba(124,140,165,1);
+        line-height:19px;
+      }
+    }
+    .copy-Detail{
+      width:28px;
+      height:84px;
+      text-align:center;
+      line-height:84px;
+      float:left;
+      margin-right:24px;
+      cursor:pointer;
+      i{
+        display:block;
+        line-height:18px;
+        height:18px;
+        color:rgba(124,140,165,1);
+        margin-bottom:4px;
+        margin-top:21px;
+      }
+      p{
+        height:19px;
+        font-size:14px;
+        color:rgba(124,140,165,1);
+        line-height:19px;
       }
     }
   }
@@ -840,6 +985,8 @@ export default {
     margin: 25px 0;
     font-size: 18px;
     color: #50688c;
+    height:29px;
+    line-height:29px;
     p:nth-child(1){
       height:29px;
       font-size:22px;
@@ -847,6 +994,10 @@ export default {
       color:rgba(80,104,140,1);
       line-height:29px;
       margin-bottom:17px;
+      float:left;
+    }
+    p:nth-child(2){
+      float:left;
     }
     .manDay {
       margin: 0 30px;

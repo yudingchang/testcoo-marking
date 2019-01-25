@@ -30,51 +30,54 @@
                     </li>
                 </ul>
             </el-col>
-            <!-- 完善信息 -->
-            <el-col :span="12" class="controlboardIndex-EVPI">
-                <ul class="controlboardIndex-EVPI-ul">
-                    <li></li>
-                    <li>完善信息</li>
-                </ul>
-                <div>
+            <!-- 第二排Info -->
+            <el-col :span="24" class="controlboardIndex-user">
+                <!-- 完善信息 -->
+                <el-col :span="12" class="controlboardIndex-EVPI">
+                    <ul class="controlboardIndex-EVPI-ul">
+                        <li></li>
+                        <li>完善信息</li>
+                    </ul>
+                    <div>
+                        <ul>
+                            <li><span>供应商信息（1）</span><span @click="ViewVendorInfo">查看</span></li>
+                            <li><span>个人信息</span><span @click="PerfectingPerInfo">去完善</span></li>
+                        </ul>
+                        <ul>
+                            <li><span>开票信息（2）</span><span @click="ViewInvoiceInfo">查看</span></li>
+                            <li><span>企业信息</span><span @click="PerfectingCompInfo">去完善</span></li>
+                        </ul>
+                        <ul>
+                            <li><span>收件地址（2）</span><span @click="ViewDeliveryAddress">查看</span></li>
+                            <li><span>支付密码设置</span><span @click="setPayPassword" v-if="!is_paypassword">去设置</span><span v-if="is_paypassword" @click="modifyPassword">修改</span></li>
+                        </ul>
+                        <ul>
+                            <li><span>接受报告邮箱（0）</span><span @click="ViewReportBox">查看</span></li>
+                            <li><span></span><span></span></li>
+                        </ul>
+                    </div>
+                </el-col>
+                <!-- 钱包余额 -->
+                <el-col :span="12" class="controlboardIndex-WalletBalance">
                     <ul>
-                        <li><span>供应商信息（1）</span><span @click="ViewVendorInfo">查看</span></li>
-                        <li><span>个人信息</span><span @click="PerfectingPerInfo">去完善</span></li>
+                        <li></li>
+                        <li>钱包余额</li>
+                        <li @click="WalletBalance">
+                            <span>明细</span><i class="iconfont icon-hebingxingzhuang7"></i>
+                        </li>
                     </ul>
                     <ul>
-                        <li><span>开票信息（2）</span><span @click="ViewInvoiceInfo">查看</span></li>
-                        <li><span>企业信息</span><span @click="PerfectingCompInfo">去完善</span></li>
+                        <li>
+                            <p><span>人民币</span><span>￥{{ userAccountBalance[0].price }}</span></p>
+                            <p @click="rechargeRmb">去充值</p>
+                        </li>
+                        <li></li>
+                        <li>
+                            <p><span>美元</span><span>${{ userAccountBalance[1].price }}</span></p>
+                            <p @click="rechargeDollar">去充值</p>
+                        </li>
                     </ul>
-                    <ul>
-                        <li><span>收件地址（2）</span><span @click="ViewDeliveryAddress">查看</span></li>
-                        <li><span>支付密码设置</span><span @click="setPayPassword" v-if="!is_paypassword">去设置</span><span v-if="is_paypassword" @click="modifyPassword">修改</span></li>
-                    </ul>
-                    <ul>
-                        <li><span>接受报告邮箱（0）</span><span @click="ViewReportBox">查看</span></li>
-                        <li><span></span><span></span></li>
-                    </ul>
-                </div>
-            </el-col>
-            <!-- 钱包余额 -->
-            <el-col :span="12" class="controlboardIndex-WalletBalance">
-                <ul>
-                    <li></li>
-                    <li>钱包余额</li>
-                    <li @click="WalletBalance">
-                        <span>明细</span><i class="iconfont icon-hebingxingzhuang7"></i>
-                    </li>
-                </ul>
-                <ul>
-                    <li>
-                        <p><span>人民币</span><span>￥{{ userAccountBalance[0].price }}</span></p>
-                        <p @click="rechargeRmb">去充值</p>
-                    </li>
-                    <li></li>
-                    <li>
-                        <p><span>美元</span><span>${{ userAccountBalance[1].price }}</span></p>
-                        <p @click="rechargeDollar">去充值</p>
-                    </li>
-                </ul>
+                </el-col>
             </el-col>
             <!-- 测库月结 -->
             <el-col :span="24" class="controlboardIndex-monthlyState">
@@ -612,6 +615,7 @@ export default {
         }
         ul:nth-child(2){
             height:120px;
+            width:1540px;
             line-height: 120px;
             li{
                 float:left;
@@ -738,173 +742,178 @@ export default {
             }
         }
     }
-    .controlboardIndex-EVPI{
-        width:720px;
-        margin-right:50px;
-        .controlboardIndex-EVPI-ul{
-            height: 33px;
-            line-height: 33px;
-            margin-bottom:16px;
-            li{
-                float:left;
-            }
-            li:nth-child(1){
-                width:3px;
-                height:28px;
-                background:rgba(103,194,58,1);
-                margin:3px 16px 0 0;
-            }
-            li:nth-child(2){
-                height:33px;
-                font-size:20px;
-                font-weight:400;
-                font-family:PingFang-SC-Medium;
-                font-weight:500;
-                color:rgba(80,104,140,1);
-                line-height:33px;
-            }
-        }
-        div{
+    .controlboardIndex-user{
+        width:1540px;
+        .controlboardIndex-EVPI{
             width:720px;
-            height:168px;
-            background:rgba(255,255,255,1);
-            border-radius:4px;
-            border:1px solid rgba(230,234,238,1);
-            padding:16px 58px 17px 40px;
-            ul{
-                height:24px;
-                line-height: 24px;
-                margin-bottom:13px;
-                li:nth-child(1){
+            margin-right:50px;
+            float:left;
+            .controlboardIndex-EVPI-ul{
+                height: 33px;
+                line-height: 33px;
+                margin-bottom:16px;
+                li{
                     float:left;
-                    height:24px;
-                    line-height: 24px;
-                    width:224px;
-                    span:nth-child(1){
-                        float:left;
-                        font-size:16px;
-                        font-family:MicrosoftYaHei;
-                        color:rgba(118,140,170,1);
-                    }
-                    span:nth-child(2){
-                        float:right;
-                        font-size:16px;
-                        font-family:MicrosoftYaHei;
-                        color:rgba(255,168,0,1);
-                        cursor:pointer;
-                    }
+                }
+                li:nth-child(1){
+                    width:3px;
+                    height:28px;
+                    background:rgba(103,194,58,1);
+                    margin:3px 16px 0 0;
                 }
                 li:nth-child(2){
-                    float:right;
+                    height:33px;
+                    font-size:20px;
+                    font-weight:400;
+                    font-family:PingFang-SC-Medium;
+                    font-weight:500;
+                    color:rgba(80,104,140,1);
+                    line-height:33px;
+                }
+            }
+            div{
+                width:720px;
+                height:168px;
+                background:rgba(255,255,255,1);
+                border-radius:4px;
+                border:1px solid rgba(230,234,238,1);
+                padding:16px 58px 17px 40px;
+                ul{
                     height:24px;
                     line-height: 24px;
-                    width:242px;
-                    span:nth-child(1){
+                    margin-bottom:13px;
+                    li:nth-child(1){
                         float:left;
-                        font-size:16px;
-                        font-family:MicrosoftYaHei;
-                        color:rgba(118,140,170,1);
+                        height:24px;
+                        line-height: 24px;
+                        width:224px;
+                        span:nth-child(1){
+                            float:left;
+                            font-size:16px;
+                            font-family:MicrosoftYaHei;
+                            color:rgba(118,140,170,1);
+                        }
+                        span:nth-child(2){
+                            float:right;
+                            font-size:16px;
+                            font-family:MicrosoftYaHei;
+                            color:rgba(255,168,0,1);
+                            cursor:pointer;
+                        }
                     }
-                    span:nth-child(2){
+                    li:nth-child(2){
                         float:right;
+                        height:24px;
+                        line-height: 24px;
+                        width:242px;
+                        span:nth-child(1){
+                            float:left;
+                            font-size:16px;
+                            font-family:MicrosoftYaHei;
+                            color:rgba(118,140,170,1);
+                        }
+                        span:nth-child(2){
+                            float:right;
+                            font-size:16px;
+                            font-family:MicrosoftYaHei;
+                            color:rgba(255,168,0,1);
+                            cursor: pointer;
+                        }
+                    }
+                }
+                ul:last-child{
+                    margin-bottom:0;
+                }
+            }
+        }
+        .controlboardIndex-WalletBalance{
+            width:770px;
+            float:left;
+            ul:nth-child(1){
+                height: 33px;
+                line-height: 33px;
+                margin-bottom:16px;
+                li:nth-child(1){
+                    float:left;
+                    width:3px;
+                    height:28px;
+                    background:rgba(103,194,58,1);
+                    margin:3px 16px 0 0;
+                }
+                li:nth-child(2){
+                    float:left;
+                    height:33px;
+                    font-size:20px;
+                    font-weight:400;
+                    font-family:PingFang-SC-Medium;
+                    font-weight:500;
+                    color:rgba(80,104,140,1);
+                    line-height:33px;
+                }
+                li:nth-child(3){
+                    float:right;
+                    height:33px;
+                    line-height: 33px;
+                    cursor: pointer;
+                    span{
                         font-size:16px;
-                        font-family:MicrosoftYaHei;
-                        color:rgba(255,168,0,1);
+                        font-family:PingFang-SC-Medium;
+                        font-weight:500;
+                        color:rgba(245,166,35,1);
+                        margin-right:8px;
+                    }
+                    i{
+                        font-size:14px;
+                        color:rgba(245,166,35,1);
+                    }
+                }
+            }
+            ul:nth-child(2){
+                height:168px;
+                background:rgba(255,255,255,1);
+                border-radius:4px;
+                border:1px solid rgba(230,234,238,1);
+                line-height: 168px;
+                li{
+                    float:left;
+                }
+                li:nth-child(1),li:nth-child(3){
+                    width:383px;
+                    height:168px;
+                    line-height: 168px;
+                    text-align: center;
+                    p:nth-child(1){
+                        height:37px;
+                        line-height: 37px;
+                        margin:32px 0 23px 0;
+                        span:nth-child(1){
+                            font-size:24px;
+                            color:rgba(80,104,140,1);
+                            margin-right:32px;
+                        }
+                        span:nth-child(2){
+                            font-size:26px;
+                            color:rgba(21,139,228,1);
+                        }
+                    }
+                    p:nth-child(2){
+                        height:40px;
+                        width:120px;
+                        background:rgba(103,194,58,1);
+                        border-radius:4px;
+                        line-height: 40px;
+                        font-size:16px;
+                        color:rgba(255,255,255,1);
+                        margin-left:132px;
                         cursor: pointer;
                     }
                 }
-            }
-            ul:last-child{
-                margin-bottom:0;
-            }
-        }
-    }
-    .controlboardIndex-WalletBalance{
-        width:770px;
-        ul:nth-child(1){
-            height: 33px;
-            line-height: 33px;
-            margin-bottom:16px;
-            li:nth-child(1){
-                float:left;
-                width:3px;
-                height:28px;
-                background:rgba(103,194,58,1);
-                margin:3px 16px 0 0;
-            }
-            li:nth-child(2){
-                float:left;
-                height:33px;
-                font-size:20px;
-                font-weight:400;
-                font-family:PingFang-SC-Medium;
-                font-weight:500;
-                color:rgba(80,104,140,1);
-                line-height:33px;
-            }
-            li:nth-child(3){
-                float:right;
-                height:33px;
-                line-height: 33px;
-                cursor: pointer;
-                span{
-                    font-size:16px;
-                    font-family:PingFang-SC-Medium;
-                    font-weight:500;
-                    color:rgba(245,166,35,1);
-                    margin-right:8px;
+                li:nth-child(2){
+                    width:1px;
+                    height:80px;
+                    background:rgba(223,227,233,1);
+                    margin-top:46px;
                 }
-                i{
-                    font-size:14px;
-                    color:rgba(245,166,35,1);
-                }
-            }
-        }
-        ul:nth-child(2){
-            height:168px;
-            background:rgba(255,255,255,1);
-            border-radius:4px;
-            border:1px solid rgba(230,234,238,1);
-            line-height: 168px;
-            li{
-                float:left;
-            }
-            li:nth-child(1),li:nth-child(3){
-                width:383px;
-                height:168px;
-                line-height: 168px;
-                text-align: center;
-                p:nth-child(1){
-                    height:37px;
-                    line-height: 37px;
-                    margin:32px 0 23px 0;
-                    span:nth-child(1){
-                        font-size:24px;
-                        color:rgba(80,104,140,1);
-                        margin-right:32px;
-                    }
-                    span:nth-child(2){
-                        font-size:26px;
-                        color:rgba(21,139,228,1);
-                    }
-                }
-                p:nth-child(2){
-                    height:40px;
-                    width:120px;
-                    background:rgba(103,194,58,1);
-                    border-radius:4px;
-                    line-height: 40px;
-                    font-size:16px;
-                    color:rgba(255,255,255,1);
-                    margin-left:132px;
-                    cursor: pointer;
-                }
-            }
-            li:nth-child(2){
-                width:1px;
-                height:80px;
-                background:rgba(223,227,233,1);
-                margin-top:46px;
             }
         }
     }

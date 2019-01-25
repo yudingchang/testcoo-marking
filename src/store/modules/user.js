@@ -6,7 +6,8 @@ const user = {
     user: '',
     status: '',
     code: '',
-    personal:'',
+    personal: '',
+    company: '',
     email: '',
     phonenumber: '',
     is_paypassword: '',
@@ -56,6 +57,12 @@ const user = {
     },
     SET_ROLES: (state, roles) => {
       state.roles = roles
+    },
+    SET_PERSONAL: (state, msg) => {
+      state.personal = msg
+    },
+    SET_COMPANY: (state, com) => {
+      state.company = com
     }
   },
 
@@ -87,7 +94,7 @@ const user = {
             reject('error')
           }
           const data = response.data.data
-
+          console.log(data)
           if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
             commit('SET_ROLES', data.roles)
           } else {
@@ -95,7 +102,6 @@ const user = {
           }
 
           commit('SET_NAME', data.name)
-          commit('SET_PERSONAL', data.personal)
           commit('SET_PHONENUMBER', data.phone_number)
           commit('SET_EMAIL', data.email)
           commit('SET_PAYPASSWORD', data.is_paypassword)

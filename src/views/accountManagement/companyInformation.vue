@@ -1,7 +1,7 @@
 <template>
   <div class="company-information">
     <!-- 编辑企业信息 -->
-    <div v-if="editMessage" :model="form">
+    <div v-if="company" :model="form">
       <div class="company-content clearfloat">
         <div class="left required">公司名称</div>
         <div class="right-fixed">
@@ -46,10 +46,10 @@
             <el-input style="width:380px;" type="text" placeholder="请输入营业执照注册号" v-model="form.Registration"></el-input>
         </div>
       </div>
-      <div class="save"  @click="save()">保存</div>
+      <button class="save" :disabled="form.Companyname == ''" @click="save()">保存</button>
     </div>
     <!-- 显示企业信息 -->
-    <div v-if="normalStatu" :model="form">
+    <div v-else :model="form">
       <div class="company-content clearfloat">
         <div class="left required">公司名称</div>
         <div class="right-fixed">
@@ -92,6 +92,8 @@
 
 <script>
 import {saveCompanyInformation,getCompanyInformation} from '@/api/accountManagement.js'
+import { mapGetters } from 'vuex'
+import store from '../../store/'
 export default {
   name: '',
   components: {  },
@@ -122,35 +124,45 @@ export default {
           value: "100~500",
           label: "100~500"
         },
-      ]
+      ],
     }
   },
   created(){
     this.getCompanyInfoData()
+    console.log(this.$store.state.user.company+"666")
   },
   methods:{
     save(){                   //点击保存企业信息
         saveCompanyInformation(this.form).then(response =>{
           if(response.data.code == 0){
             console.log("success")
-            this.editMessage=false
-            this.normalStatu=true
+            this.$store.commit('SET_COMPANY', false)
+            console.log(this.$store.state.user.company)
+            this.getCompanyInfoData()
           }
         })
     },
     editPersonalMessage(){    //修改企业信息
-        this.editMessage=true
-        this.normalStatu=false
+        this.$store.commit('SET_COMPANY', true)
+        console.log(this.$store.state.user.company)
+        this.getCompanyInfoData()
     },
 
     getCompanyInfoData(){
+      console.log("进入")
       getCompanyInformation().then(response =>{
         if(response.data.code == 0){
           this.from=response.data.data
+          console.log(this.from)
         }
       })
     }
   },
+  computed:{
+    ...mapGetters([
+      'company'
+    ])
+  }
 }
 </script>
 

@@ -1,6 +1,7 @@
 <template>
-  <div class="personalInformation">                                     
-      <div v-if="!personal" :model="fitter">
+  <div class="personalInformation">
+      <!-- 信息编辑界面                                      -->
+      <div v-if="personal" :model="fitter">
             <div class="content">
                 <!-- {{ fitter }} -->
                 <!-- <el-form ref="form" :model="fitter" label-width="80px"> -->
@@ -109,12 +110,14 @@
                 <!-- </el-form> -->
             </div>
             <div class="save" :disabled="((fitter.first_name == ''))" @click="save()">保存</div>
-      </div> 
-      <div v-if="personal">
+      </div>
+      <!-- 信息显示界面  -->
+      <div v-else>
           <div class="content">
                 <div class="left">
                     <span class="gender">
-                        <span :class="{male:male,female:female,neuter:neuter}"></span>
+                        <!-- <span :class="{male:male,female:female,neuter:neuter}"></span> -->
+                        <img :src="fitter.avatar" alt="">
                     </span>
                 </div>
                 <div class="right">
@@ -185,6 +188,7 @@
 import {getpersonalInformation , savePersonalInformation} from "@/api/accountManagement";
 import { getToken } from '@/utils/auth'
 import { mapGetters } from 'vuex'
+import store from '../../store/'
 export default {
   name: "",
   components: {},
@@ -238,10 +242,13 @@ export default {
             skype:'',
             qq:'',
             wechat:'',
-            avatar: '',
+            // avatar: '',
             //   avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg',
-            // avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
-        }
+            avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
+        },
+        // personal:false
+        show:this.$store.state.user.personal
+        
     };
   },
   created() {
@@ -249,6 +256,8 @@ export default {
     //   this.uploadUrl = process.env.BASE_API + 'v1/inspectioninfo/'+this.id+'/upload'
     //   this.uploadHeaders = { Authorization: 'Bearer ' + getToken() }
     //   console.log( { Authorization: 'Bearer ' + getToken() })
+    console.log(this.$store.state.user.personal)
+    
   },
   computed: {
     // uploadUrl() {
@@ -281,16 +290,21 @@ export default {
     },
     //   获取个人信息
     getpersonalInformation(){
+        console.log("进入请求")
         getpersonalInformation().then(response =>{
             if(response.data.code == 0){
                 this.fitter = response.data.data
                 this.fitter.name = this.fitter.first_name + this.fitter.last_name
+                console.log(this.fitter)
             }
         })
     },
     editPersonalMessage(){
-        this.editMessage = true
-        this.normalStatu = false
+        // this.personal = true
+        // store.dispatch('GetUserInfo')
+        this.$store.commit('SET_PERSONAL', true)
+         console.log(this.$store.state.user.personal)
+         this.getpersonalInformation()
     },
     // 将头像显示
     handleFile: function (e) {
@@ -308,7 +322,11 @@ export default {
         savePersonalInformation(this.fitter).then(response =>{
             if(response.data.code == 0){
                 console.log("保存成功")
-                store.dispatch('GetUserInfo')
+                // this.personal = true
+                // store.dispatch('GetUserInfo')
+                this.$store.commit('SET_PERSONAL', false)
+                console.log(this.$store.state.user.personal)
+                this.getpersonalInformation()
             }
         })
     },
@@ -317,6 +335,7 @@ export default {
     handleAvatarSuccess(res, file) {
         this.imageUrl = URL.createObjectURL(file.raw);
         console.log(file)
+        this.fitter.avatar = file.response.data
     },
 
     //beforeAvatarUpload
