@@ -22,21 +22,21 @@
             <span>￥8989.89</span>
             <span>充值</span>
         </li> -->
-        <li v-for="(item,index) in data" :key="index">
+        <li v-for="(item,index) in payment" :key="index">
              <el-radio v-model="radio" :label="item.id"/>
-             <template v-if="true ">
+             <template v-if="item.id == 2 ">
                  <span class="lis1">
                      <img src="../../../static/image/UnionPay.png" alt="">
                      <span>银联</span>
                  </span>
              </template>
-             <template v-if=" payment == 1 ">
+             <template v-if=" item.id == 1 ">
                  <span class="lis2">
                     <img src="../../../static/image/payment.png" alt="">
                     <span>支付宝</span>
                  </span>
              </template>
-             <template v-if=" payment == 2 ">
+             <!-- <template v-if=" payment == 2 ">
                  <span class="lis3">
                      <span>测库月结</span>
                      <span>(你还有一份账单未结算)</span>
@@ -48,7 +48,7 @@
                      <span>￥8989.89</span>
                      <span>充值</span>
                  </span>
-             </template>
+             </template> -->
         </li>
     </ul>
   </div>
@@ -63,19 +63,11 @@ export default{
         data:[
             {
                 id:1,
-                name:"unionpay"
-            },
-            {
-                id:2,
                 name:"alipayment"
             },
             {
-                id:3,
-                name:"testcoopay" 
-            },
-            {
-                id:4,
-                name:"wallet"
+                id:2,
+                name:"unionpay"
             }
         ]
 
@@ -93,10 +85,8 @@ export default{
     watch:{
         //监听页面按钮点击触发的事件
         radio(val) {
-            // console.log(val)
-            this.$emit("receiveDateChn",val)
-            // console.log(val)
-
+            this.radio = val
+            this.$emit("receiveDateChn",this.radio)
         }
     }
 }

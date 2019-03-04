@@ -2,12 +2,13 @@
   <div>
       <ul class="fileList">
           <li v-for="(item,index) in fileList" :key="index"> 
-                <img :src="item.url" alt="" class="fileList_img" v-if="item.url.substring(item.url.length - 4) == 'jpeg'?true:false">
+            <div>
                 <svg-icon :icon-class="item.extension" class-name="file-icon"/>
-                <p class="bottom">{{item.name}}</p>
-                <span class="bgcover">
-                    <i class="el-icon-download" @click="download(item.url)"></i>
-                </span>
+            </div>
+            <p class="bottom">{{item.name}}</p>
+            <span class="bgcover" v-if="canDownLoad == true">
+                <i class="el-icon-download" @click="download(item.url)"></i>
+            </span>
           </li>
       </ul>
   </div>
@@ -18,10 +19,19 @@ import prettyFileIcons from 'pretty-file-icons'
 export default {
   name: '',
   props:{
-      fileList: Array,
-      required: true
+      fileList:{
+        type:Array,
+        required: true
+      },
+      canDownLoad:{
+        type:Boolean,
+        required: true
+      }
   },
   components: {  },
+  created(){
+
+  },
   computed: {
     // cachedViews() {
     //   return this.$store.state.tagsView.cachedViews
@@ -30,63 +40,65 @@ export default {
     //   return this.$route.fullPath
     // }
   },
-  created(){
-    //   console.log('this.fileList')
-    //   console.log(this.fileList)
-    //   console.log('this.fileList')
-  },
-  methods:{
-        getFileExtensions(url) {
-           console.log(url)
-            return prettyFileIcons.getIcon(url)
-        },
-        download(row){
-            window.location.href = row
-        }
-  },
   mounted(){
     // console.log(this.$route.fullPath) 
+  },
+  methods: {
+    getFileExtensions(url) {
+        console.log(url)
+            console.log(prettyFileIcons.getIcon(url)+'99999999999999999999999999999999')
+            return prettyFileIcons.getIcon(url)
+    },
+    download(row){
+        window.location.href = row
+    }
   }
 }
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 .fileList{
-    overflow: hidden;
+    // overflow: hidden;
+    display:table;
+    text-align: center;
+    margin:0 auto;
     >li:hover .bgcover{
         display: block;
     }
     >li{
-        float: left;
         width: 120px;
-        height: 120px;
+        float:left;
+        cursor:pointer;
+        // height: 120px;
         margin-left: 16px;
-        margin-bottom:16px;
-        position: relative;
-        cursor:pointer;                                                    
-        >.file-icon{                                       
+        position: relative;                                                     
+        >img{                                       
             display: block;
             width: 100%;
             height: 100%;
         }
-        .fileList_img{
-            width:100%;
-            height: 100%;
+        .file-icon {
+            font-size: 40px;
+            margin-top:22px;
+            text-align: center;
+            display:block;
+            margin: 0 auto;
         }
         .bottom{
             width: 120px;
             white-space:nowrap;
             text-overflow:ellipsis;
             overflow:hidden;
-            position: absolute;
+            // position: absolute;
             background: #FFFFFF;
             opacity: 0.8;
             bottom: 0;
             left: 0;       
-            height: 24px;
+            height: 21px;
             text-align: center;
-            line-height: 24px;
+            line-height: 21px;
             color: #164061;
+            margin-top:6px;
         }
         .bgcover{
             display: none;
@@ -102,19 +114,16 @@ export default {
             /* opacity: 0; */
             font-size: 20px;
             background-color: rgba(0,0,0,.5);
-            transition: opacity .8s;
+            transition: opacity .3s;
             i{
-                font-size:30px;
-                line-height: 120px;
+                line-height: 67px;
             }
         }
     }
-    li:nth-child(9){
-        margin-left:0;
-    } 
     >li:first-child{
         margin-left: 0;
     }
+    
 }
 </style>
 

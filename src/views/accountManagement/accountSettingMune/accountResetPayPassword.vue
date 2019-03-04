@@ -6,7 +6,7 @@
                 <div class="ResetPayPassword">
                     <div>
                         <p><i class="iconfont icon-denglumimazhongzhi1"></i></p>
-                        <p>通过登录密码重置</p>
+                        <p>通过支付密码重置</p>
                         <p  @click="resetByPassword">立即重置</p>
                     </div>
                     <div>
@@ -36,17 +36,17 @@ export default {
     methods:{
         //resetByPassword通过登录密码重置
         resetByPassword(){
-            this.$router.push({ path: 'resetByPassword' })
+            this.$router.push({ path: 'resetPayByPassword' })
         },
 
         //resetByEmail通过电子邮箱重置
         resetByEmail(){
-            this.$router.push({ path: 'resetByEmail' })
+            this.$router.push({ path: 'resetPayByEmail' })
         },
 
         //resetByTelephone通过电话号码
         resetByTelephone(){
-            this.$router.push({ path: 'resetByTelephone' })
+            this.$router.push({ path: 'resetPayByTelephone' })
         }
 
     }

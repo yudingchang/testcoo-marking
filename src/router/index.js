@@ -78,24 +78,35 @@ export const constantRouterMap = [
   {
     path: '',
     component: Layout,
-    redirect: 'controlboardIndex',
+    redirect: 'dashboard',
     children: [
       {
-        path: 'controlboardIndex',
+        path: 'dashboard',
         component: () => import('@/views/controlboard/controlboardIndex'),
         name: 'controlboardIndex',
-        meta: { title: '控制台', icon: 'dashboard', noCache: true }
+        meta: { title: '控制台', icon: 'Group', noCache: true }
       },
       {
         path: 'index',
-        name:'controlboard',
+        name:'index',
         component: () => import('@/views/controlboard/index'),
+        meta:{ title: '立即下单', noCache: true},
         hidden: true
       },
       {
         path: 'checkoutSuccess',
         name:'checkoutSuccess',
         component: () => import('@/views/controlboard/checkoutSuccess'),
+        meta:{ title: '立即下单' },
+        hidden: true
+      },
+      {
+        path: 'inspectionAgreement',
+        name: 'inspectionAgreement',
+        component: () => import('@/views/controlboard/inspectionAgreement'),
+        meta:{
+          title: '验货协议'
+        },
         hidden: true
       }
     ]
@@ -311,7 +322,7 @@ export const asyncRouterMap = [
     name: 'orderManagement',
     meta: {
       title: '订单管理',
-      icon: 'excel'
+      icon: 'Icon 4 Copy 2'
     },
     children: [
       {
@@ -343,6 +354,7 @@ export const asyncRouterMap = [
       }
     ]
   },
+  
   //报告管理
   {
     path: '/reportManagement',
@@ -350,16 +362,16 @@ export const asyncRouterMap = [
     redirect: '/reportManagement/ReportManagement',
     name: 'reportManagement',
     meta:{
-      title: '报告管理',
-      icon: 'excel'
+      // title: '报告管理',
+      icon: 'Icon 3'
     },
     children: [
       {
         path: 'ReportManagement',
         component: () => import('@/views/reportManagement/ReportManagement'),
         name: 'ReportManagement',
-        // meta: { title: '报告管理' },
-        hidden: true
+        meta: { title: '报告管理' },
+        // hidden: true
       },
       {
         path: 'inspectionReport',
@@ -379,7 +391,7 @@ export const asyncRouterMap = [
     name: 'fundManagement',
     meta: {
       title: '资金管理',
-      icon: 'excel'
+      icon: 'Group 2'
     },
     children: [
       {
@@ -480,21 +492,53 @@ export const asyncRouterMap = [
     name: 'accountManagement',
     meta: {
       title: '账户管理',
-      icon: 'excel'
+      icon: '我的'
     },
     children: [
       {
-        path: 'personalInformation',
-        component: () => import('@/views/accountManagement/personalInformation'),
-        name: 'personalInformation',
-        meta: { title: '个人信息' }
+        path: 'personalInfor',
+        component: () => import('@/views/accountManagement/personalInfor'),
+        name: 'personalInfor',
+        redirect: '/accountManagement/personalInfor/personalInformation',
+        meta: { title: '个人信息' },
+        children: [
+          {
+            path: 'personalInformation',
+            component: () => import('@/views/accountManagement/personalInforMune/personalInformation'),
+            name: 'personalInformation',
+            hidden: true
+          },
+          {
+            path: 'personalInforEdit',
+            component: () => import('@/views/accountManagement/personalInforMune/personalInforEdit'),
+            name: 'personalInforEdit',
+            hidden: true
+          }
+        ]
       },
       {
         path: 'companyInformation',
         component: () => import('@/views/accountManagement/companyInformation'),
         name: 'companyInformation',
-        meta: { title: '企业信息' }
+        redirect: '/accountManagement/companyInformation/companyInformationIndex',
+        meta: { title: '企业信息' },
+        children: [
+          {
+            path: 'companyInformationIndex',
+            component: () => import('@/views/accountManagement/companyInformationMune/companyInformationIndex'),
+            name: 'companyInformationIndex',
+            // meta: { title: '企业信息' },
+            hidden: true
+          },
+          {
+            path: 'companyEdit',
+            component: () => import('@/views/accountManagement/companyInformationMune/companyEdit'),
+            name: 'companyEdit',
+            hidden: true
+          }
+        ]
       },
+
       {
         path: 'accountSetting',
         component: () => import('@/views/accountManagement/accountSetting'),

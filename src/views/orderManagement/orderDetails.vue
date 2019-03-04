@@ -10,23 +10,23 @@
               <i class="iconfont icon-fukuan"></i>
               <p>立即付款</p>
             </div>
-            <div v-if="can.modify" class="modify-Detail">
-                <i class="iconfont icon-fuzhi"/>
+            <div v-if="can.modify" class="modify-Detail" @click="setDefault">
+                <i class="iconfont icon-bianji"/>
                 <p>修改</p>
             </div>
             <div v-if="can.delete" class="delete-Detail">
                 <i class="iconfont icon-fuzhi"/>
                 <p>删除</p>
             </div>
-            <div v-if="can.refund" class="refund-Detail">
-                <i class="iconfont icon-fuzhi"/>
+            <!-- <div v-if="can.refund" class="refund-Detail">
+                <i class="iconfont icon-tuikuan"/>
                 <p>退单</p>
-            </div>
-            <div v-if="can.close" class="close-Detail">
+            </div> -->
+            <!-- <div v-if="can.close" class="close-Detail">
                 <i class="iconfont icon-guanbi_"/>
                 <p>关闭</p>
-            </div>
-            <div class="copy-Detail">
+            </div> -->
+            <div class="copy-Detail" @click="CopyOrder()">
                 <i class="iconfont icon-fuzhi"/>
                 <p>复制</p>
             </div>  
@@ -36,40 +36,42 @@
           <p><span>关闭原因:</span><span>重复下单</span></p>
           <!-- <p><span>备注信息:</span><span>无</span></p> -->
         </div>
-        <!-- 追加付款信息 -->
-        <div class="supplierInformation" v-if="!can.pay">
-            <p>付款信息</p>
-            <p v-if=" !can.later_pay "><span class="manDay">订单工作量{{workload}}MD需付款</span><span class="payNumber"><span>¥{{CNYpay}}</span><span>/${{USDpay}}</span></span><span class="btn" @click="payImmediately(orderId)">立即付款</span></p>  
-        </div>
         <!-- 付款信息 -->
-        <!-- <div class="paymentInfoTitle"><p>付款信息</p></div> -->
+        <div class="paymentInfoTitle" v-if="marking == 'WAIT_SPLIT' || marking == 'INSPECTING' || marking == 'COMPLETED' ">
+          <p>付款信息</p>
+          <p v-if="can.later_pay">
+            <span>需支付其它费用</span>
+            <span>${{ returnFloat(500) }}</span>
+            <span @click='addPayment'>立即付款</span>
+          </p>
+        </div>
         <!-- 已付款信息框 -->
-        <div class="accountPaidInfo" v-if="can.pay">
+        <div class="accountPaidInfo" v-if="marking == 'WAIT_SPLIT' || marking == 'INSPECTING' || marking == 'COMPLETED' || (marking == 'CLOSED' && _.get(fees, '[0].paid_at'))">
           <ul>
             <li>订单金额</li>
-            <li><span v-if="CNYpay != ''">￥{{ CNYpay }}</span><span v-if="CNYpay != '' && USDpay !=''">/</span><span v-if="USDpay !=''">${{ USDpay }}</span></li>
+            <li><span v-if="CNYpay != ''">￥{{ returnFloat(CNYpay) }}</span><span v-if="CNYpay != '' && USDpay !=''">/</span><span v-if="USDpay !=''">${{ returnFloat(USDpay) }}</span></li>
             <li>工作量：</li>
             <li>{{workload}}人天</li>
-            <li v-if=" can.later_pay ">其它费用：￥500.00 (车票￥50.00、住宿￥450.00)</li>
+            <li v-if=" can.later_pay ">其它费用： (车票￥50.00、住宿￥450.00)</li>
           </ul>
           <div class="middle-paiInfo">
             <ul>
-            <li>付款金额</li>
-            <li><span v-if="CNYpay != ''">￥{{ CNYpay }}</span><span v-if="CNYpay != '' && USDpay !=''">/</span><span v-if="USDpay !=''">${{ USDpay }}</span></li>
-            <li>付款方式</li>
-            <li>{{  }}</li>
-            <li>创建时间</li>
-            <li>{{ created_at }}</li>
-            <li>付款时间</li>
-            <li>2018-05-25 10:00</li>
-          </ul>
-          <ul>
-            <li>¥500.00(其他费用)</li>
-            <li>付款方式</li>
-            <li>支付宝</li>
-            <li>付款时间</li>
-            <li>2018-05-25 10:00</li>
-          </ul>
+              <li>付款金额</li>
+              <li><span v-if="CNYpay != ''">￥{{ returnFloat(CNYpay) }}</span><span v-if="CNYpay != '' && USDpay !=''">/</span><span v-if="USDpay !=''">${{ returnFloat(USDpay) }}</span></li>
+              <li>付款方式</li>
+              <li>{{  }}</li>
+              <li>创建时间</li>
+              <li>{{ created_at }}</li>
+              <li>付款时间</li>
+              <li>{{ _.get(fees, '[0].paid_at') }}</li>
+            </ul>
+            <ul>
+              <li>¥500.00(其他费用)</li>
+              <li>付款方式</li>
+              <li>支付宝</li>
+              <li>付款时间</li>
+              <li>2018-05-25 10:00</li>
+            </ul>
           </div>
           <ul>
             <li>发票类型</li>
@@ -79,8 +81,13 @@
         </div>
         <!-- 产品信息框 -->
         <div class="productInformation">
-          <p class="productInformation-title">产品信息</p>
-          <el-tabs v-model="editableTabsValue2" type="card" >
+          <div class="productInformation-box">
+              <p class="productInformation-title">产品信息</p>
+              <div class="supplierInformation" v-if="marking == 'WAIT_PAY'">
+                  <p v-if=" !can.later_pay "><span class="manDay">订单工作量{{workload}}MD需付款</span><span class="payNumber"><span>¥{{returnFloat(CNYpay)}}</span><span>/${{returnFloat(USDpay)}}</span></span><span class="btn" @click="payImmediately(orderId)">立即付款</span></p>  
+              </div>
+          </div>  
+          <el-tabs v-model="editableTabsValue2" type="card" @tab-click="handleClickTab">
             <el-tab-pane
               v-for="(item, index) in editableTabs2"
               :key="index"
@@ -97,11 +104,11 @@
                     </div> -->
                   </el-form-item>
                   <el-form-item label="产品货号">
-                      <span class="left30">{{item.number}}</span>
+                      <span class="left30">{{item.number?item.number:'无'}}</span>
                     <!-- <el-input v-model="item.number" placeholder="请输入产品货号" style="width:500px;"/> -->
                   </el-form-item>
                   <el-form-item v-for="(val,i) in item.PO" :key="i" label="P.O号">
-                      <span class="left30">{{val.number}}</span>
+                      <span class="left30">{{val.number?val.number:'无'}}</span>
                       <span class="left30">{{val.quantity}}</span>
                       <span>{{val.unit}}</span>
                     <!-- <el-input v-model="val.number" placeholder="请输入P.O号" style="width:155px;"/> -->
@@ -129,7 +136,7 @@
                           <span class="left30">{{supplier.name}}</span>
                   </el-form-item>
                   <el-form-item label="联系人姓名" prop="name">
-                          <span class="left30">{{supplier.last_name + supplier.first_name}}</span>
+                          <span class="left30">{{ supplier.first_name + supplier.last_name}}</span>
                   </el-form-item>
                   <el-form-item label="手机号码" prop="name">
                           <span class="left30">{{supplier.phone_number}}</span>
@@ -138,7 +145,7 @@
                           <span class="left30">{{supplier.email}}</span>
                   </el-form-item>
                   <el-form-item label="验货地址" prop="name">
-                          <span class="left30">{{supplier.address_summary + supplier.address_detail}}</span>
+                          <span class="left30">{{supplier.address_summary + (supplier.address_detail == null?'':supplier.address_detail) }}</span>
                   </el-form-item>
                 </el-form>  
             </div>
@@ -148,41 +155,44 @@
             <p>验货基本信息</p>
             <div class="examineGoodContent">
               <el-form ref="item"  label-width="100px" class="demo-ruleForm">
-                <!-- <el-form-item label="产品总数" prop="name">
-                        <span class="left30">{{supplierName}}</span>
-                </el-form-item> -->
-                <!-- <el-form-item label="抽样数" prop="name">
-                        <span class="left30">{{supplierFullName}}</span>
-                </el-form-item> -->
+                <el-form-item label="报告语言" prop="name" v-if="marking == 'INIT'">
+                        <span class="left30">{{_.get( this.tableData, '[0].locale' )== 'zh_CN'?'中文':'英文'}}</span>
+                </el-form-item>
+                <el-form-item label="报告份数" prop="name" v-if="marking == 'INIT'">
+                        <span class="left30">{{reports_number?reports_number:'无'}}份</span>
+                </el-form-item>
                 <el-form-item label="预计验货时间" prop="name">
-                        <span class="left30">{{_.forEach(inspection_dates, function(value){ return value })}}</span>
+                        <span class="left30">{{inspection_dates?inspection_dates:'无'}}</span>
+                </el-form-item>
+                <el-form-item label="报告接收邮箱" prop="name" v-if="marking == 'INIT'">
+                        <span class="left30">{{accept_report_emails?accept_report_emails:'无'}}</span>
                 </el-form-item>
                 <el-form-item label="实际验货时间" prop="name" v-if="marking != 'INIT' && 'WAIT_QUOTE'">
-                        <span class="left30">{{inspection_first_date}}</span>
+                        <span class="left30">{{inspection_first_date?inspection_first_date:'无'}}</span>
                 </el-form-item>
                 <el-form-item label="验货类型" prop="name">
-                        <span class="left30">{{inspection.inspection_type_name}}</span>
+                        <span class="left30">{{inspection.inspection_type_name?inspection.inspection_type_name:'无'}}</span>
                 </el-form-item>
                 <el-form-item label="是否提供样品" prop="name">
-                    <p><span class="left30">{{inspection.sample_type_name}}</span></p>
-                    <p class="left30"><span>测库收件人</span><span class="left30">{{address}}</span></p>
-                    <p class="left30"><span>联系电话</span><span class="left30">{{address}}</span></p>
-                    <p class="left30"><span>地址</span><span class="left30">{{address}}</span></p>
+                    <p class="examineGoodContent_p"><span class="left30">{{inspection.sample_type_name}}</span></p>
+                    <p class="left30" v-if="inspection.sample_type == '2'"><span>测库收件人</span><span class="left30">蓝边儿</span></p>
+                    <p class="left30" v-if="inspection.sample_type == '2'"><span>联系电话</span><span class="left30">+86 571 85787282</span></p>
+                    <p class="left30" v-if="inspection.sample_type == '2'"><span>地址</span><span class="left30">浙江省杭州市萧山区钱江世纪城皓月路159号诺德财富中心A座801</span></p>
                 </el-form-item>
               </el-form>  
             </div>
         </div>
         <!-- 报告表格列表 -->
-        <div class="reportList">
+        <div class="reportList" v-if="marking != 'INIT'">
             <el-table
               :data="tableData"
               border
               style="width: 90%">
               <el-table-column
               prop="number"
-              label="报告"
+              label="报告号"
               align='center'
-              width="160">
+              width="170">
               </el-table-column>
               <!-- <el-table-column
               label="包含产品"
@@ -206,10 +216,16 @@
               label="抽样数量">
               </el-table-column> -->
               <el-table-column
-              prop="sampling.type"
               align='center'
               width="200"
               label="抽样标准">
+              <template slot-scope="scope">
+                <span v-if="scope.row.sampling.type == '1'" >抽样标准1</span>
+                <span v-if="scope.row.sampling.type == '2'" >抽样标准2</span>
+                <span v-if="scope.row.sampling.type == '3'" >抽样标准3</span>
+                <span v-if="scope.row.sampling.type == '4'" >抽样标准4</span>
+                <span v-if="scope.row.sampling.type == '5'" >抽样标准5</span>
+              </template>
               </el-table-column>
               <el-table-column
               align='center'
@@ -220,15 +236,20 @@
               </template>
               </el-table-column>
               <el-table-column
-              prop="address"
               align='center'
               width="220"
               label="报告接收邮箱">
+              <template slot-scope="scope">
+                {{ accept_report_emails }}
+              </template>
               </el-table-column>
               <el-table-column
-              prop="address"
               align='center'
               label="报告模版">
+              <template slot-scope="scope">
+                <ShowReportFile :fileList="scope.row.templates" :canDownLoad="scope.row.type == 'offline'?true:false"  class="1" v-if="scope.row.type == 'offline'"></ShowReportFile>
+                <span v-if="scope.row.type == 'online'">在线报告</span>
+              </template>
               </el-table-column>
           </el-table>
         </div>
@@ -236,10 +257,10 @@
         <div class="otherRequirements">
             <p>其它要求</p>
             <div class="otherRequirementsContent">
-                <div><span class="requirementText">要求内容</span><span>{{description}}</span></div>
+                <div><span class="requirementText">要求内容</span><span>{{description == null?'无':description}}</span></div>
                 <div>
                     <span class="requirementText">检验资料</span>
-                    <ShowFile :fileList="files"></ShowFile>
+                    <ShowFile :fileList="files" class="requirementFiles"></ShowFile>
                 </div>
             </div>
         </div>
@@ -316,7 +337,8 @@
 
 <script>
 import ShowFile from "../../components/showfile"
-import { getOrderList } from "@/api/order";
+import ShowReportFile from '../../components/showReportFile'
+import { getOrderList,DeleteOrder,CloseOrder,RefundOrder } from "@/api/order";
 export default {
   data() {
     return {
@@ -326,10 +348,13 @@ export default {
       number: "",
       marking: '',
       marking_name: "",
+      fees: '',
       inspection:[],
+      reports_number: '',
       inspection_dates:'',
       inspection_first_date: '',
       created_at: "",
+      accept_report_emails:'',
       description:'',
       workload: 1,
       files:[],
@@ -374,7 +399,7 @@ export default {
           ]
         }
       ],
-      editableTabsValue2: "",
+      editableTabsValue2: "tab1",
 
       //Dialog属性
       expendProductsDialog: false,
@@ -385,13 +410,19 @@ export default {
       //VATDialog增值税发票
       VATDialog: false,
 
+      //Additional payment追加付款
+      AdditionalPayment:'',
+
+
     };
   },
   created(){
       this.getOrderList()
+      
   },
   components: {
-      ShowFile
+      ShowFile,
+      ShowReportFile
   },
   computed: {},
   methods:{
@@ -403,24 +434,42 @@ export default {
           }).then(response =>{
               if(response.data.code == 0){
                 this.loading = false
-                  let {number,marking,marking_name,created_at,products,supplier,reports,workload,fees_total,description,files,can,inspection,inspection_dates,inspection_first_date} = response.data.data
+                  let {id,number,marking,marking_name,created_at,products,supplier,reports,workload,fees,fees_total,description,files,accept_report_emails,can,inspection,reports_number,inspection_dates,inspection_first_date} = response.data.data
                   this.number = number
                   this.marking = marking
                   this.marking_name = marking_name
                   this.created_at = created_at
-                  this.editableTabs2 = products
+                  this.editableTabs2 = products.reverse() //数组倒叙
                   this.supplier = supplier
                   this.tableData = reports
                   this.workload = workload
+                  // _.forEach( fees, function(value, key){
+                  //   console.log(value,key)
+
+                  // })
+                  this.fees = fees
                   this.CNYpay = fees_total.CNY
                   this.USDpay = fees_total.USD
                   this.description = description
+                  if( accept_report_emails ){
+                    this.accept_report_emails = accept_report_emails.join('')
+                  }else{
+                    this.accept_report_emails = ''
+                  }
+
+                  // console.log(this.accept_report_emails+'9999999999999999999999999999999999999999999999')
                   this.files = files
                   this.can = can
-                  this.inspection_dates = inspection_dates
+                  if( inspection_dates ){
+                    this.inspection_dates = inspection_dates.join(',')
+                  }else{
+                    this.inspection_dates = ''
+                  }
                   this.inspection_first_date = inspection_first_date
                   this.inspection = inspection
-                  console.log( this.editableTabs2)
+                  console.log(this.inspection+'9999999999999999999999999999999999999999')
+                  this.reports_number = reports_number
+                  console.log( this.marking)
               }
           })
       },
@@ -450,8 +499,47 @@ export default {
 
       //DetailPayment 待付款--付款
       DetailPayment(){
-        this.$router.push({ path: 'pay',query:{ orderId:this.$route.query.orderId } })
-      }
+        this.$router.push({ path: 'pay',query:{ order:this.$route.query.orderId } })
+        
+      },
+
+      //setDefault  待修改--修改
+      setDefault(){
+        this.$router.push({ path: '/index', query: { orderId: this.$route.query.orderId ,orderSet:'set' }})
+      },
+
+      //addPayment  待验货--额外支付
+      addPayment(){
+        this.$router.push({ path: 'pay',query:{ order:this.$route.query.orderId } })
+      },
+
+      //handleClickTab tab
+      handleClickTab(tab,event){
+        console.log(tab);
+        // this.editableTabsValue2 = tab.index+1
+      },
+
+      //CopyOrder复制订单
+      CopyOrder(){
+        this.$router.push({ path: '/index', query: { orderId: this.orderId }})
+        console.log("复制订单")
+      },
+
+      //金额数据处理returnFloat
+      returnFloat(value){
+        var value=Math.round(parseFloat(value)*100)/100;
+        var xsd=value.toString().split(".");
+        if(xsd.length==1){
+          value=value.toString()+".00";
+          return value;
+        }
+        if(xsd.length>1){
+          if(xsd[1].length<2){
+          value=value.toString()+"0";
+          }
+        return value;
+        }
+      },
 
   },
   mounted() {
@@ -511,7 +599,19 @@ export default {
   .el-form-item {
       margin-bottom: 15px;
   }
-
+  //productInformation
+  .productInformation{
+    .content{
+      .el-form-item:nth-child(n+2){
+        .el-form-item__content{
+          span:nth-child(1){
+            // width:116px;
+            display:inline-block;
+          }
+        }
+      }
+    }
+  }
   //reportList
   .reportList{
     .el-table--border{
@@ -780,6 +880,31 @@ export default {
       color:rgba(255,255,255,1);
     }
   }
+
+  //examineGoodsMessage
+  .examineGoodsMessage{
+    .examineGoodContent_p{
+     height:36px !important;
+     line-height: 36px;
+     span{
+       display:inline-block;
+       height:36px !important;
+       line-height: 36px !important;
+       margin:0;
+     }
+    }
+  }
+
+  //otherRequirements
+  .otherRequirements{
+    .requirementText{
+      display:inline-block;
+      float:left;
+    }
+    .requirementFiles{
+     
+    }
+  }
 }
 </style>
 
@@ -981,53 +1106,42 @@ export default {
       }
     }
   }
-  .supplierInformation {
-    margin: 25px 0;
-    font-size: 18px;
-    color: #50688c;
+  
+  .paymentInfoTitle{
     height:29px;
     line-height:29px;
+    margin-bottom:17px;
     p:nth-child(1){
-      height:29px;
       font-size:22px;
       font-family:MicrosoftYaHei;
       color:rgba(80,104,140,1);
-      line-height:29px;
-      margin-bottom:17px;
       float:left;
     }
     p:nth-child(2){
       float:left;
+      margin-left:32px;
+      span:nth-child(1){
+        font-size:20px;
+        color:rgba(22,64,97,1);
+      }
+      span:nth-child(2){
+        font-size:20px;
+        color:rgba(239,53,53,1);
+        margin-right:22px;
+      }
+      span:nth-child(3){
+        width:120px;
+        height:32px;
+        background:rgba(103,194,58,1);
+        border-radius:4px;
+        display:inline-block;
+        text-align:center;
+        line-height:32px;
+        font-size:16px;
+        color:rgba(255,255,255,1);
+        cursor:pointer;
+      }
     }
-    .manDay {
-      margin: 0 30px;
-    }
-    .payNumber {
-      color: #ef3535;
-      font-weight: bold;
-      font-size: 20px;
-    }
-    .btn {
-      display: inline-block;
-      background: #67c23a;
-      width: 120px;
-      text-align: center;
-      height: 32px;
-      line-height: 32px;
-      font-size: 14px;
-      color: #ffffff;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-left: 16px;
-    }
-  }
-  .paymentInfoTitle{
-    height:29px;
-    font-size:22px;
-    font-family:MicrosoftYaHei;
-    color:rgba(80,104,140,1);
-    line-height:29px;
-    margin-bottom:17px;
   }
   .accountPaidInfo {
     width:1320px;
@@ -1182,23 +1296,48 @@ export default {
   .productInformation {
     position: relative;
     width: 85%;
-    .productInformation-title{
-      height:31px;
-      font-size:24px;
-      color:rgba(80,104,140,1);
-      line-height:31px;
-      font-weight:100;
-    }
-    .addNewProducts {
-      cursor: pointer;
-      position: absolute;
-      right: 0;
-    }
-    > p {
-      font-size: 16px;
-      font-weight: bold;
-      color: #50688c;
-      margin-bottom: 24px;
+    .productInformation-box{
+      height:32px;
+      margin-bottom:16px;
+      .productInformation-title{
+        height:31px;
+        font-size:24px;
+        color:rgba(80,104,140,1);
+        line-height:31px;
+        font-weight:100;
+        float:left;
+        margin-right:32px;
+      }
+      .supplierInformation{
+        float:left;
+        height:31px;
+        p{
+          height:31px;
+          line-height:31px;
+          .manDay{
+            font-size:20px;
+            color:rgba(80,104,140,1);
+            margin-right:6px;
+          }
+          .payNumber{
+            font-size:22px;
+            color:rgba(239,53,53,1);
+            margin-right:26px;
+          }
+          .btn{
+            width:120px;
+            height:32px;
+            background:rgba(103,194,58,1);
+            border-radius:4px;
+            display:inline-block;
+            text-align:center;
+            line-height:32px;
+            font-size:16px;
+            color:rgba(255,255,255,1);
+            cursor:pointer;
+          }
+        }
+      }
     }
     .addNewProduct {
       display: inline-block;
@@ -1213,7 +1352,8 @@ export default {
       width: 100%;
       padding: 20px 30px 10px;
       background-color: #ffffff;
-      border-top: 1px solid #e6eaee;
+      border-radius:4px;
+      border:1px solid rgba(230,234,238,1);
       color: #50688c;
       .left30 {
         margin-left: 30px;
@@ -1259,6 +1399,8 @@ export default {
           padding: 20px 40px 10px;
           margin-top:16px;
           color: #50688C;
+          border-radius:4px;
+          border:1px solid rgba(230,234,238,1);
           .left30 {
             margin-left: 30px;
         }
@@ -1280,6 +1422,8 @@ export default {
           padding: 20px 40px 10px;
           color: #50688C;
           margin-top:16px;
+          border-radius:4px;
+          border:1px solid rgba(230,234,238,1);
           .left30 {
             margin-left: 30px;
           }
@@ -1379,9 +1523,11 @@ export default {
                 line-height:21px;
                 margin-right:65px;
             }
-            // >span:last-child{
-            //     color: #50688C;;
-            // }
+            >span:last-child{
+                color: #50688C;
+                display:inline-block;
+                width:1072px;
+            }
         }
       }
   }

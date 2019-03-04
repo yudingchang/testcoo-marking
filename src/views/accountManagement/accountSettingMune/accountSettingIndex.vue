@@ -1,22 +1,22 @@
 <template>
-  <div class="accountSettingIndex">
+  <div class="accountSettingIndex" v-loading="loading">
     <el-row>
       <el-col :span="24" class="accountSetting-info">
         <!-- 手机号码 -->
         <div class="Setting-info-Mobile">
           <p>手机号码</p>
           <p>
-            <span v-if=" phonenumber == '' ">未绑定</span>
-            <span v-else>{{ phonenumber }}</span>
-            <span @click="ImmediatelyBind" v-if="phonenumber == ''">立即绑定</span>
+            <span v-if=" AccountSettingData.phone_number == null ">未绑定</span>
+            <span v-else>{{ AccountSettingData.phone_number }}</span>
+            <span @click="ImmediatelyBind" v-if="AccountSettingData.phone_number == null">立即绑定</span>
             <span @click="reviseMobile" v-else>修改</span>
           </p>
         </div>
         <!-- 手机号码绑定 -->
         <div class="Setting-info-MobileBind">
-          <el-dialog title="绑定手机号码" :visible.sync="dialogFormMobile">
+          <el-dialog :title="dialogFormTitle" :visible.sync="dialogFormMobile">
             <div class="chooseOption">
-              <el-select v-model="PhoneOptionValue" placeholder="+86">
+              <!-- <el-select v-model="PhoneOptionValue" placeholder="+86">
                 <el-option
                   v-for="item in areaPhoneOption"
                   :key="item.value"
@@ -24,7 +24,18 @@
                   :value="item.value">
                 </el-option>
               </el-select>
-              <el-input v-model="inputMobile" placeholder="请输入号码"></el-input>
+              <el-input v-model="inputMobile" placeholder="请输入号码"></el-input> -->
+              <el-input placeholder="请输入手机号码" v-model="inputMobile" class="input-with-select" >
+                  <el-select v-model="PhoneOptionValue" slot="prepend" placeholder="请选择" style="width:150px;">
+                    <el-option
+                    v-for="item in phone_codeConfig"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                    >    
+                    </el-option>
+                  </el-select>
+              </el-input>
               <!-- <el-form :model="MobileRuleForm" :rules="rules" ref="MobileRuleForm" label-width="100px" class="demo-ruleForm">
                 <el-form-item label="" prop="region">
                   <el-input placeholder="请输入内容" v-model="MobileRuleForm.telephone" class="input-with-select" style="width:360px"> 
@@ -72,15 +83,15 @@
         <div class="Setting-info-mail">
           <p>电子邮箱</p>
           <p>
-            <span v-if="email==null">未绑定</span>
-            <span v-else>{{ email }}</span>
-            <span v-if="email==null" @click="reviseMail">绑定</span>
+            <span v-if="AccountSettingData.email==null">未绑定</span>
+            <span v-else>{{ AccountSettingData.email }}</span>
+            <span v-if="AccountSettingData.email==null" @click="BindMail">绑定</span>
             <span v-else @click="reviseMail">修改</span>
           </p>
         </div>
         <!-- 修改电子邮箱 -->
         <div class="reviseMailDialog">
-          <el-dialog :title="EmailForm.emailText" :visible.sync="dialogFormMail">
+          <el-dialog :title="EmailFormText" :visible.sync="dialogFormMail">
             <div class="inputMailAddress">
               <el-input
                 placeholder="请输入电子邮箱"
@@ -134,9 +145,9 @@
         <div class="Setting-info-payPassword">
           <p>支付密码</p>
           <p>
-            <span v-if="is_paypassword==false">未设置</span>
+            <span v-if="AccountSettingData.is_paypassword == false">未设置</span>
             <span v-else>*******</span>
-            <span v-if="is_paypassword==false" @click="SettingPay">点击设置</span>
+            <span v-if="AccountSettingData.is_paypassword == false" @click="SettingPay">点击设置</span>
             <span v-else @click="revisePayDialog">修改</span>
           </p>
         </div>
@@ -182,7 +193,7 @@
 <script>
 import { getAccountInformation } from '@/api/accountManagement.js'
 import { sendMa } from '@/api/accountSetting.js'
-import { changeUserInfo , set_password} from '@/api/accountSetting'
+import { changeUserInfo , set_password, } from '@/api/accountSetting'
 import { mapGetters } from 'vuex'
 import store from '../../../store/'
 
@@ -190,6 +201,7 @@ export default {
   name: 'accountSettingIndex',
   components: {  },
   data(){
+    var regPassword = new RegExp("^[0-9]*$");
     var validatePass = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('请输入密码'));
@@ -197,6 +209,9 @@ export default {
         }else if( value.length < 6 || value.length > 6){
           // console.log("密码长度等于六位")
           callback(new Error('密码长度为6位'));
+        }else if(!regPassword.test(value)){
+          
+          callback(new Error('请输入纯数字作为密码'));
         } else {
           if (this.payForm.checkPassword !== '') {
             this.$refs.payForm.validateField('checkPassword');
@@ -214,6 +229,9 @@ export default {
         }
       };
     return{
+      //
+      loading:false,
+
       accountSettingVif: true,    //主页显示隐藏
 
       ResetLoginPassword: true,    //登录密码重置页面显示隐藏
@@ -221,11 +239,13 @@ export default {
       //---------------------------------------------    手机号码
       AccountSettingData: [],   //页面加载数据
 
+      dialogFormTitle: '绑定手机号码',      //dialog标题
+
       dialogFormMobile:false,    //绑定手机号码弹框
 
       PhoneOptionValue: '',     //地区号码开头选择结果
 
-      areaPhoneOption:[],       //地区选择
+      phone_codeConfig:'',       //地区选择
 
       // MobilePhone: '',        //手机号码输入
       
@@ -267,10 +287,7 @@ export default {
 
       reviseMailSuccess: false,        //修改成功弹框
 
-      EmailForm:{
-        secondStepText:'获取验证码',
-        emailText:'绑定电子邮箱',
-      },
+      EmailFormText:'绑定电子邮箱',     
 
       //-------------------------------------------------
       loginPassword:'123456789',    // 登陆密码
@@ -294,22 +311,31 @@ export default {
             { validator: validatePass2, trigger: 'blur' }
           ]
       },
+
+      //dialogTitle
+      dialogTitle: '',
+
     }
   },
   created(){
-    // this.getAccountInfoData()
+    this.getAccountInfoData()
     // console.log(new Date)
-    let Configs = JSON.parse(window.localStorage.getItem('Configs'))
+    // let Configs = JSON.parse(window.localStorage.getItem('Configs'))
     // this.areaPhoneOption = Configs.phone_number_codes
+    this.ConfigUnit();
     console.log(this.Configs)
   },
   methods:{
     //打开页面获取账户信息
     getAccountInfoData(){
+      this.loading = true;
       getAccountInformation().then(response =>{
         if(response.data.code == 0){
+          this.loading = false;
           this.AccountSettingData = response.data.data
+          console.log('this.AccountSettingData')
           console.log(this.AccountSettingData)
+          console.log('this.AccountSettingData')
         }
       })
     },
@@ -317,12 +343,23 @@ export default {
 
     //立即绑定手机号码
     ImmediatelyBind(){
-     this.dialogFormMobile = true
-
+      this.dialogFormTitle = '绑定手机号码'
+      this.dialogFormMobile = true
+      this.authCodePromt = false
+      this.inputMobile = ''
+      this.PhoneOptionValue = ''
+      this.inputIdentify = ''
+      this.getAuthCode = true
+      this.CountDown = false
     },
 
     //点击获取验证码，发送短信
     getAuthCodeSend(){
+      if(this.PhoneOptionValue == ''){
+        this.authCodePromt = true
+        this.authCodePromtValue = '*请选择手机区号'
+        return false;
+      }
       //非空验证
       if(this.inputMobile ==''){
         this.authCodePromt = true
@@ -362,13 +399,24 @@ export default {
       changeUserInfo({
         verification_code:this.inputIdentify,
         type:'phone_number',
-        phone_number:this.inputMobile
+        phone_number:this.inputMobile,
+        phone_code:this.PhoneOptionValue
       }).then(response => {
         if(response.data.code == 0){
+          this.$message({
+            message: this.dialogFormTitle+'成功',
+            type: 'success'
+          })
           this.dialogFormMobile = false
-          this.dialogSuccess = true
-          // this.getAccountInfoData()
+          // this.dialogSuccess = true
+          this.getAccountInfoData()
           store.dispatch('GetUserInfo')
+        }else if(response.data.code == 10001 ){
+            this.dialogFormMobile = false
+            this.$message({
+              message: '手机号码已被使用',
+              type: 'warning'
+            })
         }
       }).catch(response => {
         this.$message("验证码输入错误")
@@ -377,12 +425,31 @@ export default {
 
     //修改手机号码
     reviseMobile(){
+      this.dialogFormTitle = '修改手机号码'
       this.dialogFormMobile = true
+      this.authCodePromt = false
+      this.inputMobile = ''
+      this.PhoneOptionValue = ''
+      this.inputIdentify = ''
+      this.getAuthCode = true
+      this.CountDown = false
+    },
 
+    //绑定电子邮箱
+    BindMail(){
+      this.EmailFormText = '绑定电子邮箱';
+      this.mailPromtVS = false;
+      this.inputMailInfo = '';
+      this.inputMailValidate = '';
+      this.dialogFormMail = true
     },
 
     //修改电子邮箱
     reviseMail(){
+      this.EmailFormText = '修改电子邮箱';
+      this.mailPromtVS = false;
+      this.inputMailInfo = '';
+      this.inputMailValidate = '';
       this.dialogFormMail = true
     },
 
@@ -427,10 +494,18 @@ export default {
         }).then(response => {
           if( response.data.code == 0 ){
             this.dialogFormMail = false
-            this.reviseMailSuccess = true
+            // this.reviseMailSuccess = true
+            this.$message({
+              message: this.EmailFormText+'成功',
+              type: 'success'
+            })
+            this.getAccountInfoData()
             store.dispatch('GetUserInfo')
           }else if(response.data.code == 10002){
-            this.$message("该邮箱号码已被使用")
+            this.$message({
+              message: '该邮箱号码已被使用',
+              type: 'warning'
+            })
           }
         })
     },
@@ -446,6 +521,11 @@ export default {
     //点击设置支付密码SettingPay
     SettingPay(){
       this.payForm.DialogForm = true
+      // this.payForm.password = ''
+      // this.payForm.checkPassword = ''
+      this.$nextTick( ()=> {
+        this.$refs.payForm.resetFields(); //移除校验结果并重置字段值
+      })
     },
 
     //revisePayDialog修改支付密码
@@ -470,7 +550,12 @@ export default {
               if( response.data.code == 0 ){
                 console.log("设置密码成功了，设置Dialog消失，迎接成功Dialog")
                 this.payForm.DialogForm = false
-                this.payForm.DialogFormSuccess = true
+                // this.payForm.DialogFormSuccess = true
+                this.$message({
+                  message: '设置支付密码成功',
+                  type: 'success'
+                })
+                this.getAccountInfoData();
                 this.whetherSeted = false
                 store.dispatch('GetUserInfo')
               }
@@ -480,18 +565,24 @@ export default {
             return false;
           }
         });
-    }
+    },
+
+    //配置文件加载
+    ConfigUnit(){
+      this.phone_codeConfig = this.configs.phone_number_codes
+    },
 
   },
   computed: {
     ...mapGetters([
       'sidebar',
       'name',
-      'phonenumber',
+      'phone_number',
       'email',
       'is_paypassword',
       'avatar',
-      'device'
+      'device',
+      'configs'
     ])
   }
 }
@@ -701,47 +792,57 @@ export default {
             line-height:40px;
             margin:0 auto;
             // overflow: hidden;
-            .el-select{
-              float:left;
-              width:178px;
-            }
-            .el-input--medium{
-              float:left;
-              width:180px;
-            }
-            .el-select--medium .el-input__inner{
-              border:none;
+            // .el-select{
+            //   float:left;
+            //   width:178px;
+            // }
+            // .el-input--medium{
+            //   float:left;
+            //   width:180px;
+            // }
+            // .el-select--medium .el-input__inner{
+            //   border:none;
+            // }
+            // .el-input--medium .el-input__inner{
+            //   width:178px;
+            //   height:40px;
+            //   float:left;
+            //   border-right:1px solid rgba(192,196,204,1);
+            //   border-radius:0;
+            // }
+            // .el-input--medium:nth-child(2) .el-input__inner{
+            //   border:none;
+            //   border-left:1px solid rgba(192,196,204,1);
+            //   border-radius:0;
+            //   border:1px solid rgba(192,196,204,1);
+            //   border-top-right-radius:4px;
+            //   border-bottom-right-radius:4px;
+            // }
+            // .el-input--medium:nth-child(1) .el-input__inner{
+            //   font-size:14px;
+            //   font-family:PingFang-SC-Medium;
+            //   font-weight:500;
+            //   color:rgba(255,165,0,1);
+            //   border:1px solid rgba(192,196,204,1);
+            //   border-right:none;
+            //   border-top-right-radius:0;
+            //   border-bottom-right-radius:0;
+            // }
+            // .el-input--medium:nth-child(1) .el-input__inner::-webkit-input-placeholder{
+            //   font-size:14px;
+            //   font-family:PingFang-SC-Medium;
+            //   font-weight:500;
+            //   color:rgba(255,165,0,1);
+            // }
+            .el-input--suffix .el-input__inner{
+              // height:40px;
+              // 
             }
             .el-input--medium .el-input__inner{
-              width:178px;
               height:40px;
-              float:left;
-              // border-right:1px solid rgba(192,196,204,1);
-              // border-radius:0;
             }
-            .el-input--medium:nth-child(2) .el-input__inner{
-              border:none;
-              border-left:1px solid rgba(192,196,204,1);
-              border-radius:0;
-              border:1px solid rgba(192,196,204,1);
-              border-top-right-radius:4px;
-              border-bottom-right-radius:4px;
-            }
-            .el-input--medium:nth-child(1) .el-input__inner{
-              font-size:14px;
-              font-family:PingFang-SC-Medium;
-              font-weight:500;
-              color:rgba(255,165,0,1);
-              border:1px solid rgba(192,196,204,1);
-              border-right:none;
-              border-top-right-radius:0;
-              border-bottom-right-radius:0;
-            }
-            .el-input--medium:nth-child(1) .el-input__inner::-webkit-input-placeholder{
-              font-size:14px;
-              font-family:PingFang-SC-Medium;
-              font-weight:500;
-              color:rgba(255,165,0,1);
+            .el-input--medium:nth-child(1) .el-input__inner:nth-child(2):focus{
+              border:1px solid rgba(255,168,0,1);
             }
             .el-input--medium:nth-child(2) .el-input__inner:focus{
               border:1px solid rgba(255,168,0,1);

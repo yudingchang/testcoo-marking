@@ -1,270 +1,302 @@
 <template>
-  <div class="pay">
+  <div class="pay" v-loading="loading">
       <el-row>
           <el-col :span="24">
-              <p class="t1">注：如果您对我们的报价有疑惑，请联系测库工作人员</p>
-                <el-table
-                    :data="tableData"
-                    style="width: 100%" class="tableData">
-                    <el-table-column
-                        prop="number"
-                        label="订单号"
-                        width="240">
-                    </el-table-column>
-                    <el-table-column
-                        width="200"
-                        label="产品名称">
-                        <template slot-scope="scope">
-                            <span v-if="scope.row.products.length==1">{{scope.row.products[0]}}</span>
-                            <span v-else-if="scope.row.products.length>1"><span>{{scope.row.products[0]}}</span><i class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column
-                        width="270"
-                        label="供应商">
-                        <template slot-scope="scope">
-                            {{scope.row.supplier.name}}
-                        </template>
-                    </el-table-column>
-                    <el-table-column
-                        width="270"
-                        label="工作量">
-                        <template slot-scope="scope">
-                            {{scope.row.workload}}人天
-                        </template>
-                    </el-table-column>
-                    <el-table-column
-                        label="订单金额">
-                        <template slot-scope="scope">
-                            <span>{{ calculateMoney(scope.row.fees)}}</span>
-                            <span class="tc-separate" v-if="scope.row.fees.supplementary">
-                                <span v-for="(item,index) in scope.row.fees.supplementary" :key = index>
-                                    {{item.name}}¥{{item.currencies.CNY}}/${{item.currencies.CNY}}
-                                </span>
-                            </span> 
-                        </template>
-                    </el-table-column>
-                </el-table>         
-                <el-form class="form-content" label-width="100px">
-                    <el-form-item label="付款币种"> 
-                        <el-radio-group v-model="moneyType">
-                            <el-radio :label="1" @change="CNY()">人民币</el-radio>                                                              
-                            <el-radio :label="2" @change="USD()">美元</el-radio>                                                
-                        </el-radio-group>
+            <p class="t1">注：如果您对我们的报价有疑惑，请联系测库工作人员</p>
+            <!-- el-table -->
+            <el-table
+                :data="tableData"
+                style="width: 100%" class="tableData">
+                <el-table-column
+                    prop="number"
+                    label="订单号"
+                    width="240">
+                </el-table-column>
+                <el-table-column
+                    width="200"
+                    label="产品名称">
+                    <template slot-scope="scope">
+                        <el-button type="text" size="small"><span>{{scope.row.products.join(',')}}</span></el-button>
+                        <el-button type="text" size="small"><i v-if="scope.row.products.join('').length>8" class="iconfont icon-IconCopy" @click="getDetail(scope.row.products)"/></el-button>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    width="270"
+                    label="供应商">
+                    <template slot-scope="scope">
+                        {{scope.row.supplier.name}}
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    width="270"
+                    label="工作量">
+                    <template slot-scope="scope">
+                        {{scope.row.workload}}人天
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="订单金额">
+                    <template slot-scope="scope">
+                        <span>{{ calculateMoney(scope.row.fees)}}</span>
+                        <!-- <span class="tc-separate" v-if="scope.row.fees.supplementary">
+                            <span v-for="(item,index) in scope.row.fees.supplementary" :key = index>
+                                {{item.name}}¥{{item.currencies.CNY}}/${{item.currencies.CNY}}
+                            </span>
+                        </span>  -->
+                    </template>
+                </el-table-column>
+            </el-table>
+            <!-- el-form -->
+            <el-form class="form-content" label-width="100px">
+                <el-form-item label="付款币种"> 
+                    <el-radio-group v-model="moneyType">
+                        <el-radio :label="1" @change="CNY()" :disabled="!CNYShouldPay">人民币</el-radio>                                                              
+                        <el-radio :label="2" @change="USD()" :disabled="!USDShouldPay">美元</el-radio>                                                
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="发票类型"> 
+                    <el-radio-group v-model="invoicetype">
+                        <el-radio :label="0">不开发票</el-radio>
+                        <el-radio :label="1">增值税发票</el-radio>
+                        <el-radio :label="2">普通发票</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="开票公司" v-show="invoicetype!=0"> 
+                    <el-select v-model="invoiceCompany" placeholder="请选择">
+                        <el-option
+                        v-for="item in invoiceList"
+                        :key="item.company_name"
+                        :label="item.company_name"
+                        :value="item.id">
+                        </el-option>
+                    </el-select>
+                    <el-button type="success" icon="el-icon-plus" @click="addInvoiceCompany()">新增开票公司</el-button>
+                </el-form-item>
+                <el-form-item label="发票收件人" v-show="invoicetype!=0"> 
+                    <el-select v-model="recipients" placeholder="请选择">
+                        <el-option
+                        v-for="item in addressee"
+                        :key="(item.first_name+item.last_name)"
+                        :label="(item.first_name+item.last_name)"
+                        :value="item.id">
+                        </el-option>
+                    </el-select>
+                    <el-button type="success" @click="addressPump()" icon="el-icon-plus">新增寄送地址</el-button>
+                </el-form-item>
+                <el-form-item label="应付金额"> 
+                    <span class="money-text">{{shouldpay}}</span>
+                </el-form-item> 
+                <el-form-item label="付款方式"> 
+                    <ul class="paystyle" v-if="CNYPayShow">
+                        <li v-for="(item,index) in CNYPay" :key="index">
+                            <span v-show="item.id==1"><el-radio v-model="paymentTypeId" :label="item.id"><img style="" src="../../../static/image/payment.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
+                            <span v-show="item.id==2"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>￥{{ _.get(userAccountBalance, '[0].price') }}</span><span @click="PayRechargeRmb">充值</span></el-radio></span>
+                            <span v-show="item.id==3"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span></span></el-radio></span>
+                            <span v-show="item.id==4"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
+                            <span v-show="item.id==6"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>(你还有1份账单未结算)</span></el-radio></span>
+                        </li>
+                        <!-- <li><el-radio v-model="radio1" label="2">支付宝</el-radio></li> -->
+                    </ul>
+                    <ul class="paystyle" v-if="USDPayShow">
+                        <li v-for="(item,index) in USDPay" :key="index">
+                            <span v-if="item.id==5"><el-radio v-model="paymentTypeId" :label="item.id"><img src="../../../static/image/paypal.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
+                            <span class="payrechargeUsa" v-if="item.id==12"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>${{ _.get(userAccountBalance, '[1].price') }}</span><span @click="PayRechargeDollar">充值</span></el-radio></span>
+                            <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span></el-radio></span>
+                            <!-- <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span> -->
+                        </li>
+                        <!-- <li><el-radio v-model="radio1" label="2">支付宝</el-radio></li> -->
+                    </ul>
+                    <!-- <span class="money-text">{{shouldpay}}</span> -->
+                </el-form-item> 
+                <el-form-item label="支付密码" v-if="PayPassword"> 
+                    <el-input placeholder="请输入密码" type="password" style="width:280px;" v-model="password"></el-input>
+                    <span class="tip" @click="setPayment">{{ is_paypassword == true?'忘记密码':'未设置支付密码(点击设置)' }}</span>
+                </el-form-item>  
+                <el-form-item label=""> 
+                    <el-button type="warning" class="confirmPay" :disabled="PayPassword == true && password == ''" @click="confirmPayButton()">确定付款</el-button>
+                </el-form-item>                                                            
+            </el-form>
+            <!-- 新增发票信息dialog -->
+            <el-dialog title="新增发票信息" :visible.sync="dialogFormVisible" width="600px" center class="addInvoice">
+                <el-form :model="form" :rules="rules" ref="form" :label-width="formLabelWidth">
+                    <el-form-item label="公司名称：" prop="company_name">
+                        <el-input v-model="form.company_name"></el-input>
                     </el-form-item>
-                    <el-form-item label="发票类型"> 
-                        <el-radio-group v-model="invoicetype">
-                            <el-radio :label="0">不开发票</el-radio>
-                            <el-radio :label="1">增值税发票</el-radio>
-                            <el-radio :label="2">普通发票</el-radio>
-                        </el-radio-group>
+                    <el-form-item label="纳税人识别号：" prop="tax_id_number">
+                        <el-input v-model="form.tax_id_number"></el-input>
                     </el-form-item>
-                    <el-form-item label="开票公司" v-show="invoicetype!=0"> 
-                        <el-select v-model="invoiceCompany" placeholder="请选择">
-                            <el-option
-                            v-for="item in invoiceList"
-                            :key="item.company_name"
-                            :label="item.company_name"
-                            :value="item.id">
-                            </el-option>
-                        </el-select>
-                        <el-button type="success" icon="el-icon-plus" @click="addInvoiceCompany()">新增开票公司</el-button>
+                    <el-form-item label="开户银行：" prop="bank">
+                        <el-input v-model="form.bank"></el-input>
                     </el-form-item>
-                    <el-form-item label="发票收件人" v-show="invoicetype!=0"> 
-                        <el-select v-model="recipients" placeholder="请选择">
-                            <el-option
-                            v-for="item in addressee"
-                            :key="(item.last_name+item.first_name)"
-                            :label="(item.last_name+item.first_name)"
-                            :value="item.id">
-                            </el-option>
-                        </el-select>
-                        <el-button type="success" @click="addressPump()" icon="el-icon-plus">新增寄送地址</el-button>
+                    <el-form-item label="银行账号：" prop="bank_account">
+                        <el-input v-model="form.bank_account"></el-input>
                     </el-form-item>
-                    <el-form-item label="应付金额"> 
-                        <span class="money-text">{{shouldpay}}</span>
-                    </el-form-item> 
-                    <el-form-item label="付款方式"> 
-                        <ul class="paystyle" v-if="CNYPayShow">
-                            <li v-for="(item,index) in CNYPay" :key="index">
-                                <span v-show="item.id==1"><el-radio v-model="paymentTypeId" :label="item.id"><img src="../../../static/image/payment.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
-                                <span v-show="item.id==2"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>￥{{999}}</span><span @click="PayRechargeRmb">充值</span></el-radio></span>
-                                <span v-show="item.id==3"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span></span></el-radio></span>
-                                <span v-show="item.id==4"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
-                                <span v-show="item.id==6"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>(你还有1份账单未结算)</span></el-radio></span>
-                            </li>
-                            <!-- <li><el-radio v-model="radio1" label="2">支付宝</el-radio></li> -->
-                        </ul>
-                        <ul class="paystyle" v-if="USDPayShow">
-                            <li v-for="(item,index) in USDPay" :key="index">
-                                <span v-if="item.id==5"><el-radio v-model="paymentTypeId" :label="item.id"><img src="../../../static/image/paypal.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
-                                <span class="payrechargeUsa" v-if="item.id==12"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>￥{{999}}</span><span @click="PayRechargeDollar">充值</span></el-radio></span>
-                                <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span></el-radio></span>
-                                <!-- <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span> -->
-                            </li>
-                            <!-- <li><el-radio v-model="radio1" label="2">支付宝</el-radio></li> -->
-                        </ul>
-                        <!-- <span class="money-text">{{shouldpay}}</span> -->
-                    </el-form-item> 
-                    <el-form-item label="支付密码" v-if="PayPassword"> 
-                        <el-input placeholder="请输入密码" type="password" style="width:280px;" v-model="password"></el-input>
-                        <span class="tip">忘记密码?</span>
-                    </el-form-item>  
-                    <el-form-item label=""> 
-                        <el-button type="warning" class="confirmPay" :disabled="PayPassword == true && password == ''" @click="confirmPayButton()">确定付款</el-button>
-                    </el-form-item>                                                            
+                    <el-form-item label="单位电话：" prop="telephone">
+                        <el-input placeholder="请输入电话号码" v-model="form.telephone" class="input-with-select">
+                            <el-select v-model="form.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                                <el-option
+                                v-for="item in form.phone_codeConfig"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                                >
+                                <!-- <span style="float: left">{{ item.label }}</span>     -->
+                                </el-option>
+                            </el-select>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="单位地址：" prop="address">
+                        <el-cascader
+                          expand-trigger="hover"
+                          :options="optionsProvinces"
+                          :props="{label:'chinese_name',value:'id',children:'children_simple'}"
+                          v-model="form.address"
+                          @change="handleChange">
+                        </el-cascader>
+                        <!-- <el-input v-model="form.address"></el-input> -->
+                    </el-form-item>
+                    <el-form-item label="详细地址：" prop="detailed_address">
+                        <el-input type="textarea" v-model="form.detailed_address"></el-input>
+                    </el-form-item>
                 </el-form>
-                <el-dialog title="新增发票信息" :visible.sync="dialogFormVisible" width="600px" center class="addInvoice">
-                    <el-form :model="form" :rules="rules" ref="form" :label-width="formLabelWidth">
-                        <el-form-item label="公司名称：" prop="company_name">
-                            <el-input v-model="form.company_name"></el-input>
-                        </el-form-item>
-                        <el-form-item label="纳税人识别号：" prop="tax_id_number">
-                            <el-input v-model="form.tax_id_number"></el-input>
-                        </el-form-item>
-                        <el-form-item label="开户银行：" prop="bank">
-                            <el-input v-model="form.bank"></el-input>
-                        </el-form-item>
-                        <el-form-item label="银行账号：" prop="bank_account">
-                            <el-input v-model="form.bank_account"></el-input>
-                        </el-form-item>
-                        <el-form-item label="单位电话：" prop="telephone">
-                            <el-input placeholder="请输入内容" v-model="form.telephone" class="input-with-select">
-                                <el-select v-model="form.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                                <el-option label="+86" value="1"></el-option>
-                                <el-option label="+86" value="2"></el-option>
-                                <el-option label="+86" value="3"></el-option>
-                                </el-select>
-                            </el-input>
-                        </el-form-item>
-                        <el-form-item label="单位地址：" prop="address">
-                            <el-input v-model="form.address"></el-input>
-                        </el-form-item>
-                        <el-form-item label="详细地址：" prop="detailed_address">
-                            <el-input type="textarea" v-model="form.detailed_address"></el-input>
-                        </el-form-item>
-                    </el-form>
-                    <div slot="footer" class="dialog-footer">
-                        <el-button @click="dialogFormVisible = false" class="cancle">取 消</el-button>
-                        <el-button type="primary" @click="submit()" class="submit">确 定</el-button>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="dialogFormVisible = false" class="cancle">取 消</el-button>
+                    <el-button type="primary" @click="submit()" class="submit">确 定</el-button>
+                </div>
+            </el-dialog>
+            <!-- 新增寄送地址dialog -->
+            <el-dialog title="新增寄送地址" :visible.sync="addressdialogFormVisible" width="600px" center class="add">
+                <el-form :model="addressform" :rules="addressrules" ref="addressform" :label-width="invoiceLabelWidth" :inline="true">
+                    <el-form-item label="收件人姓：" label-width="130px" prop="company_name">
+                        <el-input v-model="addressform.first_name"  style="width:160px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="名：" prop="company_name" label-width="40px">
+                        <el-input v-model="addressform.last_name"  style="width:160px"></el-input>
+                    </el-form-item>
+                    <br>
+                    <el-form-item label="收件地址：" prop="address">
+                        <!-- <el-input v-model="addressform.address"   style="width:375px"></el-input> -->
+                        <el-cascader
+                          expand-trigger="hover"
+                          :options="optionsProvinces"
+                          :props="{label:'chinese_name',value:'id',children:'children_simple'}"
+                          v-model="addressform.address"
+                          @change="handleChange">
+                        </el-cascader>
+                    </el-form-item>
+                    <br>
+                    <el-form-item label="详细地址：" prop="detailed_address">
+                        <el-input type="textarea" style="width:375px" v-model="addressform.detailed_address" ></el-input>
+                    </el-form-item>
+                    <br>
+                    <el-form-item label="收件人手机号：" prop="telephone">
+                        <el-input placeholder="请输入手机号" v-model="addressform.telephone" class="input-with-select" style="width:375px">
+                            <el-select v-model="addressform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                              <el-option
+                              v-for="item in addressform.phone_codeConfig"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                              >
+                              <!-- <span style="float: left">{{ item.label }}</span>     -->
+                              </el-option>
+                            </el-select>
+                        </el-input>
+                    </el-form-item>
+                    <br>
+                    <el-form-item label="收件人固定号：" prop="fixed_telephone">
+                        <el-input placeholder="请输入固定号码" v-model="addressform.fixed_telephone" class="input-with-select" style="width:375px"> 
+                            <el-select v-model="addressform.fixed_telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                              <el-option
+                              v-for="item in addressform.phone_codeConfig"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                              >    
+                              </el-option>
+                            </el-select>
+                        </el-input>
+                    </el-form-item>                                                     
+                </el-form>                                                  
+                <div slot="footer" class="dialog-footer">                   
+                    <el-button @click="addressdialogFormVisible = false" class="cancle">取 消</el-button>
+                    <el-button type="primary" @click="addresssubmit()" class="submit">确 定</el-button>
+                </div>
+            </el-dialog>
+            <!-- 钱包支付成功 -->
+            <el-dialog
+                title=""
+                :visible.sync="successDialogVisible"
+                width="600px"
+                center
+                class="successDialog">
+                    <div class="success-content">
+                        <img src="/static/image/success.png" alt="">
+                        <p>支付成功</p>
+                        <el-button type="primary" class="comfirm" @click="successDialogVisible = false">确 定</el-button>
                     </div>
-                </el-dialog>
-                <el-dialog title="新增寄送地址" :visible.sync="addressdialogFormVisible" width="600px" center class="add">
-                    <el-form :model="addressform" :rules="addressrules" ref="addressform" :label-width="invoiceLabelWidth" :inline="true">
-                        <el-form-item label="收件人姓：" label-width="130px" prop="company_name">
-                            <el-input v-model="addressform.first_name"  style="width:160px"></el-input>
-                        </el-form-item>
-                        <el-form-item label="名：" prop="company_name" label-width="40px">
-                            <el-input v-model="addressform.last_name"  style="width:160px"></el-input>
-                        </el-form-item>
-                        <br>
-                        <el-form-item label="收件地址：" prop="address">
-                            <el-input v-model="addressform.address"   style="width:375px"></el-input>
-                        </el-form-item>
-                        <br>
-                        <el-form-item label="详细地址：" prop="detailed_address">
-                            <el-input type="textarea" style="width:375px" v-model="addressform.detailed_address" ></el-input>
-                        </el-form-item>
-                        <br>
-                        <el-form-item label="收件人手机号：" prop="telephone">
-                            <el-input placeholder="请输入内容" v-model="addressform.telephone" class="input-with-select" style="width:375px">
-                                <el-select v-model="addressform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                                <el-option label="86" value="1"></el-option>                                                                                                                                                            
-                                <el-option label="86" value="2"></el-option>
-                                <el-option label="86" value="3"></el-option>
-                                </el-select>
-                            </el-input>
-                        </el-form-item>
-                        <br>
-                        <el-form-item label="收件人固定号：" prop="fixed_telephone">
-                            <el-input placeholder="请输入内容" v-model="addressform.fixed_telephone" class="input-with-select" style="width:375px"> 
-                                <el-select v-model="addressform.fixed_telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                                <el-option label="86" value="1"></el-option>
-                                <el-option label="86" value="2"></el-option>
-                                <el-option label="86" value="3"></el-option>
-                                </el-select>
-                            </el-input>                     
-                        </el-form-item>                                                     
-                    </el-form>                                                  
-                    <div slot="footer" class="dialog-footer">                   
-                        <el-button @click="addressdialogFormVisible = false" class="cancle">取 消</el-button>
-                        <el-button type="primary" @click="addresssubmit()" class="submit">确 定</el-button>
+            </el-dialog>
+            <!-- 钱包支付失败 -->
+            <el-dialog
+                title=""
+                :visible.sync="failDialogVisible"
+                width="600px"
+                center
+                class="successDialog">
+                    <div class="success-content">
+                        <!-- <img src="/static/image/success.png" alt="">
+                        -->
+                        <i class="iconfont icon-Fill3"/>
+                        <p>{{wrongMessage}}</p>
+                        <el-button type="primary" class="comfirm" @click="failDialogVisible = false">确 定</el-button>
                     </div>
-                </el-dialog>
-                <!-- 钱包支付成功 -->
-                <el-dialog
-                    title=""
-                    :visible.sync="successDialogVisible"
-                    width="600px"
-                    center
-                    class="successDialog">
-                        <div class="success-content">
-                            <img src="/static/image/success.png" alt="">
-                            <p>支付成功</p>
-                            <el-button type="primary" class="comfirm" @click="successDialogVisible = false">确 定</el-button>
-                        </div>
-                </el-dialog>
-                <!-- 钱包支付失败 -->
-                <el-dialog
-                    title=""
-                    :visible.sync="failDialogVisible"
-                    width="600px"
-                    center
-                    class="successDialog">
-                        <div class="success-content">
-                            <!-- <img src="/static/image/success.png" alt="">
-                            -->
-                            <i class="iconfont icon-Fill3"/>
-                            <p>{{wrongMessage}}</p>
-                            <el-button type="primary" class="comfirm" @click="failDialogVisible = false">确 定</el-button>
-                        </div>
-                </el-dialog>
-                <!-- 确认付款弹框 -->
-                <el-dialog title="已使用测库白条付款成功" :visible.sync="ConfirmPayDialog" class="ConfirmPayDialog">
-                    <p>发票类型具体以还款选择类型为准</p>
-                    <div class="payInfoDetail">
-                        <table border="1" cellspacing="0" cellpadding="0"  height="100%">
-                            <tr height="56px">
-                                <td width="200px">工作量</td>
-                                <td width="450px">{{workload}}MD（{{shouldpay}}）</td>
-                            </tr>
-                            <tr>
-                                <td>其他费用</td>
-                                <td v-if="true">￥500.00 (车票￥50.00、住宿￥450.00）</td>
-                            </tr>
-                            <tr>
-                                <td>订单金额</td>
-                                <td>{{shouldpay}}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div slot="footer" class="dialog-footer">
-                        <el-button type="primary" @click="confirmPay()">确 定</el-button>
-                    </div>
-                </el-dialog>
-                <!-- 产品名称 -->
-                <el-dialog title="全部产品名称" :visible.sync="OrderNameDialog" class="OrderNameDialog">
-                    <el-table
-                        :data="ProductsNameTableData"
-                        height="250"
-                        border
-                        style="width: 100%">
-                        <el-table-column
-                        label="序号"
-                        width="108">
-                            <template slot-scope="scope">
-                                {{ scope.$index + 1 }}
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                        label="产品名称"
-                        >
+            </el-dialog>
+            <!-- 付款信息展示弹框 -->
+            <el-dialog :title='ConfirmPayDialogTitle' :visible.sync="ConfirmPayDialog" class="ConfirmPayDialog">
+                <p>发票类型具体以还款选择类型为准</p>
+                <div class="payInfoDetail">
+                    <table border="1" cellspacing="0" cellpadding="0"  height="100%">
+                        <tr height="56px">
+                            <td width="200px">工作量</td>
+                            <td width="450px">{{workload}}MD（{{shouldpay}}）</td>
+                        </tr>
+                        <tr>
+                            <td>其他费用</td>
+                            <td v-if="true">￥500.00 (车票￥50.00、住宿￥450.00）</td>
+                        </tr>
+                        <tr>
+                            <td>订单金额</td>
+                            <td>{{shouldpay}}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="paymentJudge()">确 定</el-button>
+                </div>
+            </el-dialog>
+            <!-- 产品名称 -->
+            <el-dialog title="全部产品名称" :visible.sync="OrderNameDialog" class="OrderNameDialog">
+                <el-table
+                    :data="ProductsNameTableData"
+                    height="250"
+                    border
+                    style="width: 100%">
+                    <el-table-column
+                    label="序号"
+                    width="108">
                         <template slot-scope="scope">
-                                {{ scope.row }}
+                            {{ scope.$index + 1 }}
                         </template>
-                        </el-table-column>
-                    </el-table>
-                </el-dialog>
+                    </el-table-column>
+                    <el-table-column
+                    label="产品名称"
+                    >
+                    <template slot-scope="scope">
+                            {{ scope.row }}
+                    </template>
+                    </el-table-column>
+                </el-table>
+            </el-dialog>
           </el-col>
       </el-row>
   </div>
@@ -275,32 +307,43 @@
 
 import {addInvoice,addAddress,getInvoiceList,getAddressList} from "@/api/accountManagement";
 import {orderDetail,confirmPay,surePay} from "@/api/order";
-
+import { MoneyBlanace } from '@/api/walletDetail';
+import { fetchList,fetchCounty } from '@/api/fetch';
+import { mapGetters } from 'vuex'
+import store from '../../store/'
 let newTab;
 
 export default {
-  name: "",
+  name: "pay",
   components: {},
   watch:{
       paymentTypeId(val) {
-            // console.log(val)
+            console.log(val)
             if(val == 1 || val == 5){
                 this.PayPassword = false
             }else{
                 this.PayPassword = true
             }
+            if( val == 1){
+                this.ConfirmPayDialogTitle = '正在使用支付宝付款'
+            }else if( val == 2 ){
+                this.ConfirmPayDialogTitle = '正在使用钱包余额付款'
+            }
         },
     moneyType(val){
-        console.log(val)
+        console.log(val+'‘99999999999’')
         if(val == 2){
             this.paymentTypeId = 5
         }else{
             this.paymentTypeId = 1
         }
+
     }
   },
   data() {
     return {
+      //loading
+      loading: false,
       successDialogVisible:false,
       failDialogVisible:false,
       wrongMessage:'',
@@ -326,6 +369,7 @@ export default {
       radio1:'',
       order:this.$route.query.order,
       paymentOrder:'',
+      optionsProvinces:[],
       form:{
           company_name: '',
           tax_id_number: '',
@@ -333,7 +377,8 @@ export default {
           bank_account: '',
           telephone: '',
           telephone_code: '',
-          address: '',
+          phone_codeConfig:'',
+          address: [],
           detailed_address: ''
       },
       rules:{
@@ -348,8 +393,9 @@ export default {
       addressform:{
           first_name: '',
           last_name: '',
-          address: '',
+          address: [],
           detailed_address: '',
+          phone_codeConfig: '',
           telephone: '',
           telephone_code: '',
           fixed_telephone: '',
@@ -386,6 +432,8 @@ export default {
         //ConfirmPayDialog
         ConfirmPayDialog: false,
 
+        ConfirmPayDialogTitle: '正在使用支付宝付款',
+
         //OrderNameDialog
         OrderNameDialog: false,
       
@@ -394,6 +442,16 @@ export default {
         
         //PayPassword
         PayPassword:'',
+
+        //userAccountBalance用户钱包人民币 美元 余额
+        userAccountBalance:[],
+
+        //CNYShouldPay
+        CNYShouldPay: '',
+
+        //USDShouldPay
+        USDShouldPay: '',        
+
     };
   },
   computed: {
@@ -403,14 +461,27 @@ export default {
     // key() {
     //   return this.$route.fullPath
     // }
+    ...mapGetters([
+      'configs',
+      'is_paypassword'
+    ])
   },
   created(){
       this.orderDetail()
       this.getcompanyname()
       this.getaddress()
+      this.getMoneyBlanaceData()
+      this.ConfigUnit()
+      this.getFetchProvinces(7)  //获取中国省市区
   },
   methods:{
       addInvoiceCompany(){
+          if( this.$refs.form ){
+              this.$nextTick( ()=> {
+                this.$refs.form.resetFields();
+            })
+          }
+          this.form.telephone_code = ''
           this.dialogFormVisible = true
       },
       submit(){
@@ -421,8 +492,13 @@ export default {
                     address:[1,2,3]
                 }).then(response => {
                     if(response.data.code == 0){
-
+                        
                         this.dialogFormVisible = false
+                        this.$message({
+                            message: '新增发票信息成功',
+                            type: 'success'
+                        })
+                        this.getcompanyname();
                     }
                 })
             }
@@ -430,6 +506,13 @@ export default {
           
       },
       addressPump(){
+          if( this.$refs.addressform){
+               this.$nextTick( ()=> {
+                this.$refs.addressform.resetFields();
+            })
+          }
+          this.addressform.telephone_code = '';
+          this.addressform.fixed_telephone_code = '';
           this.addressdialogFormVisible = true
       },
       addresssubmit(){
@@ -440,6 +523,11 @@ export default {
                 }).then(response => {
                     if(response.data.code == 0){
                         this.addressdialogFormVisible = false
+                        this.$message({
+                            message: '新增寄送地址成功',
+                            type: 'success'
+                        })
+                        this.getaddress();
                     }
                 })
             }
@@ -460,6 +548,7 @@ export default {
           })
       },
       orderDetail(){
+        //   this.loading = true;
           orderDetail({
               url:'/v1/order/'+ this.$route.query.order +'/pay'
           }).then(response =>{
@@ -467,15 +556,18 @@ export default {
               this.tableData = []
               this.tableData.push(response.data.data)
               this.CNYPay = response.data.data.select.CNY
-              console.log(this.CNYPay)
               this.USDPay = response.data.data.select.USD
-              console.log(this.USDPay)
               this.paymentOrder = response.data.data.payment.orderid
-              this.CNYShouldPay = response.data.data.payment.price.CNY.fee
-              this.USDShouldPay = response.data.data.payment.price.USD.fee
+              if(response.data.data.payment.price.CNY){
+                  this.CNYShouldPay = response.data.data.payment.price.CNY.fee
+              }
+              if(response.data.data.payment.price.USD){
+                  this.USDShouldPay = response.data.data.payment.price.USD.fee
+              }
               this.shouldpay = "¥" + this.CNYShouldPay
               this.workload = response.data.data.workload
-              console.log(response.data.data.payment.price.CNY.fee) 
+            //   this.loading = false;
+            console.log('this'+this.shouldpay)
           })  
       },
 
@@ -499,8 +591,8 @@ export default {
             CNYpay += Number(fee.currencies.CNY)
             USDpay += Number(fee.currencies.USD)
         })
-        USDpay = USDpay==0 ? '' : '/$'+USDpay
-        fees = "¥" + CNYpay + USDpay
+        USDpay = USDpay==0 ? '' : '/$'+this.returnFloat(USDpay)
+        fees = "¥" + this.returnFloat(CNYpay) + USDpay
         return fees;
     },
      //  人民币支付
@@ -517,11 +609,13 @@ export default {
     },
     //confirmPayButton确定付款，打开付款Dialog
     confirmPayButton(){
-        this.ConfirmPayDialog = true
+        if(this.paymentTypeId ==1){
+            this.ConfirmPayDialog = true
+        }
+        this.confirmPay()
     },
     //  预付款
     confirmPay(){
-        this.ConfirmPayDialog = false
         if(this.paymentTypeId ==1){
             newTab = window.open();
         } 
@@ -529,7 +623,8 @@ export default {
            url:'/v1/payment/pay/select/' + this.paymentOrder + '/' + this.paymentTypeId
         }).then(response =>{
             let responsed = response.data
-            if(responsed.code ==0 ){
+            if(responsed.code == 0 ){
+                console.log(responsed)
                 this.payurl = responsed.data.url
                 this.surePay()
             }
@@ -537,14 +632,34 @@ export default {
     },
     //  付款
     surePay(){
+        console.log(this.paymentTypeId)
         surePay({
             url: this.payurl,
             password:this.password
         }).then(response =>{
             let res = response.data
             if(this.paymentTypeId ==2 && res.code == 0){
-                this.successDialogVisible = true
+                // this.successDialogVisible = true
+                this.$message({
+                    message: '订单支付成功',
+                    type: 'success'
+                })
+                this.$router.push({ path:'examineGood'})
+            }else if(this.paymentTypeId ==2 && res.code == 1000){
+                this.$message({
+                    message: '账户余额不足',
+                    type: 'warning'
+                })
             }else if(this.paymentTypeId ==2 && res.code != 0){    
+                this.wrongMessage = res.data.message
+                this.failDialogVisible = true
+            }else if(this.paymentTypeId == 12 && res.code == 0){
+                this.$message({
+                    message: '订单支付成功',
+                    type: 'success'
+                })
+                this.$router.push({ path:'examineGood'})
+            }else if(this.paymentTypeId == 12 && res.code != 0){
                 this.wrongMessage = res.data.message
                 this.failDialogVisible = true
             }else if(this.paymentTypeId ==1){
@@ -553,7 +668,13 @@ export default {
                 newTab.document.body.appendChild(div);
                 newTab.document.forms.alipaysubmit.submit()
             }
+
         })
+    },
+
+    //paymentJudge支付宝判断
+    paymentJudge(){
+
     },
 
     // PayRecharge 支付页面充值
@@ -563,7 +684,67 @@ export default {
     //PayRechargeDollar 支付页面充值
     PayRechargeDollar(){
         this.$router.push({ path: '/fundManagement/wallet/walletRechargeDollar' })
+    },
+
+    returnFloat(value){      //处理金额数据
+        var value=Math.round(parseFloat(value)*100)/100;
+        var xsd=value.toString().split(".");
+        if(xsd.length==1){
+            value=value.toString()+".00";
+            return value;
+        }
+        if(xsd.length>1){
+            if(xsd[1].length<2){
+                value=value.toString()+"0";
+            }
+        return value;
+        }
+        
+    },
+
+    //获取用户账户人民币和美元余额
+    getMoneyBlanaceData(){
+        this.loading = true
+        MoneyBlanace().then( response => {
+            if( response.data.code == 0 ){
+                this.userAccountBalance = response.data.data.list
+                console.log(this.userAccountBalance)
+                this.loading = false
+            }
+        })
+    },
+
+    //配置文件加载
+    ConfigUnit(){
+      this.form.phone_codeConfig = this.configs.phone_number_codes
+      this.addressform.phone_codeConfig = this.configs.phone_number_codes
+    },
+
+    //getFetchCounty获取省市区
+    getFetchProvinces(val){
+      fetchCounty({ pid: val }).then( response => {
+        this.$nextTick(function() {
+          // this.locationOptions = response.data.data
+          console.log(response.data.data)
+          this.optionsProvinces = response.data.data
+        })
+      })
+    },
+
+    //handleChange
+    handleChange(){
+
+    },
+
+    //setPayment
+    setPayment(){
+        if( this.is_paypassword){
+            this.$router.push({ path: '/accountManagement/accountSetting/accountResetPayPassword' })
+        }else{
+            this.$router.push({ path: '/accountManagement/accountSetting/accountSettingIndex' })
+        }
     }
+
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -950,10 +1131,26 @@ export default {
     }
     //addInvoice
     .addInvoice{
-        .el-dialog__body{
-            .el-form-item:nth-child(3){
-
-            }
+        .el-form-item:nth-child(6).el-cascader .el-input, .el-cascader .el-input__inner{
+            width:410px;
+        }
+        .el-input__inner:focus{
+            border-color:rgba(255,168,0,1);
+        }
+        .el-textarea__inner:focus{
+            border-color:rgba(255,168,0,1);
+        }
+    }
+    //add
+    .add{
+        .el-form-item:nth-child(3).el-cascader .el-input, .el-cascader .el-input__inner{
+            width:375px;
+        }
+        .el-input__inner:focus{
+            border-color:rgba(255,168,0,1);
+        }
+        .el-textarea__inner:focus{
+            border-color:rgba(255,168,0,1);
         }
     }
 }
@@ -998,6 +1195,22 @@ content: ' ) ';
     margin-top: 20px;
     border-left: 2px solid #158be4;
   }
+  .el-table td:nth-child(2) div .el-button--text:nth-child(1){
+        width:96px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        font-size:14px;
+        color:rgba(80,104,140,1);
+        text-align:left;
+  }
+  .el-table td:nth-child(2) div .el-button--text:nth-child(2){
+        font-size:14px;
+        color:rgba(80,104,140,1);
+        
+  }
+  
+
   .form-content {
     margin-top: 20px;
     .money-text {
@@ -1030,9 +1243,11 @@ content: ' ) ';
   }
 }
 .successDialog{
+    border-radius:4px;
     .success-content{
         width: 240px;
         margin: 0 auto;
+
         i{
             width: 80px;
             font-size: 80px;
@@ -1048,6 +1263,8 @@ content: ' ) ';
             width: 240px;
             margin: 14px 0 30px;
             text-align: center;
+            font-size:18px;
+            color:rgba(80,104,140,1);
         }
         .comfirm{
             width: 240px;

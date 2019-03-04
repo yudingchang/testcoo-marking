@@ -36,9 +36,9 @@ export function rechargeProps(RechargeID,query) {
 }
 
 //请求成功
-export function rechargeSuccess(url) {
+export function rechargeSuccess(data) {
   return request({
-    url: url,
+    url: data.url,
     method: 'get',
   })
 }
@@ -51,4 +51,12 @@ export function OrderDetail(id) {
     method: 'get',
   })
   
+}
+
+//Paypal请求
+export function getPaypal(data) {
+  return request({
+    url: data,
+    method: 'get',
+  })
 }

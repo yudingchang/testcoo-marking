@@ -1,118 +1,7 @@
 <template>
   <div class="personalInformation">
-      <!-- 信息编辑界面                                      -->
-      <div v-if="personal" :model="fitter">
-            <div class="content">
-                <!-- {{ fitter }} -->
-                <!-- <el-form ref="form" :model="fitter" label-width="80px"> -->
-                <div class="left">                                                                          
-                    <!-- <div class="gender">                                 
-                        <img :src="fitter.avatar"/>
-                        <span :class="{male:male,female:female,neuter:neuter}"></span>
-                    </div> -->
-                    <!-- <el-upload
-                        v-if="action"
-                        :on-remove="handleRemove"
-                        :on-progress="uploadOnProgress"
-                        :on-success="handleSuccess"
-                        :before-upload="handleBeforeUpload"
-                        :show-file-list="false"
-                        :action="uploadUrl"
-                        :headers="uploadHeaders"
-                        drag
-                        multiple
-                        class="image-preview shadow-sm"
-                        list-type="picture-card">
-                        <i class="el-icon-plus"/>
-                    </el-upload> -->
-                    <!-- <div class="inputFill">
-                        <p>上传头像</p>
-                        <input type="file" accept="image/*" @change="handleFile" class="hiddenInput"/>
-                    </div>       -->
-                    <el-upload
-                    class="avatar-uploader"
-                    :action='uploadUrl'
-                    :show-file-list="false"
-                    :on-success="handleAvatarSuccess"
-                    :before-upload="beforeAvatarUpload">
-                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
-                    <!-- <i v-else class="el-icon-plus avatar-uploader-icon"></i> -->
-                    <div v-else >
-                        <img src="/static/image/male.png" style="width:120px;height:120px;">
-                        <p style="color:#7C8FA6;font-size:14px">上传头像</p>
-                    </div>
-                    </el-upload>
-                </div>
-                <div class="right">
-                    <div class="right-content">
-                        <div class="left-fixed">姓</div>
-                        <div class="right-fixed">
-                            <el-input style="width:159px;" type="text" placeholder="请输入姓" v-model="fitter.first_name"></el-input>
-                            <span style="margin-left:25px;">名：</span>
-                            <el-input style="width:159px;" type="text" placeholder="请输入名" v-model="fitter.last_name"></el-input>
-                        </div>
-                    </div>
-                    <div class="right-content">
-                        <div class="left-fixed">性别</div>
-                        <div class="right-fixed">
-                            <el-radio-group v-model="fitter.gender">
-                                <el-radio label="male">男</el-radio>
-                                <el-radio label="female">女</el-radio>
-                            </el-radio-group>
-                        </div>
-                    </div>
-                    <div class="right-content">
-                        <div class="left-fixed">部门</div>
-                        <div class="right-fixed">
-                            <el-input style="width:380px;" type="text" placeholder="请输入部门" v-model="fitter.department"></el-input>
-                        </div>
-                    </div>
-                    <div class="right-content">
-                        <div class="left-fixed">职位</div>
-                        <div class="right-fixed">
-                            <el-input style="width:380px;" type="text" placeholder="请输入职位" v-model="fitter.position"></el-input>
-                        </div>
-                    </div>                                                                
-                    <div class="right-content">
-                        <div class="left-fixed">固定电话</div>
-                        <div class="right-fixed">
-                                <el-select v-model="fitter.telephone_code" placeholder="请选择" style="width:185px;" class="select-input">
-                                    <el-option
-                                    v-for="item in options"
-                                    :key="item.value"
-                                    :label="item.label"
-                                    :value="item.value"
-                                    >    
-                                    </el-option>
-                                </el-select>
-                                <el-input class="special-input" style="width:200px;margin-left:-10px;border-top-left-radius: 0;border-bottom-left-radius: 0;" type="text" placeholder="请输入固定电话" v-model="fitter.telephone"></el-input>
-                        </div>
-                    </div>  
-                    <div class="right-content">
-                        <div class="left-fixed">Skype</div>
-                        <div class="right-fixed">
-                            <el-input style="width:380px;" type="text" placeholder="请输入Skype" v-model="fitter.skype"></el-input>
-                        </div>
-                    </div>  
-                    <div class="right-content">
-                        <div class="left-fixed">QQ</div>
-                        <div class="right-fixed">
-                            <el-input style="width:380px;" type="text" placeholder="请输入QQ" v-model="fitter.qq"></el-input>
-                        </div>
-                    </div>   
-                    <div class="right-content">
-                        <div class="left-fixed">微信</div>
-                        <div class="right-fixed">
-                            <el-input style="width:380px;" type="text" placeholder="请输入微信" v-model="fitter.wechat"></el-input>
-                        </div>
-                    </div>                                                                                                   
-                </div>   
-                <!-- </el-form> -->
-            </div>
-            <div class="save" :disabled="((fitter.first_name == ''))" @click="save()">保存</div>
-      </div>
       <!-- 信息显示界面  -->
-      <div v-else>
+      <div v-if="!personal" v-loading="loading">
           <div class="content">
                 <div class="left">
                     <span class="gender">
@@ -131,49 +20,49 @@
                     <div class="right-content">
                         <div class="left-fixed">性别</div>
                         <div class="right-fixed">
-                            <span v-if="fitter.sex!=''">{{fitter.gender}}</span>
+                            <span v-if="fitter.gender != null">{{fitter.gender == 'male'?'男':'女'}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>
                     <div class="right-content">
                         <div class="left-fixed">部门</div>
                         <div class="right-fixed">
-                            <span v-if="fitter.department!=''">{{fitter.department}}</span>
+                            <span v-if="fitter.department != null">{{fitter.department}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>
                     <div class="right-content">
                         <div class="left-fixed">职位</div>   
                         <div class="right-fixed">
-                            <span v-if="fitter.position!=''">{{fitter.position}}</span>
+                            <span v-if="fitter.position != null">{{fitter.position}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>                                                                
                     <div class="right-content">
                         <div class="left-fixed">固定电话</div>
                         <div class="right-fixed">
-                            <span v-if="fitter.telephone!=''">{{fitter.telephone}}</span>
+                            <span v-if="fitter.telephone != null">{{fitter.telephone}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>  
                     <div class="right-content">
                         <div class="left-fixed">Skype</div>
                         <div class="right-fixed">
-                            <span v-if="fitter.skype!=''">{{fitter.skype}}</span>
+                            <span v-if="fitter.skype != null">{{fitter.skype}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>  
                     <div class="right-content">
                         <div class="left-fixed">QQ</div>
                         <div class="right-fixed">
-                            <span v-if="fitter.qq!=''">{{fitter.qq}}</span>
+                            <span v-if="fitter.qq != null">{{fitter.qq}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>   
                     <div class="right-content">
                         <div class="left-fixed">微信</div>
                         <div class="right-fixed">
-                            <span v-if="fitter.wechat!=''">{{fitter.wechat}}</span>
+                            <span v-if="fitter.wechat != null">{{fitter.wechat}}</span>
                             <span class="empty" v-else>未设置</span>
                         </div>
                     </div>                                                                                                   
@@ -188,26 +77,29 @@
 import {getpersonalInformation , savePersonalInformation} from "@/api/accountManagement";
 import { getToken } from '@/utils/auth'
 import { mapGetters } from 'vuex'
-import store from '../../store/'
+import store from '../../../store/'
 export default {
-  name: "",
+  name: "personalInformation",
   components: {},
   data() {
     return {
-        imageUrl: '',
-        userInfo: {
-            avatar: 'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
-        },
-        action: {
-            type: Boolean,
-            default: true
-        },
-        uploadingFiles: [],
-        options: [
-            {
-            value: "86",
-            label: "86"
-            },
+        // loading  过渡动画
+        loading:false,
+        // imageUrl: '',
+        // userInfo: {
+        //     avatar: 'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
+        // },
+        // action: {
+        //     type: Boolean,
+        //     default: true
+        // },
+        // uploadingFiles: [],
+        // phone_codeConfig:'',
+        // options: [
+        //     {
+        //     value: "86",
+        //     label: "86"
+        //     },
             // {
             //   value: "中国大陆 +86",
             //   label: "中国大陆 +86"
@@ -220,8 +112,8 @@ export default {
             //   value: "中国大陆 +86",
             //   label: "中国大陆 +86"
             // }
-        ],
-        value: "",
+        // ],
+        // value: "",
         male: true,
         female:false,
         neuter:false,
@@ -242,9 +134,7 @@ export default {
             skype:'',
             qq:'',
             wechat:'',
-            // avatar: '',
-            //   avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg',
-            avatar:'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg'
+            avatar:''
         },
         // personal:false
         show:this.$store.state.user.personal
@@ -257,6 +147,7 @@ export default {
     //   this.uploadHeaders = { Authorization: 'Bearer ' + getToken() }
     //   console.log( { Authorization: 'Bearer ' + getToken() })
     console.log(this.$store.state.user.personal)
+    this.ConfigUnit();
     
   },
   computed: {
@@ -291,20 +182,22 @@ export default {
     //   获取个人信息
     getpersonalInformation(){
         console.log("进入请求")
+        this.loading = true;
         getpersonalInformation().then(response =>{
             if(response.data.code == 0){
                 this.fitter = response.data.data
                 this.fitter.name = this.fitter.first_name + this.fitter.last_name
+                if( response.data.data.avatar == null){
+                  this.fitter.avatar = 'https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=62d46c39067b020818c437b303b099b6/d4628535e5dde7119c3d076aabefce1b9c1661ba.jpg';
+                }
+                this.loading = false
                 console.log(this.fitter)
             }
         })
     },
-    editPersonalMessage(){
-        // this.personal = true
-        // store.dispatch('GetUserInfo')
-        this.$store.commit('SET_PERSONAL', true)
-         console.log(this.$store.state.user.personal)
-         this.getpersonalInformation()
+    //editPersonalMessage修改
+    editPersonalMessage(){  
+        this.$router.push({ path: 'personalInforEdit'})
     },
     // 将头像显示
     handleFile: function (e) {
@@ -350,7 +243,11 @@ export default {
         this.$message.error('上传头像图片大小不能超过 2MB!');
     }
     return isJPG && isLt2M;
-    }
+    },
+    //配置文件加载
+    ConfigUnit(){
+      this.phone_codeConfig = this.configs.phone_number_codes
+    },
     
 
   },
@@ -362,7 +259,8 @@ export default {
     //   return this.$route.fullPath
     // }
     ...mapGetters([
-        'personal'
+        'personal',
+        'configs'
     ])
   },
   mounted() {

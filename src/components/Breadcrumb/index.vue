@@ -1,11 +1,16 @@
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
-    <transition-group name="breadcrumb">
-      <el-breadcrumb-item v-for="(item,index) in levelList" v-if="item.meta.title" :key="item.path">
-        <span v-if="item.redirect==='noredirect'||index==levelList.length-1" class="no-redirect">{{ generateTitle(item.meta.title) }}</span>
-        <router-link v-else :to="item.redirect||item.path">{{ generateTitle(item.meta.title) }}</router-link>
-      </el-breadcrumb-item>
-    </transition-group>
+    <p class="breadcrumb-start">
+      您的位置:
+    </p>
+    <div class="content">
+      <transition-group name="breadcrumb">
+        <el-breadcrumb-item v-for="(item,index) in levelList" v-if="item.meta.title" :key="item.path">
+          <span v-if="item.redirect==='noredirect'||index==levelList.length-1" class="no-redirect">{{ generateTitle(item.meta.title) }}</span>
+          <router-link v-else :to="item.redirect||item.path">{{ generateTitle(item.meta.title) }}</router-link>
+        </el-breadcrumb-item>
+      </transition-group>
+    </div>
   </el-breadcrumb>
 </template>
 
@@ -40,10 +45,11 @@ export default {
         }
       })
       const first = matched[0]
-      if (first && first.name.trim().toLocaleLowerCase() !== 'Dashboard'.toLocaleLowerCase()) {
-        matched = [{ path: '/dashboard', meta: { title: 'dashboard' }}].concat(matched)
-      }
+      // if (first && first.name.trim().toLocaleLowerCase() !== 'Dashboard'.toLocaleLowerCase()) {
+      //   matched = [{ path: '/dashboard', meta: { title: 'dashboard' }}].concat(matched)
+      // }
       this.levelList = matched
+      console.log(this.levelList)
     }
   }
 }
@@ -54,13 +60,40 @@ export default {
     display: inline-block;
     font-size: 14px;
     line-height: 50px;
-    width: 96%;
+    width: 100%;
     // margin-left: 10px;
-    margin: 10px 20px 0;
-    border-bottom: 1px solid #DFE3E9;
+    margin:0 40px;
+    .breadcrumb-start{
+      height:50px;
+      line-height:50px;
+      font-size:14px;
+      color:#303133;
+      float:left;
+      margin-right:10px;
+    }
+    .content{
+     width:100%;
+     height: 50px;
+     line-height: 50px;
+     display: block;
+      border-bottom: 1px solid #DFE3E9;
+   }
     .no-redirect {
-      color: #97a8be;
+      color: rgba(255,168,0,1);
       cursor: text;
+    }
+    .el-breadcrumb__item:last-child .el-breadcrumb__inner{
+      color:rgba(255,168,0,1);
     }
   }
 </style>
+
+<style rel="stylesheet/scss" lang="scss" >
+//element-ui
+.app-breadcrumb{
+  .el-breadcrumb__item:last-child span:nth-child(1) a{
+    color:rgba(255,168,0,1);
+  }
+}
+</style>
+

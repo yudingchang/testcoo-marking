@@ -24,7 +24,7 @@
                       <span>59</span>
                       <span>:</span>
                       <span>50</span> -->
-                      <time :endTime="1490761620" :callback="callback" :endText="已经结束了"></time>
+                      <!-- <time :endTime="1490761620" :callback="callback" :endText="已经结束了"></time> -->
                   </p>
                   <p>
                       测库的工作人员将在24小时内给您报价，请耐心等待
@@ -94,15 +94,16 @@ export default {
   },
   methods:{
       promptCheckout(){   //查看订单详情
-        this.$router.push({name:'orderDetails'})
+    //   console.log(this.$route.query)
+        this.$router.push({path:'/orderManagement/orderDetails', query:{ orderId:this.$route.query.orderId }})
       },
 
       ContinueOrder(){     //继续下单
-        this.$router.push({name:'controlboard'})
+        this.$router.push({path:'index'})
       },
 
       HomePage(){       //返回首页
-        this.$router.push({name:'controlboardIndex'})
+        this.$router.push({path:'dashboard'})
       },
 
       callback(val){
@@ -147,11 +148,11 @@ export default {
                 line-height: 160px;
                 margin-bottom:24px;
                 vertical-align: middle;
-                background:rgba(103,194,58,1);
+                // background:rgba(103,194,58,1);
                 border-radius:50%;
                 i{
                     font-size:161px;
-                    color:rgba(255,255,255,1);
+                    color:rgba(103,194,58,1);
                     border-radius:50%;
                 }
             }

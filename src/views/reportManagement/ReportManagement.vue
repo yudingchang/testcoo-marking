@@ -10,7 +10,7 @@
                         type="date"
                         format="yyyy年MM月dd日"
                         value-format="yyyy-MM-dd"
-                        placeholder="选择日期">
+                        placeholder="选择开始日期">
                         </el-date-picker>
                     </li>
                     <li></li>
@@ -20,11 +20,11 @@
                         type="date"
                         format="yyyy年MM月dd日"
                         value-format="yyyy-MM-dd"
-                        placeholder="选择日期">
+                        placeholder="选择结束日期">
                         </el-date-picker>
                     </li>
                     <li>
-                        <el-select v-model="orderInfoValue" placeholder="供应商名称">
+                        <el-select v-model="orderInfoValue" placeholder="订单号">
                             <el-option
                             v-for="item in orderInfo"
                             :key="item.value"
@@ -51,12 +51,13 @@
                 </ul>
                 <div class="ReportManagement-info-tableData">
                     <el-table
-                    :data="reportTableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
+                    :data="reportTableData"
+                    v-loading="loading"
                     stripe
                     style="width: 100%">
                     <el-table-column
                     fixed
-                    prop="id"
+                    prop="number"
                     label="报告号"
                     width="205">
                     </el-table-column>
@@ -64,7 +65,7 @@
                     label="订单号"
                     width="171">
                     <template slot-scope="scope">
-                        <el-button @click="orderHandleClick(scope.row,scope.$index)" type="text" size="small">{{scope.row.order.number}}</el-button>
+                        <span @click="orderHandleClick(scope.row,scope.$index)" type="text" size="small">{{scope.row.order.number}}</span>
                     </template>
                     </el-table-column>
                     <el-table-column
@@ -83,7 +84,7 @@
                     width="190">
                     <template slot-scope="scope">
                         <el-button type="text" size="small">{{scope.row.products.numbers.join('')}}</el-button>
-                        <el-button v-if="scope.row.products.numbers.length > 1?true:false" @click="checkArtHandleClick(scope.row.products.numbers)"  type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
+                        <el-button v-if="scope.row.products.numbers.join('').length > 9?true:false" @click="checkArtHandleClick(scope.row.products.numbers)"  type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
                     </template>
                     </el-table-column>
                     <el-table-column
@@ -91,19 +92,21 @@
                     width="220">
                     <template slot-scope="scope">
                         <el-button type="text" size="small">{{scope.row.products.names.join('，')}}</el-button>
-                        <el-button v-if="scope.row.products.names.length > 1?true:false" @click="checkNameHandleClick(scope.row.products.names)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
+                        <el-button v-if="scope.row.products.names.join('').length > 8?true:false" @click="checkNameHandleClick(scope.row.products.names)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
                     </template>
                     </el-table-column>
                     <el-table-column
-                    prop="type_name"
                     label="状态"
                     width="120">
+                    <template slot-scope="scope">
+                        <el-button type="text" size="small">{{ scope.row.marking == 'COMPLETED'?'已完成':'未完成' }}</el-button>
+                    </template>
                     </el-table-column>
                     <el-table-column
                     label="操作"
                     >
-                    <template slot-scope="scope">
-                        <el-button @click="webpageHandleClick(scope.row)" v-if="scope.row.type_name" type="text" size="small">网页报告</el-button>
+                    <template slot-scope="scope" v-if="scope.row.marking == 'COMPLETED'">
+                        <el-button @click="webpageHandleClick(scope.row)" v-if="scope.row.type_name == '线上'" type="text" size="small">网页报告</el-button>
                         <el-button @click="PDFHandleClick(scope.row,scope.$index)" type="text" size="small">PDF报告</el-button>
                     </template>
                     </el-table-column>
@@ -117,7 +120,7 @@
                             :page-sizes="[10]" 
                             :page-size="pagesize"        
                             layout="total, sizes, prev, pager, next, jumper"
-                            :total="reportTableData.length">    
+                            :total="total">    
                     </el-pagination>
                 </div>
                 <div class="ReportManagement-info-Dialog">
@@ -178,39 +181,23 @@ export default {
     components:{},
     data(){
         return{
+            loading:false,  //过渡动画
+
             startqueryTimevalue: '',  //startqueryTimevalue开始时间
             endqueryTimevalue: '',   //endqueryTimevalue截止时间
-            orderInfo: [{           //orderInfo订单-供应商-订单号-名称-报告号
-            value: '1',
-            label: '产品名称'
-            }, {
-            value: '2',
-            label: '供应商名称'
-            }, {
+            orderInfo: [{
             value: '3',
             label: '订单号'
-            }, {
-            value: '4',
-            label: '报告号'
             }],
             orderInfoValue: '',  //orderInfoValue选择值
             orderInput: '',         //orderInput输入的值
  
             orderState: [{    //orderState订单状态 
             value: '1',
-            label: '全部'
+            label: '已完成'
             }, {
             value: '2',
-            label: '未提交'
-            }, {
-            value: '3',
-            label: '待审核'
-            }, {
-            value: '4',
-            label: '审核中'
-            }, {
-            value: '5',
-            label: '审核通过'
+            label: '未完成'
             }],
             orderStateValue: '',  //orderStateValue订单状态值
             
@@ -227,31 +214,45 @@ export default {
 
             currentPage:1,   //初始页
             pagesize:10,    //每页的数据
-
+            page:1,        //
+            total:10,       //
 
 
             //跳转传递数据
             accountApi:'',
-
         }
     },
     created(){
-        this.getReportManagementData()
-        
+        if( this.$route.query.orderId ){
+            console.log('跳转进来，发现orderId')
+            this.queryOrderInfo();
+        }else{
+            console.log('没有发现id')
+            this.getReportManagementData()
+        }
     },
     methods:{
         // queryOrderInfo 点击查询相关订单
         queryOrderInfo() {
+            if( this.$route.query.orderId ){
+                console.log('进入queryOrderInfo')
+                this.orderInput = this.$route.query.orderId.number
+            }
             this.getReportManagementData({
-
+                inspection_first_date:[this.startqueryTimevalue,this.endqueryTimevalue],
+                marking:this.orderStateValue == ''?'':this.orderStateValue == 1?'COMPLETED':'UNCOMPLETED',
+                order_number:this.orderInput,
+                page: this.page,
+                limit: this.pagesize
             })
+            console.log(this.orderStateValue)
         },
 
 
         //orderHandleClick 点击订单号
         orderHandleClick(row,index) {
             // console.log(row,index);
-            this.$router.push({name : 'orderDetails', params:{orderID:row.id}})
+            this.$router.push({path : '/orderManagement/orderDetails', query:{orderId:row.id}})
         },
 
         //checkArtHandleClick 点击查看全部货号展开
@@ -271,8 +272,8 @@ export default {
         //webpageHandleClick 点击网页报告
         webpageHandleClick(row){
             // console.log(row,index);
-            this.$route.meta.keepAlive = false
             this.$router.push({ path: 'inspectionReport', query:{ accountApi:row._links.self.substring(4)}})
+            console.log(row)
         }, 
 
         //PDFHandleClick 点击PDF报告
@@ -284,18 +285,24 @@ export default {
         handleSizeChange: function (size) {
                 this.pagesize = size;
                 console.log(this.pagesize)  //每页下拉显示数据
+                this.queryOrderInfo()
         },
         handleCurrentChange: function(currentPage){
+                this.page = currentPage
                 this.currentPage = currentPage;
                 console.log(this.currentPage)  //点击第几页
+                this.queryOrderInfo()
         },
         
         //页面加载调用方法
         getReportManagementData(val) {
+            this.loading = true;
             getReportManagement(val).then(response => {
                 if(response.data.code == 0){
                     this.reportTableData = response.data.data
+                    this.total = response.data.meta.total
                     // console.log(response.data.data)
+                    this.loading = false
                 }
             }).catch(error => {
                 console.log(error)
@@ -313,18 +320,20 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scope>
 //普通样式
 .ReportManagement{
-    margin:0 40px;
+    margin:0 40px 160px 40px;
     .ReportManagement-info{
         .ReportManagement-info-query{
-            height:80px;
+            // height:80px;
             background:#FFFFFF;
             margin-top:24px;
             line-height: 80px;
             margin-bottom:24px;
+            overflow: hidden;
             li{
                 float:left;
                 color:#164061;
                 font-size:16px;
+                height:80px;
             }
             li:nth-child(1){
                 margin-left:32px;
@@ -363,7 +372,7 @@ export default {
             }
         }
         .ReportManagement-info-tableData{
-            height:580px;
+            // height:580px;
             border:1px solid #E6EAEE;
             border-radius:4px;
             margin-bottom:24px;
@@ -458,6 +467,10 @@ export default {
             overflow: hidden;
             text-overflow:ellipsis;
         }
+        .el-table td:nth-child(2) div{
+            font-size:14px;
+            color:rgba(21,139,228,1);
+        }
         .el-table td:last-child div .el-button--text{
             font-size:14px;
             color:#FFA800;
@@ -484,20 +497,24 @@ export default {
         }
         .el-table td:nth-child(6) div .el-button--text:nth-child(1){
             float:left;
-            width:124px;
+            width:97px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             color:rgba(80,104,140,1);
             font-size:14px;
             margin-right:32px;
+            text-align:left;
         }
         .el-table td:nth-child(6) div .el-button--text:nth-child(2){
             float:left;
             color:rgba(80,104,140,1);
             margin:0;
         }
-
+        .el-table td:nth-child(7) div .el-button--text{
+            font-size:14px;
+            color:rgba(80,104,140,1);
+        }
         
     }
     .ReportManagement-info-pagination{
@@ -558,38 +575,15 @@ export default {
             color:#fff;
             border:none;
         }
-        .el-pagination__jump{
-            width:110px;
-            height:36px;
-            border:1px solid #CED0DA;
-            line-height:36px;
-            padding-left:14px;
-            background:#158BE4;
-            border-radius:2px;
-            color:#fff;
-            margin-left:15px;
-        }
-        .el-pagination__editor.el-input{
-            float:right;
-            height:36px;
-            margin:0;
-            padding:0;
-            background:#F3F6F9;
-        }
         .el-pagination__editor.el-input .el-input__inner{
-            border:none;
+            // border:none;
             height:35px;
             line-height:35px;
             text-align:center;
-            border-radius:0;
+            border-radius:4px;
             padding:0;
             background:#F3F6F9;
             border-bottom:1px solid #CED0DA;
-        }
-        .el-pagination__jump:focus{
-            background:#158BE4;
-            border:1px solid #158BE4;
-            color:#fff;
         }
     }
     .ReportManagement-info-Dialog{

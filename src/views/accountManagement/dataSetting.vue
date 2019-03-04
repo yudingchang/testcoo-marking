@@ -3,13 +3,16 @@
     <el-row>
       <el-col :span="24">
         <div class="datasetting-content">
+          <!-- tabs -->
           <div class="tab-content">
             <ul class="tabs">
               <li :class="{active:item.isBool}" v-for="(item,index) in tablist" :key = index @click="tab(item,index)">{{item.content}}</li>
             </ul>
             <el-button class="add" @click="add()"><i class="iconfont icon-Fill2"></i><span>增加</span></el-button>
           </div>
+          <!-- el-table 报告接收电子邮箱 -->
           <el-table
+            v-loading="loading"
             class="receiveEmail"
             :data="tableData"
             style="width: 100%"
@@ -46,134 +49,141 @@
               </template>
             </el-table-column>
           </el-table>
-        <el-table
-          :data="supplyTableData"
-          style="width: 100%"
-          v-show="num==1"
-          >
-          <el-table-column
-            label="供应商名称"
-            prop="supplier_name"
-            width="270"
-          >
-          </el-table-column>
-          <el-table-column
-            label="联系人"
-            width="202"
-          >
-            <template slot-scope="scope">
-              {{scope.row.first_name + scope.row.last_name}}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="telephone"
-            label="联系人手机号码"
-            width="323"
+          <!-- el-table 供应商信息 -->
+          <el-table
+            v-loading="loading"
+            :data="supplyTableData"
+            style="width: 100%"
+            v-show="num==1"
             >
-          </el-table-column>
-          <el-table-column
-            prop="email"
-            label="联系人电子邮箱"
-            width="345"
+            <el-table-column
+              label="供应商名称"
+              prop="supplier_name"
+              width="270"
             >
-          </el-table-column>
-          <el-table-column
-            label="操作">
-            <template slot-scope="scope">
-              <el-button @click="setSupplyDefault(scope.row)" type="text" size="small" v-if="scope.row.is_default==0">设为默认</el-button>
-              <el-button type="text" size="small" v-if="scope.row.is_default==1" :class="{changecolor:scope.row.is_default==1}">默认</el-button>
-              <el-button type="text" size="small" @click="editSupply(scope.row)">编辑</el-button>
-              <el-button type="text" size="small" @click="removeSupply(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-table
-          :data="invoiceTableData"
-          style="width: 100%"
-          v-if="num==2"
-          >
-          <el-table-column
-            label="公司名称"
-            prop="company_name"
-            width="160"
-          >
-          </el-table-column>
-          <el-table-column
-            prop="tax_id_number"
-            label="纳税人识别号"
-            width="240"
+            </el-table-column>
+            <el-table-column
+              label="联系人"
+              width="202"
             >
-          </el-table-column>
-          <el-table-column
-            prop="bank"
-            label="开户银行"
-            width="160"
+              <template slot-scope="scope">
+                {{scope.row.first_name + scope.row.last_name}}
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="telephone"
+              label="联系人手机号码"
+              width="323"
+              >
+            </el-table-column>
+            <el-table-column
+              prop="email"
+              label="联系人电子邮箱"
+              width="345"
+              >
+            </el-table-column>
+            <el-table-column
+              label="操作">
+              <template slot-scope="scope">
+                <el-button @click="setSupplyDefault(scope.row)" type="text" size="small" v-if="scope.row.is_default==0">设为默认</el-button>
+                <el-button type="text" size="small" v-if="scope.row.is_default==1" :class="{changecolor:scope.row.is_default==1}">默认</el-button>
+                <el-button type="text" size="small" @click="editSupply(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" @click="removeSupply(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!-- el-table 发票信息 -->
+          <el-table
+            v-loading="loading"
+            :data="invoiceTableData"
+            style="width: 100%"
+            v-if="num==2"
             >
-          </el-table-column>
-          <el-table-column
-            prop="bank_account"
-            label="开户账号"
-            width="160"
+            <el-table-column
+              label="公司名称"
+              prop="company_name"
+              width="160"
             >
-          </el-table-column>
-          <el-table-column
-            prop="telephone"
-            label="手机号码"
-            width="260"
+            </el-table-column>
+            <el-table-column
+              prop="tax_id_number"
+              label="纳税人识别号"
+              width="240"
+              >
+            </el-table-column>
+            <el-table-column
+              prop="bank"
+              label="开户银行"
+              width="160"
+              >
+            </el-table-column>
+            <el-table-column
+              prop="bank_account"
+              label="开户账号"
+              width="160"
+              >
+            </el-table-column>
+            <el-table-column
+              prop="telephone"
+              label="手机号码"
+              width="260"
+              >
+            </el-table-column>
+            <el-table-column
+              label="操作">
+              <template slot-scope="scope">
+                <el-button @click="setInvoiceDefault(scope.row)" type="text" size="small" v-if="scope.row.default==0">设为默认</el-button>
+                <el-button type="text" size="small" v-if="scope.row.default==1" :class="{changecolor:scope.row.default==1}">默认</el-button>
+                <el-button type="text" size="small" @click="editInvoice(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" @click="removeInvoice(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!-- el-table 寄送地址 -->
+          <el-table
+            v-loading="loading"
+            :data="addressTableData"
+            style="width: 100%"
+            v-show="num==3"
             >
-          </el-table-column>
-          <el-table-column
-            label="操作">
-            <template slot-scope="scope">
-              <el-button @click="setInvoiceDefault(scope.row)" type="text" size="small" v-if="scope.row.default==0">设为默认</el-button>
-              <el-button type="text" size="small" v-if="scope.row.default==1" :class="{changecolor:scope.row.default==1}">默认</el-button>
-              <el-button type="text" size="small" @click="editInvoice(scope.row)">编辑</el-button>
-              <el-button type="text" size="small" @click="removeInvoice(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-table
-          :data="addressTableData"
-          style="width: 100%"
-          v-show="num==3"
-          >
-          <el-table-column
-            label="收件人姓名"
-            width="290"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.last_name + scope.row.first_name}}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="detailed_address"
-            label="收件地址"
-            width="300"
+            <el-table-column
+              label="收件人姓名"
+              width="290"
             >
-          </el-table-column>
-          <el-table-column
-            prop="telephone"
-            label="手机号码"
-            width="240"
-            >
-          </el-table-column>
-          <el-table-column
-            prop="fixed_telephone"  
-            label="固定电话"
-            width="310"
-            >
-          </el-table-column>
-          <el-table-column
-            label="操作">
-            <template slot-scope="scope">
-              <el-button @click="setaddressDefault(scope.row)" type="text" size="small" v-if="scope.row.default==0">设为默认</el-button>
-              <el-button type="text" size="small" v-if="scope.row.default==1" :class="{changecolor:scope.row.default==1}">默认</el-button>
-              <el-button type="text" size="small" @click="editaddress(scope.row)">编辑</el-button>
-              <el-button type="text" size="small" @click="removeaddress(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+              <template slot-scope="scope">
+                {{ scope.row.first_name + scope.row.last_name }}
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="detailed_address"
+              label="收件地址"
+              width="300"
+              >
+            </el-table-column>
+            <el-table-column
+              prop="telephone"
+              label="手机号码"
+              width="240"
+              >
+            </el-table-column>
+            <el-table-column
+              prop="fixed_telephone"  
+              label="固定电话"
+              width="310"
+              >
+            </el-table-column>
+            <el-table-column
+              label="操作">
+              <template slot-scope="scope">
+                <el-button @click="setaddressDefault(scope.row)" type="text" size="small" v-if="scope.row.default==0">设为默认</el-button>
+                <el-button type="text" size="small" v-if="scope.row.default==1" :class="{changecolor:scope.row.default==1}">默认</el-button>
+                <el-button type="text" size="small" @click="editaddress(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" @click="removeaddress(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </div>
+        <!-- el-dialog 新增报告接收电子邮箱 -->
         <el-dialog
           :title="emailTitle"
           :visible.sync="emailDialogVisible"
@@ -198,11 +208,12 @@
             <el-button @click.native="emailsubmit" class="submit">确 定</el-button>
           </span>
         </el-dialog>
+        <!-- el-dialog 新增供应商信息 -->
         <el-dialog
           :title="supplyTitle"
           :visible.sync="supplyDialogVisible"
           width="500px"
-          class="email-dialog"
+          class="supply-dialog"
           top="20vh"
           center>
           <el-form :model="supplyform" :rules="supplyrules" ref="supplyform" :inline="true" >
@@ -216,19 +227,18 @@
               <el-input style="width:120px;" placeholder="请输入名" v-model="supplyform.last_name"></el-input>
             </el-form-item>
             <br>
-            <el-form-item label="手机号码:" :label-width="labelwidth">
-              <el-select  placeholder="请选择" style="width:165px;" class="select-input">
-                  <el-option
-                  v-for="item in options"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                  >    
-                  </el-option>
-              </el-select>
-              <el-form-item prop="telephone">
-                <el-input class="special-input" style="width:165px;margin-left:-10px;" type="text" placeholder="请输入固定电话" v-model="supplyform.telephone"></el-input>
-              </el-form-item> 
+            <el-form-item label="手机号码:" :label-width="labelwidth" prop="telephone">
+              <el-input placeholder="请输入手机号码" v-model="supplyform.telephone" class="input-with-select" >
+                  <el-select v-model="supplyform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
+                    <el-option
+                    v-for="item in phone_codeConfig"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                    >    
+                    </el-option>
+                  </el-select>
+              </el-input> 
             </el-form-item>
             <el-form-item label="电子邮箱:" :label-width="labelwidth" prop="email">
               <el-input placeholder="请输入电子邮箱" style="width:326px;" v-model="supplyform.email"></el-input>
@@ -239,11 +249,12 @@
             <el-button @click.native="supplysubmit" class="submit">确 定</el-button>
           </span>
         </el-dialog>
+        <!-- el-dialog 新增发票信息 -->
         <el-dialog
           :title="invoiceTitle"
           :visible.sync="invoiceDialogVisible"
           width="600px"
-          class="email-dialog"
+          class="invoice-dialog"
           top="20vh"
           center>
           <el-form :model="invoiceform" :rules="invoicerules" ref="invoiceform" :label-width="formLabelWidth">
@@ -260,16 +271,26 @@
                         <el-input v-model="invoiceform.bank_account"></el-input>
                     </el-form-item>
                     <el-form-item label="单位电话：" prop="telephone">
-                        <el-input placeholder="请输入内容" v-model="invoiceform.telephone" class="input-with-select">
+                        <el-input placeholder="请输入单位电话" v-model="invoiceform.telephone" class="input-with-select">
                             <el-select v-model="invoiceform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                            <el-option label="+86" value="1"></el-option>
-                            <el-option label="+86" value="2"></el-option>
-                            <el-option label="+86" value="3"></el-option>
+                              <el-option
+                              v-for="item in phone_codeConfig"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                              >    
+                              </el-option>
                             </el-select>
                         </el-input>
                     </el-form-item>
                     <el-form-item label="单位地址：" prop="address">
-                        <el-input v-model="invoiceform.address"></el-input>
+                        <el-cascader
+                          expand-trigger="hover"
+                          :options="optionsProvinces"
+                          :props="{label:'chinese_name',value:'id',children:'children_simple'}"
+                          v-model="invoiceform.address"
+                          @change="handleChange">
+                        </el-cascader>
                     </el-form-item>
                     <el-form-item label="详细地址：" prop="detailed_address">
                         <el-input type="textarea" v-model="invoiceform.detailed_address"></el-input>
@@ -280,23 +301,31 @@
                     <el-button type="primary" @click="invoicesubmit()" class="submit">确 定</el-button>
                 </div>
         </el-dialog>
+        <!-- el-dialog 新增寄送地址 -->
         <el-dialog
           :title="addressTitle"
           :visible.sync="addressDialogVisible"
           width="600px"
-          class="email-dialog"
+          class="address-dialog"
           top="20vh"
           center>
           <el-form :model="addressform" :rules="addressrules" ref="addressform" :label-width="invoiceLabelWidth" :inline="true">
-                    <el-form-item label="收件人姓：" label-width="130px" prop="company_name">
-                        <el-input v-model="addressform.last_name"  style="width:160px"></el-input>
-                    </el-form-item>
-                    <el-form-item label="名：" prop="company_name" label-width="40px">
+                    <el-form-item label="收件人姓：" label-width="130px" prop="first_name">
                         <el-input v-model="addressform.first_name"  style="width:160px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="名：" prop="last_name" label-width="40px">
+                        <el-input v-model="addressform.last_name"  style="width:160px"></el-input>
                     </el-form-item>
                     <br>
                     <el-form-item label="收件地址：" prop="address">
-                        <el-input v-model="addressform.address"   style="width:375px"></el-input>
+                        <!-- <el-input v-model="addressform.address"   style="width:375px"></el-input> -->
+                        <el-cascader
+                          expand-trigger="hover"
+                          :options="optionsProvinces"
+                          :props="{label:'chinese_name',value:'id',children:'children_simple'}"
+                          v-model="addressform.address"
+                          @change="handleChange">
+                        </el-cascader>
                     </el-form-item>
                     <br>
                     <el-form-item label="详细地址：" prop="detailed_address">
@@ -304,21 +333,30 @@
                     </el-form-item>
                     <br>
                     <el-form-item label="收件人手机号：" prop="telephone">
-                        <el-input placeholder="请输入内容" v-model="addressform.telephone" class="input-with-select" style="width:375px">
+                        <el-input placeholder="请输入手机号" v-model="addressform.telephone" class="input-with-select" style="width:375px">
                             <el-select v-model="addressform.telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                            <el-option label="86" value="1"></el-option>                                                                                                                                                            
-                            <el-option label="86" value="2"></el-option>
-                            <el-option label="86" value="3"></el-option>
+                              <el-option
+                              v-for="item in phone_codeConfig"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                              >
+                              <!-- <span style="float: left">{{ item.label }}</span>     -->
+                              </el-option>
                             </el-select>
                         </el-input>
                     </el-form-item>
                     <br>
                     <el-form-item label="收件人固定号：" prop="fixed_telephone">
-                        <el-input placeholder="请输入内容" v-model="addressform.fixed_telephone" class="input-with-select" style="width:375px"> 
+                        <el-input placeholder="请输入固定号码" v-model="addressform.fixed_telephone" class="input-with-select" style="width:375px"> 
                             <el-select v-model="addressform.fixed_telephone_code" slot="prepend" placeholder="请选择" style="width:150px;">
-                            <el-option label="86" value="1"></el-option>
-                            <el-option label="86" value="2"></el-option>
-                            <el-option label="86" value="3"></el-option>
+                              <el-option
+                              v-for="item in phone_codeConfig"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                              >    
+                              </el-option>
                             </el-select>
                         </el-input>                     
                     </el-form-item>                                                     
@@ -335,11 +373,18 @@
 
 <script>
 import {getdata , addEmail , setDefault , editEmail , removeEmail , getSupplydata , addSupply , editSupply , setSupplyDefault , removeSupply ,addInvoice,getInvoiceList,setInvoiceDefault,removeInvoice,getAddressList,addAddress,setaddressDefault,removeaddress} from "@/api/accountManagement";
+import { fetchList,fetchCounty } from '@/api/fetch';
+import { mapGetters } from 'vuex'
+import store from '../../store/'
 export default {
   name: "",
   components: {},
   data() {
     return {
+      //loading 过渡动画
+      loading:false,
+      //phone_codeConfig
+      phone_codeConfig:'',
       tablist: [
         {
           content: "报告接收电子邮箱",
@@ -382,7 +427,7 @@ export default {
         email:'',
         supplier_name:'',
         telephone:'',
-        addresses:[]
+        telephone_code:''
       },
       editform:'',
       rules:{
@@ -416,27 +461,44 @@ export default {
       },
       invoiceTableData:[],
       invoiceform:{
-        address:[1,2,3]
+        company_name:'',
+        tax_id_number:'',
+        bank:'',
+        bank_account:'',
+        telephone:'',
+        telephone_code:'',
+        address:[],
+        detailed_address:'',
       },
+      optionsProvinces:[],
       invoicerules:{
         company_name:[{ required: true, message: '请输入公司名称', trigger: 'blur' }],    
         tax_id_number:[{ required: true, message: '请输入纳税人识别号', trigger: 'blur' }],  
         bank:[{ required: true, message: '请输入开户银行', trigger: 'blur' }],  
         bank_account:[{ required: true, message: '请输入银行账号', trigger: 'blur' }],  
         telephone:[{ required: true, message: '请输入单位电话', trigger: 'blur'}],
-        address:[{ required: true, message: '请输入单位地址', trigger: 'blur'}],
+        address:[{ required: true, message: '请选择单位地址', trigger: 'blur'}],
         detailed_address:[{ required: true, message: '请输入详细地址', trigger: 'blur'}],
       },
       addressTableData:[],
       addressTitle:'新增寄送地址',
-      addressform:{},
+      addressform:{
+        first_name : '',
+        last_name : '',
+        address : [],
+        detailed_address : '',
+        telephone : '',
+        fixed_telephone : '',
+        telephone_code : '',
+        fixed_telephone_code : ''
+      },
       addressrules:{
         last_name:[{required: true, message: '请输入收件人姓', trigger: 'blur'}],
         first_name:[{required: true, message: '请输入名', trigger: 'blur'}],
-        address:[{ required: true, message: '请输入单位地址', trigger: 'blur'}],
+        address:[{ required: true, message: '请选择单位地址', trigger: 'blur'}],
         detailed_address:[{ required: true, message: '请输入详细地址', trigger: 'blur'}],
         telephone:[{ required: true, message: '请输入单位电话', trigger: 'blur'}],
-        fixed_telephone:[{ required: true, message: '请输入收件人固定号码', trigger: 'blur'}],
+        fixed_telephone:[{ required: false, message: '请输入收件人固定号码', trigger: 'blur'}],
       },
       tableData:[],
       supplyTableData:[],
@@ -456,6 +518,9 @@ export default {
   created(){
     this.getdata()
     this.routerIndex()
+    this.ConfigUnit()
+    // this.getFetchCounty()     获取所有的国家
+    this.getFetchProvinces(7)  //获取中国省市区
   },
   methods: {
     // tab切换
@@ -488,18 +553,22 @@ export default {
     },
     // 获取电子邮箱表格数据
     getdata(){
+      this.loading = true;
       getdata().then(response =>{
         if(response.data.code == 0){
           this.tableData = response.data.data.list
+          this.loading = false;
           console.log(this.tableData)
         }
       })
     },
     // 获取供应商信息表格数据
     getSupplydata(){
+      this.loading = true;
       getSupplydata().then(response =>{
         if(response.data.code == 0){
           this.supplyTableData = response.data.data.list
+          this.loading = false
         }
       })
     },
@@ -507,25 +576,63 @@ export default {
     add(){
       if(this.num==0){
         this.emailDialogVisible = true
-        this.emailTitle == '新增报告接收电子邮箱'
+        this.emailTitle = '新增报告接收电子邮箱'
+        this.form.first_name = ''
+        this.form.last_name = ''
+        this.form.email = ''
+        this.$nextTick( ()=> {
+          this.$refs.form.clearValidate()
+        })
       }
       if(this.num==1){
         this.supplyDialogVisible = true
-        this.supplyTitle == '新增供应商信息'
+        this.supplyTitle = '新增供应商信息'
+        this.supplyform.first_name = ''
+        this.supplyform.last_name = ''
+        this.supplyform.email = ''
+        this.supplyform.supplier_name = ''
+        this.supplyform.telephone = ''
+        this.supplyform.telephone_code = ''
+        this.$nextTick( ()=> {
+          this.$refs.supplyform.clearValidate()
+        })
       }
       if(this.num==2){
         this.invoiceDialogVisible = true
-        this.invoiceTitle == '新增发票信息'
+        this.invoiceTitle = '新增发票信息'
+        this.invoiceform.company_name = ''
+        this.invoiceform.tax_id_number = ''
+        this.invoiceform.bank = ''
+        this.invoiceform.bank_account = ''
+        this.invoiceform.telephone = ''
+        this.invoiceform.telephone_code = ''
+        this.invoiceform.address = []
+        this.invoiceform.detailed_address = ''
+        this.$nextTick( ()=> {
+          this.$refs.invoiceform.clearValidate()
+        })
       }
       if(this.num==3){
         this.addressDialogVisible = true
-        this.addressTitle == '新增寄送地址'
+        this.addressTitle = '新增寄送地址'
+        this.addressform.first_name = ''
+        this.addressform.last_name = ''
+        this.addressform.address = []
+        this.addressform.detailed_address = ''
+        this.addressform.telephone = ''
+        this.addressform.fixed_telephone = ''
+        this.addressform.telephone_code = ''
+        this.addressform.fixed_telephone_code = ''
+        this.$nextTick( ()=> {
+          this.$refs.addressform.clearValidate()
+        })
       }
       
     },
     // 添加一条数据
     emailsubmit(){
       if(this.emailTitle != '编辑报告接收电子邮箱'){
+
           this.$refs['form'].validate((valid) => {
             if (valid) {
               addEmail({
@@ -570,6 +677,9 @@ export default {
       this.emailTitle = '编辑报告接收电子邮箱'
       this.emailDialogVisible = true
       this.form = Object.assign({}, row)
+      this.$nextTick( ()=> {
+        this.$refs.form.clearValidate()
+      })
     },
     // 删除电子邮箱
     removeEmail(row){
@@ -591,6 +701,8 @@ export default {
     },
     // 增加一条供应商信息
     supplysubmit(){
+      // this.supplyform.telephone_code = this.supplyform.telephone_code.toString();
+      console.log(typeof(this.supplyform.telephone_code))
       if(this.supplyTitle != '编辑供应商信息'){
           this.$refs['supplyform'].validate((valid) => {
             if (valid) {
@@ -605,9 +717,10 @@ export default {
           }
         })
       }else{
+        console.log(this.supplyform)
         this.$refs['supplyform'].validate((valid) => {
             if (valid) {
-              editEmail({
+              editSupply({
                   ...this.supplyform,
                   url: 'v1/supplier/update/'+this.supplyform.id
                 }).then(response =>{
@@ -624,7 +737,12 @@ export default {
     editSupply(row){
       this.supplyTitle = '编辑供应商信息'
       this.supplyDialogVisible = true
-      this.supplyform = Object.assign({}, row)
+      this.supplyform = _.cloneDeep(row)
+      this.supplyform.phone_codeConfig = this.configs.phone_number_codes
+      // console.log(this.supplyform)
+      this.$nextTick( ()=> {
+        this.$refs.supplyform.clearValidate()
+      })
     },
     // 设置默认供应商
     setSupplyDefault(row){
@@ -657,9 +775,11 @@ export default {
     },
     // 获取发票信息表格数据  
     getinvoicedata(){
+      this.loading = true;
       getInvoiceList().then(response =>{
         if(response.data.code == 0){
           this.invoiceTableData = response.data.data.list
+          this.loading = false;
         }
       })
     },
@@ -677,7 +797,13 @@ export default {
     editInvoice(row){
       this.invoiceTitle = '编辑发票信息'
       this.invoiceDialogVisible = true
-      this.invoiceform = Object.assign({}, row)
+      this.invoiceform = _.cloneDeep(row)
+      this.invoiceform.phone_codeConfig = this.configs.phone_number_codes
+      this.invoiceform.address = row.address.map(Number)
+      console.log(this.invoiceform.address)
+      this.$nextTick( ()=> {
+        this.$refs.invoiceform.clearValidate()
+      })
     },
     // 新增发票信息
     invoicesubmit(){
@@ -731,9 +857,11 @@ export default {
 
       // 获取寄送地址表格数据  
     getaddressdata(){
+      this.loading = true;
       getAddressList().then(response =>{
         if(response.data.code == 0){
           this.addressTableData = response.data.data.list
+          this.loading = false;
         }
       })
     },
@@ -752,6 +880,12 @@ export default {
       this.addressTitle = '编辑寄送地址'
       this.addressDialogVisible = true
       this.addressform = Object.assign({}, row)
+      console.log(this.addressform)
+      this.addressform.phone_codeConfig = this.configs.phone_number_codes
+      this.addressform.address = row.address.map(Number)
+      this.$nextTick( ()=> {
+        this.$refs.addressform.clearValidate()
+      })
     },
     // 新增寄送地址
     addresssubmit(){
@@ -831,7 +965,43 @@ export default {
           }); 
         }
       }
+    },
+
+    //配置文件加载
+    ConfigUnit(){
+      this.phone_codeConfig = this.configs.phone_number_codes
+    },
+
+    //fetchList获取所有的国家
+    getFetchCounty(){
+      fetchList().then( response => {
+        if( response.data.code == 0){
+          console.log(response.data.data)
+        }
+      })
+    },
+
+    //getFetchCounty获取省市区
+    getFetchProvinces(val){
+      fetchCounty({ pid: val }).then( response => {
+        this.$nextTick(function() {
+          // this.locationOptions = response.data.data
+          console.log(response.data.data)
+          this.optionsProvinces = response.data.data
+        })
+      })
+    },
+
+    //handleChange
+    handleChange(value){
+      // console.log(value)
     }
+
+  },
+  computed:{
+    ...mapGetters([
+      'configs'
+    ])
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -897,8 +1067,54 @@ export default {
       border-top-left-radius: 0px;
       border-bottom-left-radius: 0px;
   }
+  
 
-  //receiveEmail报告接收电子邮箱
+  //email-dialog
+
+  //supply-dialog
+  .supply-dialog{
+    .el-input-group>.el-input__inner{
+      width:175px;
+    }
+    .dialog-footer{
+      .el-button:nth-child(2){
+        background:rgba(255,168,0,1);
+        color:rgba(255,255,255,1);
+      }
+    }
+  }
+
+  //invoice-dialog
+  .invoice-dialog{
+    .el-cascader .el-input, .el-cascader .el-input__inner{
+      width:410px;
+    }
+  }
+  
+  //address-dialog
+  .address-dialog{
+    .el-form-item:nth-child(1){
+      .el-input__inner{
+        width:150px;
+      }
+    }
+    .el-form-item:nth-child(2){
+      .el-form-item__label{
+        width:51px !important;
+      }
+      .el-input__inner{
+        width:150px;
+      }
+    }
+   .el-form-item:nth-child(3){
+     .el-cascader__label{
+        width:375px;
+      }
+   }
+   .el-cascader .el-input, .el-cascader .el-input__inner{
+      width:375px;
+    }
+  }
   
 }
 

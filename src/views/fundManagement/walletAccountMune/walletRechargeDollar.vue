@@ -15,24 +15,28 @@
                             <span>美元</span>
                         </el-form-item>
                     </el-form>
-                    <div class="payment">
+                    <div class="payAmount">
+                        <p>应付金额</p>
+                        <p>${{ numberValidateForm.AccountInput?returnFloat(numberValidateForm.AccountInput):'0.00' }}</p>
+                    </div>
+                    <div class="payment clearfix">
                         <p>付款方式</p>
-                        <div class="paymentAll">
+                        <div class="paymentAll content">
                         <!-- 引入组件USA -->
-                        <pay-ment-usa @receiveDateUsa="paymentWayUsa"></pay-ment-usa>
+                        <pay-ment-usa @receiveDateUsa="paymentWayUsa" :propDataUsa="paymentProp"></pay-ment-usa>
                         </div>
                     </div>
                     <!-- 点击提交 -->
                     <div class="pay-rmb-submit">
-                        <el-button type="text" @click="confirmSubmit('numberValidateForm')">确定付款</el-button>
+                        <el-button type="text" :disabled="paymentTypeId == ''" @click="confirmSubmit('numberValidateForm')">确定付款</el-button>
                         <el-dialog
                         :visible.sync="centerDialogVisible"
                         width="30%"
                         center>
                         <p class="su-payment" v-on:receiveDateUsa="paymentWayUsa($event)">你正在使用{{ detailPayWayInMessageUsa }}充值</p>
-                        <p class="su-payaccount">充值金额${{ numberValidateForm.AccountInput == ''?ConfirmCount :  numberValidateForm.AccountInput}}</p>
+                        <p class="su-payaccount">充值金额${{ returnFloat(numberValidateForm.AccountInput)}}</p>
                         <span slot="footer" class="dialog-footer">
-                            <el-button type="primary" @click="finalConfirmCount">确定</el-button>
+                            <el-button type="primary" @click="JudgePayIsSuccess">确定</el-button>
                             <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
                         </span>
                         </el-dialog>
@@ -45,7 +49,7 @@
 
 <script>
 import payMentUsa from '../../common/paymentUSA.vue'
-import { recharge,rechargeProps,rechargeSuccess } from '@/api/walletDetail'
+import { recharge,rechargeProps,rechargeSuccess,getPaypal } from '@/api/walletDetail'
 import { orderDetail,confirmPay,surePay } from "@/api/order";
 let newTab;
 export default {
@@ -70,6 +74,8 @@ export default {
                 
             };
         return {
+            paymentProp:'',
+
             radio: '1',
 
             //美元充值金额
@@ -97,7 +103,7 @@ export default {
 
             //输入金额框
             numberValidateForm: {
-                AccountInput: ''
+                AccountInput: 700,
             },
 
             //input框的value
@@ -130,11 +136,15 @@ export default {
     methods: {
         //点击添加样式
         addBgcolor(item) {
+            this.$nextTick( ()=> {
+                this.$refs.numberValidateForm.clearValidate(); //移除校验结果并重置字段值
+            })
             for(let i=0;i<this.RechargeDollar.length;i++){
                 this.RechargeDollar[i].show=false
             }
             item.show=!item.show
             this.ConfirmCount = item.count
+            this.numberValidateForm.AccountInput = item.count
         },
 
         //提交传递数据USA
@@ -156,30 +166,121 @@ export default {
 
         //点击确定付款
         confirmSubmit(formName){
-             if( this.numberValidateForm.AccountInput == '' ){  //判断有没有选择输入 金额
-                    this.centerDialogVisible = true
-                    console.log( this.numberValidateForm.AccountInput )
-                }else {
-                    console.log( '11111111111111' )
+            //  if( this.numberValidateForm.AccountInput == '' ){  //判断有没有选择输入 金额
+            //         this.centerDialogVisible = true
+            //         console.log( this.numberValidateForm.AccountInput )
+            //     }else {
+            //         console.log( '11111111111111' )
                      this.$refs[formName].validate((valid) => {
                         if ( valid ) {
                             console.log(" 格式验证通过，可以进入确认弹框 ")
                             this.centerDialogVisible = true  //
+                            this.finalConfirmCount()
                         } else {
                             console.log('error submit!! ');
                             return false;
                         }
                     });
-                }
+                // }
         },
 
         //弹框最终确认信息
         finalConfirmCount(){
-            this.RechargeParams('/'+this.RechargeData.payment_id+'/11',{
-                price: this.numberValidateForm.AccountInput == ''?this.ConfirmCount : this.numberValidateForm.AccountInput
+            if( this.paymentTypeId == 5 ){
+                // newTab = window.open();
+            }
+            this.RechargeParams('/'+this.RechargeData.payment_id+'/'+this.paymentTypeId,{
+                price: this.numberValidateForm.AccountInput
                 
             })
         },
+
+        //充值金额，付款方式参数值
+        RechargeParams(val1,val2){
+            var a = window.open('', '_blank');
+            rechargeProps(val1,val2).then( response => {
+                if( response.data.code == 0 ){
+                    //进入这个判断说明支付成功，请求url地址
+                    console.log(response)
+                    getPaypal(response.data.data.url).then( response => {
+                        // window.open(response, '_blank');
+                         a.location = response.data
+                        // console.log(response)
+                    })
+                    // window.location.href = response.data.data.url
+                    // window.open(response.data.data.url, '_blank');
+                    
+                    // this.payurl = response.data.data.url.split('api/')[1].toString()
+                    // this.RwchargeSuccessRes()
+                    console.log('参数传递成功')
+                    // this.centerDialogVisible = false
+                }
+            } )
+        },
+
+        //请求url地址
+        RwchargeSuccessRes(){
+            rechargeSuccess({ url:this.payurl }).then( response => {
+                if( response.data.code == 0 ){
+                    console.log("支付成功")
+                    if( this.paymentTypeId == 1 ){
+                        const div = document.createElement('div');
+                        div.innerHTML = response.data; // html code
+                        newTab.document.body.appendChild(div);
+                        newTab.document.forms.alipaysubmit.submit()
+                    }
+                    // this.$router.push({ path: 'walletAccountIndex' })
+                }
+            })
+        },
+
+        //JudgePayIsSuccess
+        JudgePayIsSuccess(){
+
+        },
+
+        //  预付款
+        // finalConfirmCount(){
+        //     if(this.paymentTypeId ==1){
+        //         newTab = window.open();
+        //     } 
+        //     confirmPay({
+        //         url:'/v1/payment/pay/select/' + this.RechargeData.payment_id + '/11?price='+this.numberValidateForm.AccountInput
+        //     }).then(response =>{
+        //         let responsed = response.data
+        //         console.log("进入调用surePay")
+        //         if(responsed.code ==0 ){
+        //             this.payurl = responsed.data.url
+        //             this.surePay()
+        //             console.log(this.payurl)
+        //         }
+        //     })
+        // },
+        
+        //  付款
+        // surePay(){
+        //     surePay({
+        //         url: this.payurl,
+        //         password:this.password
+        //     }).then(response =>{
+        //         this.centerDialogVisible = false
+        //         console.log("进入付款")
+        //         let res = response.data
+        //         if(this.paymentTypeId ==2 && res.code == 0){
+        //             // this.successDialogVisible = true
+        //         }else if(this.paymentTypeId ==2 && res.code != 0){    
+        //             this.wrongMessage = res.data.message
+        //             // this.failDialogVisible = true
+        //         }else if(this.paymentTypeId ==1){
+        //             const div = document.createElement('div');
+        //             div.innerHTML = res; // html code
+        //             newTab.document.body.appendChild(div);
+        //             console.log(res)
+        //             newTab.document.forms.alipaysubmit.submit()
+                    
+        //         }
+        //     })
+        // },
 
         //获取数据,传递参数（充值金额，付款方式）
         getRechargeData(val){
@@ -188,6 +289,7 @@ export default {
                 if( response.data.code == 0 ){
                     console.log(" 充值界面进入success ")
                     this.RechargeData = response.data.data
+                    this.paymentProp = response.data.data.select.USD
                     console.log(this.RechargeData.payment_id)
                 }else{
                     console.log("充值界面进入fail")
@@ -195,69 +297,20 @@ export default {
             })
         },
 
-        //充值金额，付款方式参数值
-        RechargeParams(val1,val2){
-            rechargeProps(val1,val2).then( response => {
-                if( response.data.code == 0 ){
-                    //进入这个判断说明支付成功，请求url地址
-                    this.RwchargeSuccessRes(response.data.data.url)
-                    console.log('参数传递成功')
-                    this.centerDialogVisible = false
+        //金额数据处理returnFloat
+        returnFloat(value){
+            var value=Math.round(parseFloat(value)*100)/100;
+            var xsd=value.toString().split(".");
+            if(xsd.length==1){
+                value=value.toString()+".00";
+                return value;
+            }
+            if(xsd.length>1){
+                if(xsd[1].length<2){
+                    value=value.toString()+"0";
                 }
-            } )
-        },
-
-        //请求url地址
-        RwchargeSuccessRes(val){
-            rechargeSuccess(val).then( response => {
-                if( response.data.code == 0 ){
-                    console.log("支付成功")
-                    this.$router.push({ path: 'walletAccountIndex' })
-                }
-            })
-        },
-
-        //  预付款
-        finalConfirmCount(){
-            if(this.paymentTypeId ==1){
-                newTab = window.open();
-            } 
-            confirmPay({
-                url:'/v1/payment/pay/select/' + this.RechargeData.payment_id + '/11?price='+this.numberValidateForm.AccountInput
-            }).then(response =>{
-                let responsed = response.data
-                console.log("进入调用surePay")
-                if(responsed.code ==0 ){
-                    this.payurl = responsed.data.url
-                    this.surePay()
-                    console.log(this.payurl)
-                }
-            })
-        },
-        
-        //  付款
-        surePay(){
-            surePay({
-                url: this.payurl,
-                password:this.password
-            }).then(response =>{
-                this.centerDialogVisible = false
-                console.log("进入付款")
-                let res = response.data
-                if(this.paymentTypeId ==2 && res.code == 0){
-                    // this.successDialogVisible = true
-                }else if(this.paymentTypeId ==2 && res.code != 0){    
-                    this.wrongMessage = res.data.message
-                    // this.failDialogVisible = true
-                }else if(this.paymentTypeId ==1){
-                    const div = document.createElement('div');
-                    div.innerHTML = res; // html code
-                    newTab.document.body.appendChild(div);
-                    console.log(res)
-                    newTab.document.forms.alipaysubmit.submit()
-                    
-                }
-            })
+                return value;
+            }
         },
     }
 }
@@ -338,9 +391,30 @@ export default {
                 top:13px;
             }
         }
+        .payAmount{
+            overflow: hidden;
+            p{
+                float:left;
+            }
+            p:nth-child(1){
+                height:64px;
+                line-height: 64px;
+                font-size:14px;
+                color:#7F8FA4;
+                margin:0 26px 0 0;
+            }
+            p:nth-child(2){
+                height:64px;
+                line-height: 64px;
+                font-size:24px;
+                color:#158be4;
+                font-weight:600; 
+            }
+        }
         //payment
         .payment{
-            height:400px;
+            // height:400px;
+            height:100%;
             margin-bottom:24px;
             margin-top:40px;
             p{
@@ -354,7 +428,7 @@ export default {
             }
             .paymentAll{
                 float:left;
-                height:400px;
+                // height:400px;
                 width:660px;
             }
 

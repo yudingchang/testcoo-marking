@@ -10,12 +10,15 @@
         <span class="news">
           <span/>
         </span>
-        <span style="font-size:14px;color:#ffffff;">欢迎您，</span>
+        <span style="font-size:14px;color:#ffffff;">欢迎您!</span>
         <span class="userName">{{ name }}</span>
-        <span class="gender">
+        <span class="gender" v-if="!avatar">
           <span v-if="male" class="male"/>
           <span v-if="neuter" class="neuter"/>
           <span v-if="female" class="female"/>
+        </span>
+        <span v-if="avatar" class="personalImg">
+          <img v-if="avatar" :src="avatar" alt="">
         </span>
         <span class="logout" @click="logout">退出</span>
 
@@ -63,6 +66,7 @@
 </template>
 
 <script>
+import store from '../../../store/'
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
@@ -87,7 +91,7 @@ export default {
       userName: '张三',
       male: true,
       female: false,
-      neuter: false
+      neuter: false,
     }
   },
   computed: {
@@ -97,6 +101,11 @@ export default {
       'avatar',
       'device'
     ])
+  },
+  created(){
+    console.log('avater')
+    console.log(this.avatar)
+    console.log('avater')
   },
   methods: {
     toggleSideBar() {
@@ -205,11 +214,35 @@ export default {
         display: inline-block;
       }
     }
+    .personalImg{
+      display: inline-block;
+       line-height: 60px;
+       margin: 0 29px 0 12px;
+       vertical-align: top;
+       width: 4px;
+       height: 40px;
+       border-radius:50%;
+       img{
+        vertical-align: middle;
+        width: 36px;
+        height: 36px;
+        display: inline-block;
+        border-radius:50%;
+        // z-index: 3;
+        // background:#fff;
+       }
+    }
     .logout{
       color: #ffffff;
       margin: 0 24px 0 10px;
       cursor: pointer;
       font-size: 14px;
+      height:60px;
+      display:inline-block;
+    }
+    .logout:hover{
+      // opacity:0.8;
+      background:rgba(49,61,79,1);
     }
 
     &:focus{
@@ -252,3 +285,8 @@ export default {
   }
 }
 </style>
+
+<style rel="stylesheet/scss" lang="scss" >
+//
+</style>
+

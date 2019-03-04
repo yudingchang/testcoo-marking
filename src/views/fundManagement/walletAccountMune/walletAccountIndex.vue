@@ -10,7 +10,7 @@
                         <div class="walletAccount-Ac-recharge-rmb">
                             <p>
                             <span>人民币</span>
-                            <span>￥{{userAccountBalance[0].price}}</span>
+                            <span>￥{{ _.get( userAccountBalance, '[0].price')}}</span>
                             </p>
                             <p @click="jumpPayRmb">去充值</p>
                         </div>
@@ -18,7 +18,7 @@
                         <div class="walletAccount-Ac-recharge-dollar">
                             <p>
                             <span>美元</span>
-                            <span>$ {{userAccountBalance[1].price}}</span>
+                            <span>$ {{ _.get( userAccountBalance, '[1].price')}}</span>
                             </p>
                             <p @click="jumpDollar">去充值</p>
                         </div>
@@ -37,6 +37,7 @@
                                     v-model="created_at[0]"
                                     type="date"
                                     placeholder="选择日期"
+                                    style="cursor:pointer;"
                                     format="yyyy 年 MM 月 dd 日"/>
                                 </div>
                                 </li>
@@ -76,7 +77,7 @@
                             <ul class="wallet-tableDate-ul">
                             <el-table
                                     :header-cell-style="{background:'#F5F8FA'}"
-                                    :data="tableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
+                                    :data="tableData"
                                     style="width: 100%">
                                     <el-table-column
                                     fixed
@@ -99,7 +100,7 @@
                                     <template slot-scope="scope">
                                     <!-- <span>{{scope.row.id}}</span> -->
                                     <span>{{scope.row.plus_minus ? "+" : "-"}}</span>
-                                    <span>￥{{scope.row.price}}</span>
+                                    <span>{{(scope.row.currency == 'CNY'?'￥':'$')+(scope.row.price)}}</span>
                                     </template>
                                     </el-table-column>
                                     <el-table-column
@@ -140,7 +141,7 @@
                             :page-sizes="[9]" 
                             :page-size="pagesize"         
                             layout="total, sizes, prev, pager, next, jumper"
-                            :total="tableData.length">    
+                            :total="total">    
                             </el-pagination>
                         </ul>
                     </div>
@@ -184,9 +185,6 @@ export default {
                 value: '2',
                 label: '成功'
             },{
-                value: '1',
-                label: '付款中'
-            }, {
                 value: '-1',
                 label: '已关闭'
             }],
@@ -202,6 +200,8 @@ export default {
 
             currentPage: 1, // 初始页
             pagesize:9, // 每页的数据
+            page:1,     //
+            total:10,   //
 
         }
     },
@@ -211,8 +211,8 @@ export default {
     },
     methods: {
         //获取用户账户人民币和美元余额
-        getMoneyBlanaceData(){
-            MoneyBlanace().then( response => {
+        getMoneyBlanaceData(val){
+            MoneyBlanace(val).then( response => {
                 if( response.data.code == 0 ){
                     this.userAccountBalance = response.data.data.list
                     console.log(this.userAccountBalance)
@@ -242,10 +242,19 @@ export default {
         handleSizeChange: function(size) {
         this.pagesize = size
         console.log(this.pagesize) // 每页下拉显示数据
+        this.getTableData({
+            page:this.page,
+            limit:this.pagesize
+        })
         },
         handleCurrentChange: function(currentPage) {
+        this.page = currentPage
         this.currentPage = currentPage
         console.log(this.currentPage) // 点击第几页
+        this.getTableData({
+            page:this.page,
+            limit:this.pagesize
+        })
         },
         //获取列表数据
         getTableData(val){
@@ -253,6 +262,7 @@ export default {
             tableDate(val).then(response => {
                 if (response.data.code == 0) {
                     this.tableData = response.data.data.list
+                    this.total = response.data.meta.total
                     for(let i=0;i<this.tableData.length;i++){
                         // console.log(response.data.data.list[i].price)
                         //判断拿回来的数据进行列表交易类型判断
@@ -483,10 +493,12 @@ export default {
     .wallet-detail-list-ul{
         .el-date-editor.el-input{
             width:200px;
+            cursor:pointer;
         }
         .el-select .el-input__inner{
             width:140px;
             height:36px !important;
+            cursor:pointer;
         }
     }
     .wallet-tableDate-ul{
@@ -588,38 +600,15 @@ export default {
             color:#fff;
             border:none;
         }
-        .el-pagination__jump{
-            width:110px;
-            height:36px;
-            border:1px solid #CED0DA;
-            line-height:36px;
-            padding-left:14px;
-            background:#CED0DA;
-            border-radius:2px;
-            color:#fff;
-            margin-left:15px;
-        }
-        .el-pagination__editor.el-input{
-            float:right;
-            height:36px;
-            margin:0;
-            padding:0;
-            background:#F3F6F9;
-        }
         .el-pagination__editor.el-input .el-input__inner{
-            border:none;
+            // border:none;
             height:35px;
             line-height:35px;
             text-align:center;
-            border-radius:0;
+            border-radius:4px;
             padding:0;
             background:#F3F6F9;
             border-bottom:1px solid #CED0DA;
-        }
-        .el-pagination__jump:focus{
-            background:#158BE4;
-            border:1px solid #158BE4;
-            color:#fff;
         }
     }
 }

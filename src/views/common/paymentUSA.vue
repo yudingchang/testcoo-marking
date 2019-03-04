@@ -22,9 +22,9 @@
             <span>￥8989.89</span>
             <span>充值</span>
         </li> -->
-        <li v-for="(item,index) in data" :key="index">
+        <li v-for="(item,index) in propDataUsa" :key="index">
              <el-radio v-model="radio" :label="item.id"/>
-             <template v-if="item.name=='paypal'">
+             <template v-if="item.id=='5'">
                  <span class="lis1">
                      <img src="../../../static/image/paypal.png" alt="">
                      <span>贝宝</span>
@@ -42,7 +42,7 @@
                     <span>万事达信用卡</span>
                  </span>
              </template>
-             <template v-if="item.name=='wallet'">
+             <!-- <template v-if="item.name=='wallet'">
                  <span class="lis4">
                      <span>钱包</span>
                      <span>$8989.89</span>
@@ -54,7 +54,7 @@
                      <span>测库月结</span>
                      <span>(你还有一份账单未结算)</span>
                  </span>
-             </template>
+             </template> -->
         </li>
     </ul>
   </div>
@@ -65,7 +65,7 @@ export default{
   name: 'paymentUSA',
   data () {
       return {
-        radio: 1,
+        radio: '',
         data:[
             {
                 id:1,
@@ -78,23 +78,15 @@ export default{
             {
                 id:3,
                 name:"mastercard" 
-            },
-            {
-                id:4,
-                name:"wallet"
-            },
-            {
-                id:5,
-                name:"testcoopay"
             }
         ]
 
         
       };
     },
-    props:[],
+    props:['propDataUsa'],
     methods:{
-       
+        
     },
     mounted(){
        
@@ -103,10 +95,10 @@ export default{
     watch:{
         //监听页面按钮点击触发的事件
         radio(val) {
-            console.log(val)
-            this.$emit("receiveDateUsa",val)
             // console.log(val)
-
+            this.radio = val
+            this.$emit("receiveDateUsa",this.radio)
+            console.log(val+'这是val')
         }
     }
 }
@@ -140,6 +132,7 @@ export default{
 </style>
 
 <style rel="stylesheet" lang="scss" scoped>
+
 .paymentUSA{
     height:100%;
     margin-bottom:24px;

@@ -26,10 +26,10 @@
                   >
                 </el-date-picker>
                 <el-form-item label="订单号" label-width="80px">
-                  <el-input v-model="fitter.number" placeholder="请输入内容"></el-input>
+                  <el-input v-model="fitter.number" placeholder="请输入内容" clearable></el-input>
                 </el-form-item>
                 <el-form-item label="产品名称" label-width="80px">
-                  <el-input v-model="fitter.product_name" placeholder="请输入内容"></el-input>
+                  <el-input v-model="fitter.product_name" placeholder="请输入内容" clearable></el-input>
                 </el-form-item>
                 <el-button type="success" @click="getList()">查询</el-button>
               </el-form>
@@ -45,7 +45,8 @@
         <!-- 订单列表table -->
         <div class="examine-table" v-loading="loading">
           <el-table
-            :data="AllOrderTableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
+            stripe
+            :data="AllOrderTableData"
             class="table-content"
             style="width: 100%"
             :row-class-name="tableRowClassName">
@@ -62,7 +63,7 @@
             width="171">
             </el-table-column>
             <el-table-column
-            prop="estimated_dates"
+            prop="inspection_first_date"
             width="169"
             label="验货开始日期">
             </el-table-column>
@@ -73,7 +74,7 @@
               <!-- <span v-if="scope.row"><span style="display:inline-block;width:100px;">{{scope.row.created_at}}</span> </span> -->
               <!-- <span ><span style="display:inline-block;width:100px;">{{scope.row.created_at}}</span><i style="margin-left:20px" class="iconfont icon-IconCopy" @click="getDetail(scope.row)"/></span> -->
               <el-button type="text" size="small" v-if="true"><span v-for="(item,index) in scope.row.products" :key="index">{{ item.name }}</span></el-button>
-              <el-button type="text" size="small" v-if="_.toString(_.map( scope.row.products, 'name' )).length > 10"><i class="iconfont icon-IconCopy" @click="getDetail(scope.row.products)"/></el-button>
+              <el-button type="text" size="small" v-if="_.toString(_.map( scope.row.products, 'name' )).length > 8"><i class="iconfont icon-IconCopy" @click="getDetail(scope.row.products)"/></el-button>
             </template>
             </el-table-column>
             <el-table-column
@@ -81,7 +82,8 @@
             label="订单金额">
             <template slot-scope="scope">
               <!-- <div class="tc-separate "><span v-for="(item,index) in filterFees(scope.row.fees)" :key='index'>{{item}}</span></div>  -->
-              <p><span v-if="scope.row.fees_total.CNY">￥{{ scope.row.fees_total.CNY }}</span><span v-if="scope.row.fees_total.CNY && scope.row.fees_total.USD">/</span><span v-if="scope.row.fees_total.USD">${{ scope.row.fees_total.USD }}</span></p>
+              <p v-if="_.get(scope.row.fees, ['0','paid_at']) == null"><span v-if="scope.row.fees_total.CNY">￥{{ returnFloat(scope.row.fees_total.CNY) }}</span><span v-if="scope.row.fees_total.CNY && scope.row.fees_total.USD">/</span><span v-if="scope.row.fees_total.USD">${{ returnFloat(scope.row.fees_total.USD) }}</span></p>
+              <p v-if="_.get(scope.row.paid_payments, ['0','has_paid'])"><span v-if="_.get(scope.row.paid_payments, '[0].paid_currency') == 'CNY'">￥{{ returnFloat(_.get(scope.row.paid_payments, '[0].paid_fee')) }}</span><span v-if="_.get(scope.row.paid_payments, '[0].paid_currency') == 'USD'">${{ returnFloat(_.get(scope.row.paid_payments, '[0].paid_fee')) }}</span></p>
             </template>
             </el-table-column>
             <el-table-column
@@ -95,15 +97,15 @@
             <template slot-scope="scope">
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.modify" @click="setDefault(scope.row)">修改</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.later_pay" @click="addPayment(scope.row)">追加付款</el-button>
-              <el-tooltip placement="top">
+              <!-- <el-tooltip placement="top">
                 <div slot="content">{{ scope.row.number }}<br/>{{ scope.row.number }}</div>
                 <el-button type="text" size="small" v-if="scope.row.marking != 'INIT'" class="phone"><i class="iconfont icon-hebingxingzhuang4"></i></el-button>
-              </el-tooltip>
+              </el-tooltip> -->
               <el-button type="text" size="small" v-if="scope.row.marking == 'INSPECTING'" class="video"><i class="iconfont icon-hebingxingzhuang3"></i></el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.pay" @click="pay(scope.row)">付款</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.close" @click="CloseOrder(scope.row)">关闭</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.refund" @click="Refund(scope.row)">退单</el-button>
-              <el-button type="text" size="small" v-if="scope.row.marking == 'WAIT_INSPECT'" @click="checkRefund()">查看退单</el-button>
+              <el-button type="text" size="small" v-if="scope.row.can && !scope.row.can.refund" @click="checkRefund(scope.row)">查看退单</el-button>
               <el-button type="text" size="small" v-if="scope.row.marking == 'COMPLETED'" @click="checkRport(scope.row)">查看报告</el-button>
               <el-button type="text" size="small" v-if="true" @click="CopyOrder(scope.row)">复制订单</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.delete" @click="DeleteBtn(scope.row)">删除</el-button>
@@ -117,21 +119,21 @@
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
               :current-page="currentPage"
-              :page-sizes="[5, 10, 20, 40]" 
+              :page-sizes="[15]" 
               :page-size="pagesize"         
               layout="total, sizes, prev, pager, next, jumper"
-              :total="AllOrderTableData.length">    
+              :total="total">    
           </el-pagination>
         </div>
         <!-- 待报价  关闭订单Dialog -->
-        <el-dialog title="是否关闭订单" :visible.sync="closeForm.DialogForm" class="closeDialog">
+        <el-dialog title="确定关闭订单?" :visible.sync="closeForm.DialogForm" class="closeDialog">
           <el-form :model="closeForm">
             <el-form-item label="关闭原因:">
-              <el-select v-model="closeForm.region" placeholder="请选择活动区域">
-                <el-option label="不验货了不需要了" value="1"></el-option>
-                <el-option label="产品信息修改/产品数量减少" value="2"></el-option>
-                <el-option label="区域二" value="3"></el-option>
-                <el-option label="区域二" value="4"></el-option>
+              <el-select v-model="closeForm.region" placeholder="请选择原因">
+                <el-option label="不验货了不需要了" value="不验货了不需要了"></el-option>
+                <el-option label="产品信息修改/产品数量减少" value="产品信息修改/产品数量减少"></el-option>
+                <el-option label="区域二" value="区域二"></el-option>
+                <el-option label="区域3" value="区域3"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="备注信息:">
@@ -169,14 +171,14 @@
             </el-dialog>
         </div>
         <!-- 待验货  退单弹窗Dialog -->
-        <el-dialog title="是否退单" :visible.sync="refundForm.DialogForm" class="refundDialog">
+        <el-dialog title="确定退此订单?" :visible.sync="refundForm.DialogForm" class="refundDialog">
           <el-form :model="refundForm">
-            <el-form-item label="关闭原因:">
-              <el-select v-model="refundForm.desc" placeholder="请选择活动区域">
+            <el-form-item label="退单原因:">
+              <el-select v-model="refundForm.region" placeholder="请选择活动区域">
                 <el-option label="不验货了不需要了" value="不验货了不需要了"></el-option>
-                <el-option label="区域二" value="2"></el-option>
-                <el-option label="区域二" value="3"></el-option>
-                <el-option label="区域二" value="4"></el-option>
+                <el-option label="区域二" value="区域二"></el-option>
+                <el-option label="区域3" value="区域3"></el-option>
+                <el-option label="区域4" value="区域4"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="备注信息:">
@@ -185,7 +187,7 @@
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click="refundForm.DialogForm = false">取 消</el-button>
-            <el-button type="primary" @click="ConfirmRefund" :disabled=" refundForm.desc == '' ">确 定</el-button>
+            <el-button type="primary" @click="ConfirmRefund" :disabled=" refundForm.desc == '' || refundForm.region == ''">确 定</el-button>
           </div>
         </el-dialog>
         <!-- 已关闭  删除弹窗Dialog -->
@@ -211,13 +213,30 @@ import { getList,DeleteOrder,CloseOrder,RefundOrder } from "@/api/order";
 export default {
   name: "",
   components: {},
+  watch:{
+    refundForm: {
+      handler(newValue, oldValue) {
+        // console.log('99999999999999')
+        this.refundForm.desc = this.refundForm.region
+      },
+      deep: true
+    },
+    closeForm: {
+      handler(newValue, oldValue) {
+        this.closeForm.desc = this.closeForm.region
+      },
+      deep: true
+    }
+  },
   data() {
     return {
       loading:'',
       fitter: {
         timeStyle: 0,
         time: "",
-        number: ""
+        number: "",
+        product_name:'',
+
       },
       timeStyleList: [
         {
@@ -343,7 +362,9 @@ export default {
 
       //pagination分页列表
       currentPage:1,   //初始页
-      pagesize:17,    //每页的数据
+      pagesize:15,    //每页的数据
+      page:1,        //
+      total:10,       // 
 
       //closeForm关闭弹框-待报价
       closeForm: {
@@ -376,7 +397,11 @@ export default {
     };
   },
   created() {
-    this.getList();
+    if( this.$route.query.tabIndex){
+      this.routerIndex();
+    }else{
+      this.getList();
+    }
   },
   methods: {
     //filterFees
@@ -399,14 +424,17 @@ export default {
         product_name: this.fitter.product_name,
         estimated_first_date:this.fitter.timeStyle== 0?this.fitter.time:'',
         created_at: this.fitter.timeStyle== 0?'':this.fitter.time,
-      }).then(response => {
+      },this.page,this.pagesize).then(response => {
         console.log(response.data)
         if (response.data.code == 0) {
           this.loading = false
           this.AllOrderTableData = response.data.data;
+          // this.AllOrderTableData.products = this.AllOrderTableData.products.reverse()
+          this.total = response.data.meta.total
           console.log(this.AllOrderTableData)
         }
       });
+      console.log(this.fitter.time)
     },
     tableRowClassName({ row, rowIndex }) {
       if (rowIndex === 0) {
@@ -418,9 +446,12 @@ export default {
     },
     // tab切换
     tab(item, index) {
-      this.tablist.forEach((item, index) => {
-        item.isBool = false;
+      this.page = 1
+      this.currentPage = 1
+      this.tablist.forEach((a, index) => {
+        a.isBool = false;
       });
+      console.log(item, index)
       this.num = index;
       item.isBool = true;
       switch (index) {
@@ -448,14 +479,46 @@ export default {
       }
     },
 
+    //更新请求
+    updataGetList(){
+      switch (this.num) {
+              case 0:
+                this.getList();
+                break;
+              case 1:
+                this.getList('WAIT_QUOTE');
+                break;
+              case 2:
+                this.getList('WAIT_PAY');
+                break;
+              case 3:
+                this.getList('WAIT_INSPECT');
+                break;
+              case 4:
+                this.getList('INSPECTING');
+                break;
+              case 5:
+                this.getList('COMPLETED');
+                break;
+              case 6:
+                this.getList('CLOSED');
+                break;
+            }
+    },
+
     // 初始页currentPage、初始每页数据数pagesize和数据data
     handleSizeChange: function (size) {
             this.pagesize = size;
+            this.updataGetList();
             console.log(this.pagesize)  //每页下拉显示数据
+            
     },
     handleCurrentChange: function(currentPage){
+            this.page = currentPage
             this.currentPage = currentPage;
-            console.log(this.currentPage)  //点击第几页
+            console.log('点击第'+this.page+'页')  //点击第几页
+            console.log(this.num+'是当前tab数')
+             this.updataGetList();
     },
 
     // 获取产品名称详情
@@ -468,7 +531,7 @@ export default {
         productsName.push(value.name)
         return productsName;
       })
-      this.QuotedName.TableData = productsName
+      this.QuotedName.TableData = productsName.reverse() //数组倒序
       console.log(_.toString(_.map( row, 'name' )).length )
     },
     // 付款
@@ -483,9 +546,11 @@ export default {
 
     //CloseOrder关闭订单
     CloseOrder(row){
-      this.closeForm.DialogForm = true
+      this.closeForm.DialogForm = true;
       console.log(row.id)
-      this.closeForm.scopeRowId = row.id
+      this.closeForm.scopeRowId = row.id;
+      this.closeForm.region = '';
+      this.closeForm.desc = '';
     },
 
     //setDefault修改订单
@@ -508,8 +573,18 @@ export default {
         remark: this.refundForm.desc,
         orderId: this.refundForm.scopeRowId
       }).then(response => {
-         if( response.data.code = 0 ){
+         if( response.data.code == 0 ){
           console.log("退单成功")
+          this.$message({
+            message: '退单成功',
+            type: 'success'
+          })
+          this.updataGetList()
+        }else if(response.data.code == 1000){
+          this.$message({
+            message: '退单已经申请',
+            type: 'success'
+          })
         }
       })
       this.refundForm.region = ''
@@ -537,9 +612,13 @@ export default {
         remark: this.closeForm.desc,
         orderId: this.closeForm.scopeRowId
        }).then(response => {
-        if( response.data.code = 0 ){
+        if( response.data.code == 0 ){
           console.log("关闭成功")
-          this.getList()
+          this.$message({
+            message: '关闭订单成功',
+            type: 'success'
+          })
+          this.updataGetList()
         }
       })
       this.closeForm.region = ''
@@ -557,19 +636,23 @@ export default {
        DeleteOrder({
         orderId:this.DeleteDialogId
       }).then(response => {
-        if( response.data.code = 0 ){
+        if( response.data.code == 0 ){
           console.log("删除成功")
-          this.getList()
+          this.$message({
+            message: '删除订单成功',
+            type:'success'
+          })
+          this.updataGetList()
         }
       });
     },
     //checkRport查看报告
     checkRport(row){
-      this.$router.push({ path: '/reportManagement/inspectionReport', query:{ orderId: row.id}})
-      // console.log(this.returnFloat(321.019))
+      this.$router.push({ path: '/reportManagement', query:{ orderId: row}})
+      // console.log(row)
     },
 
-    //数据处理returnFloat
+    //金额数据处理returnFloat
     returnFloat(value){
       var value=Math.round(parseFloat(value)*100)/100;
       var xsd=value.toString().split(".");
@@ -591,6 +674,28 @@ export default {
       this.$router.push({path: 'pay', query: {order:row.id}})
     },
 
+    //routerIndex路由跳转进来
+    routerIndex(){
+      if( this.$route.query.tabIndex){
+        this.tab( this.tablist[this.$route.query.tabIndex], this.$route.query.tabIndex)
+        console.log(this.$route.query.tabIndex+'aaaaaaaaaaaaaaaaaaaaaaaaaa')
+      }
+    },
+
+    returnFloat(value){      //处理金额数据
+        var value=Math.round(parseFloat(value)*100)/100;
+        var xsd=value.toString().split(".");
+        if(xsd.length==1){
+            value=value.toString()+".00";
+            return value;
+        }
+        if(xsd.length>1){
+            if(xsd[1].length<2){
+                value=value.toString()+"0";
+            }
+        return value;
+        }
+    },
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -601,7 +706,6 @@ export default {
 .examine-good-title{
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
-
 .el-dialog__header {
   padding: 50px 20px 10px;
 }
@@ -675,11 +779,14 @@ export default {
   //examine-table全部订单列表
   .examine-table{
     // width:1540px;
-    height:1140px;
+    // height:1140px;
     background:rgba(255,255,255,1);
     border-radius:4px;
     border:1px solid rgba(230,234,238,1);
     //el-table
+    .el-table tr{
+      background:rgba(255,255,255,1);
+    }
     .el-table th{
       padding:0;
       height:60px;
@@ -722,7 +829,7 @@ export default {
       color:rgba(80,104,140,1);
     }
     .el-table td:nth-child(4) div .el-button--text:nth-child(1){
-      width:124px;
+      width:97px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1031,6 +1138,112 @@ export default {
     }
   }
 
+  //examine-pagination 分页效果
+  .examine-pagination{
+    //pagination
+    .el-pagination{
+        margin-top:24px;
+    }
+    .el-pagination__total{
+        width:88px;
+        height:36px;
+        border:1px solid #CED0DA;
+        border-radius:4px;
+        text-align:center;
+        line-height:36px;
+        color:#7F8FA4;
+        font-size:14px;
+        margin-left:314px;
+    }
+    .el-pagination .el-select .el-input .el-input__inner{
+        height:36px;
+        background:#F3F6F9;
+    }
+    .el-pagination .btn-prev{
+        width:36px;
+        height:36px;
+        border:1px solid #CED0DA;
+        border-radius:4px;
+        padding:0;
+        margin-right:15px;
+        background:#F3F6F9; 
+    }
+    .el-pagination .btn-next{
+        width:36px;
+        height:36px;
+        border:1px solid #CED0DA;
+        border-radius:4px;
+        padding:0;
+        margin-left:15px;
+        background:#F3F6F9;
+    }
+    .el-pager li{
+        width:36px;
+        height:36px;
+        border:1px solid #CED0DA;
+        border-radius:4px;
+        padding:0;
+        line-height:36px;
+        text-align:center;
+        margin-right:10px;
+        color:#7F8FA4;
+        background:#F3F6F9;
+    }
+    .el-pager li:last-child{
+        margin-right:0;
+    }
+    .el-pager li.active{
+        background:#158BE4;
+        color:#fff;
+        border:none;
+    }
+    // .el-pagination__jump{
+    //     width:110px;
+    //     height:36px;
+    //     border:1px solid #CED0DA;
+    //     line-height:36px;
+    //     padding-left:14px;
+    //     background:#158BE4;
+    //     border-radius:4px;
+    //     color:#fff;
+    //     margin-left:15px;
+    //     overflow: hidden;
+    //     cursor: pointer;
+    // }
+    // .el-pagination__editor.el-input{
+    //     float:right;
+    //     height:36px;
+    //     margin:0;
+    //     padding:0;
+    //     background:#F3F6F9;
+    // }
+    .el-pagination__editor.el-input .el-input__inner{
+        // border:none;
+        height:35px;
+        line-height:35px;
+        text-align:center;
+        border-radius:4px;
+        padding:0;
+        background:#F3F6F9;
+        border-bottom:1px solid #CED0DA;
+    }
+    // .el-pagination__jump:focus{
+    //     background:#158BE4;
+    //     border:1px solid #158BE4;
+    //     color:#fff;
+    // }
+  }
+
+  //查询条件
+  .el-range-editor--medium.el-input__inner{
+    vertical-align: baseline;
+  }
+  .el-range-editor--medium .el-range-input{
+    cursor:pointer;
+  }
+  .el-date-editor .el-range-separator{
+    padding:0;
+  }
 }
 </style>
 
@@ -1070,7 +1283,11 @@ export default {
       border-bottom: 1px solid #e6eaee;
       padding: 19px 0 0 32px;
       height:74px;
+      // .el-date-editor .el-range-separator{
+      //   padding:0 !important;
+      // }
     }
+   
     .tabs-top {
       background-color: #ffffff;
       height: 60px;
@@ -1125,6 +1342,7 @@ export default {
         }
       }
     }
+    
   }
 }
 </style>

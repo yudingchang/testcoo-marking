@@ -87,6 +87,15 @@ export function setSupplyDefault(data) {
     method: 'patch'
   })
 }
+
+//获取默认供应商信息
+export function getSupplyDefault(data) {
+  return request({
+    url: data.url,
+    method: 'get'
+  })
+}
+
 //删除电子邮箱
 export function removeSupply(data) {
   return request({
@@ -160,7 +169,7 @@ export function removeaddress(data) {
 //保存企业信息
 export function saveCompanyInformation(data) {
   return request({
-    url: '/v1/personal',
+    url: '/v1/user/companyinformation/update',
     method: 'post',
     data
   })
@@ -169,7 +178,7 @@ export function saveCompanyInformation(data) {
 // 获取企业信息
 export function getCompanyInformation(data) {
   return request({
-    url: '/v1/personal',
+    url: '/v1/user/companyinformation',
     method: 'get',
     params: data
   })
@@ -179,7 +188,7 @@ export function getCompanyInformation(data) {
 // 获取账户信息
 export function getAccountInformation(data) {
   return request({
-    url: '/v1/personal',
+    url: '/v1/user',
     method: 'get',
     params: data
   })

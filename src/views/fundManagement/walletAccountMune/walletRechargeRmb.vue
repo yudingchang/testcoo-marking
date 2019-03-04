@@ -15,24 +15,28 @@
                             <span>元</span>
                         </el-form-item>
                     </el-form>
-                    <div class="payment">
+                    <div class="payAmount">
+                        <p>应付金额</p>
+                        <p>￥{{ numberValidateForm.AccountInput?returnFloat(numberValidateForm.AccountInput):'0.00' }}</p>
+                    </div>
+                    <div class="payment clearfix">
                         <p>付款方式</p>
-                        <div class="paymentAll">
+                        <div class="paymentAll content">
                         <!-- 引入组件CHN -->
-                        <pay-ment-chn @receiveDateChn="paymentWayChn" v-bind:payment="RechargeData.id"></pay-ment-chn>
+                        <pay-ment-chn @receiveDateChn="paymentWayChn" :payment="paymentProp"></pay-ment-chn>
                         </div>
                     </div>
                     <!-- 点击提交 -->
                     <div class="pay-rmb-submit">
-                        <el-button type="text" @click="confirmSubmit('numberValidateForm')">确定付款</el-button>
+                        <el-button type="text" :disabled="paymentTypeId == ''" @click="confirmSubmit('numberValidateForm')">确定付款</el-button>
                         <el-dialog
                         :visible.sync="centerDialogVisible"
                         width="30%"
                         center>
                         <p class="su-payment" v-on:receiveDateUsa="paymentWayChn($event)">你正在使用{{detailPayWayInMessage}}付款</p>
-                        <p class="su-payaccount">充值金额￥{{numberValidateForm.AccountInput == ''?ConfirmCount :  numberValidateForm.AccountInput}}</p>
+                        <p class="su-payaccount">充值金额￥{{returnFloat(numberValidateForm.AccountInput)}}</p>
                         <span slot="footer" class="dialog-footer">
-                            <el-button type="primary" @click="finalConfirmCount">确定</el-button>
+                            <el-button type="primary" @click="JudgePayIsSuccess">确定</el-button>
                             <el-button @click="centerDialogVisible = false">切换付款方式</el-button>
                         </span>
                         </el-dialog>
@@ -46,6 +50,7 @@
 <script>
 import payMentChn from '../../common/paymentCHN.vue'
 import { recharge,rechargeProps,rechargeSuccess } from '@/api/walletDetail'
+let newTab;
 export default {
     name: 'walletRechargeRmb',
     components: { payMentChn },
@@ -68,6 +73,8 @@ export default {
                 
             };
         return {
+            paymentProp:'',
+            
             //人民币充值金额
             RechargeRmb: [
                 {
@@ -110,6 +117,12 @@ export default {
 
             //页面进入收取数据
             RechargeData: [],
+
+            //选择支付方式
+            paymentTypeId: '',
+
+            //payurl
+            payurl : ''
         }
     },
     created(){
@@ -120,54 +133,103 @@ export default {
     methods: {
         //点击添加样式
         addBgcolor(item) {
+            
+            this.$nextTick( ()=> {
+                this.$refs.numberValidateForm.clearValidate(); //移除校验结果并重置字段值
+            })
             for(let i=0;i<this.RechargeRmb.length;i++){
                 this.RechargeRmb[i].show=false
             }
             item.show=!item.show
+            this.numberValidateForm.AccountInput = item.count
             this.ConfirmCount = item.count
+            console.log(this.numberValidateForm.AccountInput)
+            console.log(item)
         },
 
         // 提交传递数据CHN
         paymentWayChn(evl){
+
             if(evl=="1"){
-                this.detailPayWayInMessage="银联";
-            }else if(evl=="2"){
                 this.detailPayWayInMessage="支付宝";
+            }else if(evl=="2"){
+                this.detailPayWayInMessage="银联";
             }else if(evl=="3"){
                 this.detailPayWayInMessage="测库月结";
             }else if(evl=="4"){
                 this.detailPayWayInMessage="钱包";
             }
-            
+            this.paymentTypeId = evl
             console.log(evl)
         },
 
         //点击确定付款
         confirmSubmit(formName){
-             if( this.numberValidateForm.AccountInput == '' ){  //判断有没有选择输入 金额
-                    this.centerDialogVisible = true
-                    console.log( this.numberValidateForm.AccountInput )
-                }else {
+            //  if( this.numberValidateForm.AccountInput == '' ){  //判断有没有选择输入 金额
+            //         // this.centerDialogVisible = true
+            //         this.finalConfirmCount()
+            //         console.log( this.numberValidateForm.AccountInput )
+            //     }else {
                     console.log( '11111111111111' )
                      this.$refs[formName].validate((valid) => {
                         if ( valid ) {
                             console.log(" 格式验证通过，可以进入确认弹框 ")
-                            this.centerDialogVisible = true  //
+                            this.centerDialogVisible = true
+                            this.finalConfirmCount()
                         } else {
                             console.log('error submit!! ');
                             return false;
                         }
                     });
-                }
+                // }
         },
 
         //弹框最终确认信息
         finalConfirmCount(){
-            this.RechargeParams('/'+this.RechargeData.payment_id+'/1',{
-                price: this.numberValidateForm.AccountInput == ''?this.ConfirmCount : this.numberValidateForm.AccountInput
+            if( this.paymentTypeId == 1){
+                newTab = window.open();
+            }
+            this.RechargeParams('/'+this.RechargeData.payment_id+'/'+this.paymentTypeId,{
+                price: this.numberValidateForm.AccountInput
             })
         },
 
+
+         //充值金额，付款方式参数值
+        RechargeParams(val1,val2){
+            rechargeProps(val1,val2).then( response => {
+                if( response.data.code == 0 ){
+                    //进入这个判断说明支付成功，请求url地址
+                    this.payurl = response.data.data.url.split('api/')[1].toString()
+                    console.log(response)
+                    this.RwchargeSuccessRes();
+
+                }
+            } )
+        },
+
+        //请求url地址
+        RwchargeSuccessRes(){
+            console.log('进入请求地址')
+            console.log(this.payurl)
+            rechargeSuccess({ url:this.payurl }).then( response => {
+                    console.log("支付成功1")
+                if( this.paymentTypeId == 1 ){
+                    console.log(response)
+                    // this.$router.push({ path: 'walletAccountIndex' })
+                    const div = document.createElement('div');
+                    div.innerHTML = response.data; // html code
+                    newTab.document.body.appendChild(div);
+                    newTab.document.forms.alipaysubmit.submit()
+                }
+            })
+        },
+
+        // JudgePayIsSuccess
+        JudgePayIsSuccess(){
+            
+        },
+        
         //获取数据,传递参数（充值金额，付款方式）
         getRechargeData(val){
             console.log(" 创建函数success ")
@@ -175,32 +237,27 @@ export default {
                 if( response.data.code == 0 ){
                     console.log(" 充值界面进入success ")
                     this.RechargeData = response.data.data
+                    this.paymentProp = response.data.data.select.CNY
                     console.log(this.RechargeData)
                 }
             })
         },
 
-         //充值金额，付款方式参数值
-        RechargeParams(val1,val2){
-            rechargeProps(val1,val2).then( response => {
-                if( response.data.code == 0 ){
-                    //进入这个判断说明支付成功，请求url地址
-                    this.RwchargeSuccessRes(response.data.data.url)
-                    console.log('参数传递成功')
-                    this.centerDialogVisible = false
+        //金额数据处理returnFloat
+        returnFloat(value){
+            var value=Math.round(parseFloat(value)*100)/100;
+            var xsd=value.toString().split(".");
+            if(xsd.length==1){
+                value=value.toString()+".00";
+                return value;
+            }
+            if(xsd.length>1){
+                if(xsd[1].length<2){
+                    value=value.toString()+"0";
                 }
-            } )
+                return value;
+            }
         },
-
-        //请求url地址
-        RwchargeSuccessRes(val){
-            rechargeSuccess(val).then( response => {
-                if( response.data.code == 0 ){
-                    console.log("支付成功")
-                    this.$router.push({ path: 'walletAccountIndex' })
-                }
-            })
-        }
     }
 
 }
@@ -292,11 +349,31 @@ export default {
                 top:13px;
             }
         }
+        .payAmount{
+            overflow: hidden;
+            p{
+                float:left;
+            }
+            p:nth-child(1){
+                height:64px;
+                line-height: 64px;
+                font-size:14px;
+                color:#7F8FA4;
+                margin:0 26px 0 0;
+            }
+            p:nth-child(2){
+                height:64px;
+                line-height: 64px;
+                font-size:24px;
+                color:#158be4;
+                font-weight:600; 
+            }
+        }
         //payment
         .payment{
-            height:400px;
+            // height:400px;
             margin-bottom:24px;
-            margin-top:40px;
+            margin-top:20px;
             p{
                 height:80px;
                 color:#7F8FA4;
@@ -308,7 +385,7 @@ export default {
             }
             .paymentAll{
                 float:left;
-                height:400px;
+                // height:400px;
                 width:660px;
             }
 

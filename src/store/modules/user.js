@@ -46,8 +46,8 @@ const user = {
     SET_EMAIL: (state, email) => {
       state.email = email
     },
-    SET_PHONENUMBER: (state, phonenumber) => {
-      state.phonenumber = phonenumber
+    SET_PHONENUMBER: (state, phone_number) => {
+      state.phone_number = phone_number
     },
     SET_PAYPASSWORD: (state, is_paypassword) => {
       state.is_paypassword = is_paypassword
@@ -82,6 +82,11 @@ const user = {
         }).catch(error => {
           console.log('error')
           reject(error)
+          // this.$notify.error({
+          //   title: '错误',
+          //   message: '账号或者密码不匹配',
+          //   position: 'bottom-right'
+          // })
         })
       })
     },
@@ -107,6 +112,7 @@ const user = {
           commit('SET_PAYPASSWORD', data.is_paypassword)
           commit('SET_AVATAR', data.avatar)
           commit('SET_INTRODUCTION', data.introduction)
+          // commit('SET_COMPANY', data.company)
           resolve(response)
         }).catch(error => {
           reject(error)

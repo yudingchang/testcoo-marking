@@ -1,11 +1,11 @@
 <template>
-  <div class="controlboard">
+  <div class="controlboard" v-loading="loading">
     <el-row>
       <el-col :span="24">
-         <div class="product-information">
+        <!-- 产品信息 -->
+        <div class="product-information">
           <!-- {{editableTabs2}} -->
           <p>产品信息</p>
-          
           <div>
             <el-button
               size="small"
@@ -22,7 +22,7 @@
                 <div class="content">
                   <el-form ref="item" :model="item" :rules="productrules" label-width="100px" class="demo-ruleForm">
                     <el-form-item label="产品名称" prop="name">
-                      <el-input v-model="item.name" placeholder="请输入产品名称" style="width:500px;"/>
+                      <el-input v-model="item.name" maxlength="30" placeholder="请输入产品名称" style="width:500px;"/>
                       <div class="delete" @click="removeTabIcon(index)" v-if="editableTabs2.length == 1?false:editableTabs2.length == index+1">
                         <i class="iconfont icon-shanchu_"></i>
                         <p>删除</p>
@@ -33,19 +33,27 @@
                       </div>
                     </el-form-item>
                     <el-form-item label="产品货号">
-                      <el-input v-model="item.number" placeholder="请输入产品货号" style="width:500px;"/>
+                      <el-input v-model="item.number" maxlength="20" placeholder="请输入产品货号" style="width:500px;"/>
                     </el-form-item>
+                    <!-- <el-form-item v-for="(val,i) in item.PO" :key="i" label="P.O号" :rules="productrules.PONumber" :prop="`PO.${i}.number`"> -->
                     <el-form-item v-for="(val,i) in item.PO" :key="i" label="P.O号">
-                      <el-input v-model="val.number" placeholder="请输入P.O号" style="width:155px;"/>
-                      <el-input v-model="val.quantity" placeholder="请输入数量" class="input-with-select" style="width:240px;">
+                      <el-input v-model="val.number" maxlength="20" placeholder="请输入P.O号" style="width:155px;"/>
+                      <el-input v-model="val.quantity" maxlength="10" placeholder="请输入数量" class="input-with-select" style="width:240px;">
                         <el-select slot="append" v-model="val.unit" style="width:100px" placeholder="请选择">
-                          <el-option label="件" value="1"/>
-                          <el-option label="个" value="2"/>
-                          <el-option label="条" value="3"/>
+                          <el-option
+                            v-for="item in val.unitValue"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                          </el-option>
                         </el-select>
                       </el-input>
                       <el-button type="success" icon="el-icon-plus" @click="addPO(val,index)"> P.O 号</el-button>
                       <el-button v-if="i>0" type="danger" icon="el-icon-minus" @click="removePO(val,index,i)"> P.O 号</el-button>
+                      <el-tooltip v-if="i == 0" class="item" effect="dark" placement="right" style="cursor:pointer;">
+                        <div slot="content"><span>P.O号为采购订单号码，如果一个产品货号有多个P.O号,<br/>请按每个P.O号分别列出对应P.O号的产品数量,您可以点<br/>击“+”,增加一个P.O号以及数量<br/>注意! 单个产品下的P.O号不能重复,否则影响下单</span></div>
+                        <i class="el-icon-question icon-answer"/>
+                      </el-tooltip>
                     </el-form-item>
                   </el-form>
                 </div>
@@ -54,65 +62,73 @@
             </el-tabs>
           </div>
         </div>
+        <!-- 供应商信息 -->
         <div class="supplier-information">
           <p>供应商信息</p>
-          <el-form ref="supplyform" :inline="true" :model="supplyform" :rules="supplyrules" label-width="120px" class="demo-ruleForm">
-            <el-form-item label="供应商名称" prop="name">
+          <el-form ref="supplyform" status-icon :inline="true" :model="supplyform" :rules="supplyrules" label-width="93px" class="demo-ruleForm">
+            <el-form-item label="供应商名称" prop="supplier_name" maxlength="20">
               <el-select
-                v-model="supplyform.name"
+                class="supplier_name"
+                v-model="supplyform.supplier_name"
                 filterable
                 allow-create
                 default-first-option
-                placeholder="请选择供应商名称"
-                style="width:565px;" @change="getOtherMessage()">
+                placeholder="请输入供应商名称"
+                style="width:428px;cursor:text;"
+                @change="getOtherMessage()">
                 <el-option
                   v-for="item in supplyNameList"
                   :key="item.value"
                   :label="item.label"
-                  :value="item.value"/>
+                  :value="item.label"/>
               </el-select>
             </el-form-item>
             <br>
-            <el-form-item label="联系人姓" prop="last_name">
-              <el-input v-model="supplyform.last_name" placeholder="请输入联系人姓" style="width:250px;"/>
+            <el-form-item label="联系人姓" prop="first_name">
+              <el-input v-model="supplyform.first_name" placeholder="请输入联系人姓" style="width:163px;" maxlength="20"/>
             </el-form-item>
-            <el-form-item label="名" prop="first_name" label-width="50px">
-              <el-input v-model="supplyform.first_name" placeholder="请输入联系人名" style="width:250px;"/>
+            <el-form-item label="名" prop="last_name" label-width="50px">
+              <el-input v-model="supplyform.last_name" placeholder="请输入联系人名" style="width:163px;" maxlength="20"/>
             </el-form-item>
             <br>
-            <el-form-item label="手机号码" prop="phone_number">
-              <el-input v-model="supplyform.phone_number" placeholder="请输入手机号码" class="input-with-select" style="width:565px;">
-                <el-select slot="prepend" v-model="supplyform.phone_code" placeholder="请选择" style="width:150px;">
-                  <el-option label="餐厅名" value="1"/>
-                  <el-option label="订单号" value="2"/>
-                  <el-option label="用户电话" value="3"/>
+            <el-form-item label="手机号码" prop="telephone">
+              <el-input v-model="supplyform.telephone" placeholder="请输入手机号码" class="input-with-select" style="width:428px;">
+                <el-select slot="prepend" v-model="supplyform.telephone_code" placeholder="请选择" style="width:150px;">
+                  <el-option
+                    v-for="item in phone_codeConfig"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                  </el-option>
                 </el-select>
               </el-input>
             </el-form-item>
             <br>
             <el-form-item label="电子邮箱" prop="email">
-              <el-input v-model="supplyform.email" placeholder="请输入电子邮箱" style="width:565px;"/>
+              <el-input v-model="supplyform.email" placeholder="请输入电子邮箱" style="width:428px;" />
             </el-form-item>
             <br>
-            <!-- <el-form-item label="验货地址">
-              <el-select v-model="supplyform.addresses" placeholder="请选择" style="width:565px;">
-                <el-option
-                    v-for="item in options"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
-                  </el-option>
-              </el-select>
-            </el-form-item> -->
-            <!-- <br> -->
+            <el-form-item label="验货地址">
+              <el-cascader
+                expand-trigger="hover"
+                :options="optionsProvinces"
+                :props="{label:'chinese_name',value:'id',children:'children_simple'}"
+                v-model="supplyform.address"
+                @change="handleChange"
+                style="width:428px;"
+                >
+              </el-cascader>
+            </el-form-item>
+            <br>
             <el-form-item label="详细地址" prop="addresses">
-              <el-input v-model="supplyform.addresses" type="textarea" placeholder="请输入详细地址" style="width:565px;"/>
+              <el-input v-model="supplyform.address_detail" type="textarea" placeholder="请输入详细地址" style="width:428px;"/>
             </el-form-item>
           </el-form>
         </div>
+        <!-- 验货基本信息 -->
         <div class="inspection-information">
           <p>验货基本信息</p>
-          <el-form ref="examineform" :model="examineform" :rules="examinerules" label-width="120px" class="demo-ruleForm">
+          <el-form ref="examineform" :model="examineform" :rules="examinerules" label-width="107px" class="demo-ruleForm">
             <el-form-item label="报告语言" prop="report_locale">
               <!-- <el-input style="width:565px;" placeholder="请输入供应商名称"></el-input> -->
               <el-radio-group v-model="examineform.report_locale">
@@ -164,13 +180,13 @@
             <el-form-item v-if="examineform.sample_type==2" label="" label-width="120px">
               <el-form style="width:600px;padding:16px 20px;background-color:#ffffff;">
                 <el-form-item label="测库收件人:" label-width="100px">
-                  <span>小李子</span>
+                  <span>蓝边儿</span>
                 </el-form-item>
                 <el-form-item label="联系电话:" label-width="100px">
-                  <span>小李子</span>
+                  <span>+86 571 85787282</span>
                 </el-form-item>
                 <el-form-item label="地址:" label-width="100px">
-                  <span>小李子</span>
+                  <span>浙江省杭州市萧山区钱江世纪城皓月路159号诺德财富中心A座801</span>
                 </el-form-item>
               </el-form>
 
@@ -183,7 +199,7 @@
                   :label="item.email"
                   :value="item.email"/>
               </el-select>
-              <el-button type="success" icon="el-icon-plus" @click="emailDialogVisible=true">添加</el-button>
+              <el-button type="success" icon="el-icon-plus" @click="addReportEmail">添加</el-button>
             </el-form-item>
             <el-form-item label="预计验货时间" prop="estimated_dates">
               <el-date-picker
@@ -194,12 +210,13 @@
             </el-form-item>
           </el-form>
         </div>
+        <!-- 其他要求 -->
         <div class="other-requirement" >
           <p>其他要求</p>
           <el-form label-width="100px">
             <el-form-item label="要求内容" prop="name">
               <el-input type="textarea" style="width:565px;" placeholder="请输入与验货相关的要求" v-model="requirementText"  maxlength="200"/>
-              <span class="countLimmit">{{requirementText.length}}/200</span>
+              <span class="countLimmit" v-if="requirementText">{{requirementText.length}}/200</span>
             </el-form-item>
             <el-form-item label="上传附件" prop="name">
               <upLoad :files="data.files"/>
@@ -231,11 +248,12 @@
               </el-button>
           </el-form-item> -->
         </div>
-        <div class="uploadLimit"><p>只支持上传PDF、Word、Excel、Jpg、jpeg格式,单个附件小于30M</p></div>
+        <!-- 上传格式要求 -->
+        <div class="uploadLimit"><p>只支持上传xls、xlsx、doc、docx 、ppt、pptx、jpg、jpeg、pdf格式,单个附件小于30M</p></div>
         <!-- 下单 -->
         <div class="orderPlace" v-if="!this.$route.query.orderSet">
-          <p><el-checkbox v-model="proptocolAgree">我已阅读并同意</el-checkbox><span class="place">《验货协议》</span></p>
-          <el-button type="primary" :disabled="!proptocolAgree" @click="order()">下单</el-button>
+          <p><el-checkbox v-model="proptocolAgree">我已阅读并同意</el-checkbox><span class="place" @click="checkInspection">《验货协议》</span></p>
+          <el-button type="primary" :disabled="!proptocolAgree" @click="placeOrder()">下单</el-button>
         </div>
         <!-- 保存修改订单 -->
         <div class="confirmOrder" v-if="this.$route.query.orderSet">
@@ -256,15 +274,15 @@
             </el-form-item>
             <br>
             <el-form-item :label-width="labelwidth" label="姓:" prop="last_name">
-              <el-input v-model="emailform.last_name" style="width:120px;" placeholder="请输入姓"/>
+              <el-input v-model="emailform.first_name" style="width:120px;" placeholder="请输入姓"/>
             </el-form-item>
             <el-form-item label="名:" prop="first_name" label-width="72px">
-              <el-input v-model="emailform.first_name" style="width:120px;" placeholder="请输入名"/>
+              <el-input v-model="emailform.last_name" style="width:120px;" placeholder="请输入名"/>
             </el-form-item>
             <br>
           </el-form>
           <span slot="footer" class="dialog-footer">
-            <el-button class="cancle" @click="emailDialogVisible = false">取 消</el-button>
+            <el-button class="cancle" @click.native="emailDefault">取 消</el-button>
             <el-button class="submit" @click.native="emailsubmit()">确 定</el-button>
           </span>
         </el-dialog>
@@ -274,16 +292,53 @@
 </template>
 
 <script>
-import { addEmail, getdata } from '@/api/accountManagement'
-import {order , getOtherMessage, orderId, orderRevise} from '@/api/order'
-import upLoad from '@/components/Upload'
+import { addEmail, getdata,getSupplydata,addSupply } from '@/api/accountManagement'
+import {order , getOtherMessage, orderId, orderRevise, productDelete} from '@/api/order'
+import { fetchList,fetchCounty } from '@/api/fetch';
+import upLoad from '@/components/Upload';
+import { mapGetters } from 'vuex';
+import store from '../../store/';
 export default {
-  name: 'controlboard',
+  name: 'index',
   components: {
     upLoad
   },
   data() {
+    // PO号唯一
+    const validateUniquePONumber = (rule, value, callback) => {
+    const productIndex = rule.field.split('.')[1]
+    console.log(rule)
+    console.log(value)
+    const items = _.get(this.editableTabs2, `[0]PO.${productIndex}.number`)
+    console.log(items)
+    if (this._.filter(items, item => {
+      console.log(item.number)
+      return item.number == value
+      }).length === 1) {
+        callback()
+      } else {
+        callback(new Error)
+      }
+    };
+
+    var checkEmail = (rule, value, callback) => {
+        if (!value) {
+          return callback(new Error('电子邮箱不能为空'));
+        }
+        setTimeout(() => {
+          var regEmail = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+          if (!regEmail.test(value)) {
+            callback(new Error('电子邮箱格式不正确'));
+          }else{
+            callback();
+          } 
+        }, 100);
+      };
     return {
+      loading:false,
+
+      //phone_codeConfig
+      phone_codeConfig:'',
       editableTabsValue2: 'tab1',
       labelwidth: '100px',
       checked: '',
@@ -295,10 +350,7 @@ export default {
         files: []
       },
       emailList: [],
-      supplyNameList: [{
-        value: '1',
-        label: '支付宝'
-      }],
+      supplyNameList: [],
       value10: [],
       editableTabs2: [
         {
@@ -309,7 +361,8 @@ export default {
             {
               number: '',
               quantity: '',
-              unit: ''
+              unit:'',
+              unitValue: []
             }
           ]
         }
@@ -317,10 +370,11 @@ export default {
       productrules: {
         name: [{
           required: true, message: '请输入产品名称', trigger: 'blur'
-        }]
+        }],
+        PONumber: [{ validator: validateUniquePONumber , message:'PO号不能重复', trigger: 'blur' }]
       },
       supplyrules: {
-        name: [{
+        supplier_name: [{
           required: true, message: '请输入供应商名称', trigger: 'blur'
         }],
         first_name: [{
@@ -329,13 +383,15 @@ export default {
         last_name: [{
           required: true, message: '请输入联系人姓', trigger: 'blur'
         }],
-        phone_number: [{
+        telephone: [{
           required: true, message: '请输入联系人手机号', trigger: 'blur'
         }],
-        email: [{
-          required: true, message: '请输入电子邮箱', trigger: 'blur'
-        }]
+        // phone_code: [{
+        //    required: true, message: '请选择手机号码区号', trigger: 'blur'
+        // }],
+        email: [{ validator: checkEmail, trigger: 'blur' ,required: true}]
       },
+      optionsProvinces:[],
       examinerules: {
         report_locale: [{
           required: true, message: '请输入报告语言', trigger: 'blur'
@@ -362,17 +418,22 @@ export default {
         }]
       },
       supplyform: {
-        name:'',
+        supplier_name:'',
         first_name:'',
         last_name:'',
-        phone_number:'',
-        email:''
+        telephone:'',
+        email:'',
+        telephone_code:'',
+        address: [],
+        address_detail:''
       },
       examineform: {
         report_locale: 'en',
         reports_number: '',
         inspection_type: '3',
-        sample_type: '0'
+        sample_type: '0',
+        accept_report_emails:'',
+        estimated_dates:[]
       },
       tabIndex: 1,
       gender: '',
@@ -402,6 +463,11 @@ export default {
       //requirementText要求内容
       requirementText: '',
 
+      //is_exist是否存在
+      is_exist : false,
+
+      
+
     }
   },
   computed: {
@@ -423,15 +489,23 @@ export default {
   created() {
     this.getEmailList()
     this.getOrderIdData('/'+this.$route.query.orderId)
+    this.getSupplyNameList()
+    this.ConfigUnit()
+    this.getFetchProvinces(7)  //获取中国省市区
   },
   mounted() {
     // console.log(this.$route.fullPath)
   },
+  computed:{
+    ...mapGetters([
+      'configs'
+    ])
+  },
   methods: {
     copy(item, index) {
       const newTabName = 'tab' + ++this.tabIndex + ''
-      console.log(newTabName)
-      this.editableTabs2.push(item)
+      console.log(item)
+      this.editableTabs2.push(_.cloneDeep(item))
       this.editableTabsValue2 = newTabName
     },
     addTab(targetName) {
@@ -446,12 +520,12 @@ export default {
             {
               number: '',
               quantity: '',
-              unit: ''
+              unit: '',
+              unitValue:this.configs.unit
             }
           ]
         },
       )
-
       this.$nextTick(() => {
         this.editableTabsValue2 = 'tab' + (this.editableTabs2.length)
       })
@@ -459,26 +533,65 @@ export default {
     //removeTab通过tabs的删除tabs产品
     removeTab(index) {
       console.log(index)
+      if( this.$route.query.orderId ){
+        this.tabIndex = this.editableTabs2.length
+        productDelete( this.editableTabs2[index.replace('tab', '') - 1] ).then( response => {
+          if( response.data.code == 0 ){
+            this.$message({
+              message: '删除产品成功了',
+              type: 'success'
+            })
+          }
+        })
+      }
       this.editableTabs2.splice((index.replace('tab', '') - 1), 1)
+      console.log(this.editableTabs2)
       this.editableTabsValue2 = 'tab' + --this.tabIndex
     },
     //removeTabIcon通过Iconfont删除tabs产品
     removeTabIcon(index) {
       console.log(index)
+      if( this.$route.query.orderId ){
+        this.tabIndex = this.editableTabs2.length
+        productDelete( this.editableTabs2[index] ).then( response => {
+          if( response.data.code == 0 ){
+            this.$message('删除产品成功了')
+          }
+        })
+      }
       this.editableTabs2.splice( index, 1 )
+      console.log(this.editableTabs2)
       this.editableTabsValue2 = 'tab' + --this.tabIndex
     },
+
+    //
+    // handleTabsEdit(targetName) {
+    //       let tabs = this.editableTabs;
+    //       let activeName = this.editableTabsValue;
+    //       if (activeName === targetName) {
+    //         tabs.forEach((tab, index) => {
+    //           if (tab.name === targetName) {
+    //             let nextTab = tabs[index + 1] || tabs[index - 1];
+    //             if (nextTab) {
+    //               activeName = nextTab.name;
+    //             }
+    //           }
+    //         });
+    //       }
+    //       this.editableTabsValue = activeName;
+    //       this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+    //   },
+    //
     addPO(val, index) {
       this.editableTabs2[index].PO.push({
         number: '',
         quantity: '',
-        unit: ''
+        unit: '',
+        unitValue:this.configs.unit
       })
     },
     removePO(val, index, i) {
-      this.editableTabs2[index].PO.splice(
-        i, 1
-      )
+      this.editableTabs2[index].PO.splice(i, 1)
     },
     emailsubmit() {
       this.$refs['emailform'].validate((valid) => {
@@ -488,11 +601,28 @@ export default {
           }).then(response => {
             if (response.data.code == 0) {
               this.emailDialogVisible = false
+              this.$message({
+                message: '报告接收邮箱添加成功',
+                type: 'success'
+              })
               this.getEmailList()
+              this.emailform= {
+                email: '',
+                first_name: '',
+                last_name: ''
+              }
             }
           })
         }
       })
+    },
+    emailDefault(){
+      this.emailDialogVisible = false
+      this.emailform = {
+        email: '',
+        first_name: '',
+        last_name: ''
+      }
     },
     // 获取电子邮箱列表
     getEmailList() {
@@ -503,30 +633,134 @@ export default {
         }
       })
     },
-    // 根据供应商名称获取其他信息
-    getOtherMessage() {
-      getOtherMessage({
-        "url": "/v1/supplier/name/" + this.supplyform.name,
-      }).then(response => {
-        if (response.data.code == 0) {
-          this.supplyform = response.data.data.list
-        }else{
-          // this.supplyform = {}
+    //获取供应商name列表
+    getSupplyNameList(){
+      let _this=this
+      getSupplydata().then( response => {
+        if( response.data.code == 0){
+          // this.supplyNameList = response.data.data.list
+          // console.log(response.data.data.list)
+          _.forEach(response.data.data.list,function(item,index){
+            console.log(index)
+            var NameList = {
+              label:item.supplier_name,
+              value:index+1
+            }
+           _this.supplyNameList.push(NameList)
+            console.log( _this.supplyNameList)
+           
+          })
+        
         }
       })
     },
+    
+    //addReportEmail
+    addReportEmail(){
+      this.emailDialogVisible = true
+      this.$nextTick( ()=>{
+        this.$refs.emailform.clearValidate()
+      })
+    },
+
+    //getFetchCounty获取省市区
+    getFetchProvinces(val){
+      fetchCounty({ pid: val }).then( response => {
+        this.$nextTick(function() {
+          // this.locationOptions = response.data.data
+          console.log(response.data.data)
+          this.optionsProvinces = response.data.data
+        })
+      })
+    },
+
+    //handleChange
+    handleChange(value){
+      // console.log(value)
+    },
+
+    // 根据供应商名称获取其他信息
+    getOtherMessage() {
+      console.log("进入success")
+      // console.log(this.supplyform.supplier_name)
+      getOtherMessage({
+        "url": "/v1/supplier/name/" + this.supplyform.supplier_name,
+      }).then(response => {
+        if (response.data.code == 0) {
+          this.is_exist = true;
+          console.log("获取到了name")
+          let supplierInfo = response.data.data
+          this.supplyform.supplier_name = supplierInfo.supplier_name
+          this.supplyform.first_name = supplierInfo.first_name
+          this.supplyform.last_name = supplierInfo.last_name
+          this.supplyform.telephone = supplierInfo.telephone
+          this.supplyform.email = supplierInfo.email
+          this.supplyform.telephone_code = supplierInfo.telephone_code
+          console.log(this.supplyform)
+        }else{
+          // this.supplyform = {}
+          // this.supplyform = {
+          //                   name:'',
+          //                   first_name:'',
+          //                   last_name:'',
+          //                   phone_number:'',
+          //                   email:''
+          //                 }
+        }
+      })
+    },
+    //数组去重
+    toSetUniq(arr){
+        for (var i = 0;i<arr.length;i++){
+            //如果当前数组的第i项已经保存进了临时数组，忽略掉
+            //否则的话把当前项push到临时数组里面
+            if(result.indexOf(arr[i]) == -1){
+              this.$message('产品信息的P.O号不能 重复')
+            }
+            //indexOf 返回元素在result中的位置，如果没有返回-1；
+        }
+    },
     //下单
-    order(){
-      if( this.editableTabs2[0].name == '' ){
-        this.$message("产品信息的产品名称是必填的")
-        return false
+    placeOrder(){
+      //判断所有的产品名称是否填写
+      for(let i=0;i<this.editableTabs2.length;i++){
+        if( this.editableTabs2[i].name == '' ){
+          console.log('产品名称没有填写的是'+i)
+          this.editableTabsValue2 = 'tab'+(i+1);
+          this.$message({
+            message: "产品信息中的产品名称是必填的",
+            type: 'warning'
+          })
+          return false
+        }
       }
+      console.log(this.supplyform.telephone_code+'手机区号')
+      //判断是否选择手机区号
+      if( !this.supplyform.telephone_code){
+        this.$message({
+          message: '请选择供应商信息中手机号码前的区号',
+          type: 'warning'
+        })
+        return false;
+      }
+      
       var _this =this
       var p1=new Promise(function(resolve, reject) {
         
         _this.$refs['supplyform'].validate((valid) => {
             if(valid){
+              if( _this.is_exist == false){
+                addSupply({
+                  ..._this.supplyform
+                }).then(response =>{
+                  if(response.data.code == 0){
+                    console.log('供应商信息保存成功')
+                  }
+                })
+              }
               resolve();
+            }else{
+              _this.$message('供应商信息是必填的')
             }
           })
         });
@@ -535,6 +769,8 @@ export default {
              _this.$refs['examineform'].validate((valid) => {
               if(valid){
                 resolve();
+              }else{
+                _this.$message('验货基本信息是必填的')
               }
             })
         });
@@ -546,21 +782,48 @@ export default {
         //       } 
         //     })
         // });
-
         Promise.all([p2,p1]).then(function(){
+          _this.loading = true;
+          console.log(_this.editableTabs2)
+          // _.forEach(_this.editableTabs2, function(value){
+          //   console.log(value.number)
+          // })
           order({
             ..._this.examineform,
             products:_this.editableTabs2,
-            supplier:_this.supplyform,
-            factories:_this.factories,
-            files:_this.fileList
+            supplier: {
+              name: _this.supplyform.supplier_name,
+              first_name:_this.supplyform.first_name,
+              last_name:_this.supplyform.last_name,
+              email:_this.supplyform.email,
+              phone_number:_this.supplyform.telephone,
+              phone_code:_this.supplyform.telephone_code,
+              country:7,
+              address:_this.supplyform.address,
+              address_detail:_this.supplyform.address_detail
+            },
+            description:_this.requirementText,
+            files:_this.data.files
           }).then(response =>{
             if(response.data.code == 0){
-              _this.$router.push({path: 'checkoutSuccess', query: {created_at:response.data.data.created_at}})
+              _this.loading = false;
+              _this.$router.push({path: 'checkoutSuccess', query: {created_at:response.data.data.created_at,orderId:response.data.data.id}})
+            }else if(response.data.code == 1000){
+              _this.loading = false;
+              _this.$message({
+                message: '您没有操作的权限,下单失败了',
+                type: 'error'
+              })
             }
+          }).catch( error => {
+            this.$message({
+              message: '下单失败',
+              type: 'error'
+            })
+            _this.loading = false;
+            _this.$router.push({ path: 'index' })
           })
         });
-
     },
 
     //amputate删除
@@ -594,16 +857,43 @@ export default {
           console.log("进入请求ID")
           console.log(response)
            if( response.data.code == 0 ){
+             let supplier = response.data.data.supplier
+             let reports = response.data.data
              console.log("通过ID拿到了之前所有的数据")
-             console.log(response.data.data)
              this.supplyform = response.data.data.supplier
-             this.editableTabs2 = response.data.data.products
-             this.examineform.report_locale = response.data.data.report_locale
-             this.examineform.reports_number = response.data.data.reports_number
-             this.examineform.inspection_type = response.data.data.inspection.inspection_type
-             this.examineform.sample_type = response.data.data.inspection.sample_type
-             
+             this.supplyform.supplier_name = supplier.name;
+             this.supplyform.first_name = supplier.first_name;
+             this.supplyform.last_name = supplier.last_name;
+             this.supplyform.telephone = supplier.phone_number;
+             this.supplyform.telephone_code = supplier.phone_code;
+             this.supplyform.email  = supplier.email;
+             this.supplyform.address = supplier.address
+             this.supplyform.address_detail = supplier.address_detail;
+             this.editableTabs2 = response.data.data.products.reverse() //产品倒序
+             console.log('this.editableTabs2')
+             console.log(this.editableTabs2)
+             console.log('this.editableTabs2')
+            //  vue.delete(this.editableTabs2,'id')
+            if( this.$route.query.orderSet){
+              console.log('修改，不删除id')
+            }else{
+              _.forEach(this.editableTabs2, function(value){
+                value.id = ''
+              })
+            }
+             this.examineform.report_locale = reports.report_locale
+             this.examineform.reports_number = reports.reports_number
+             this.examineform.inspection_type = reports.inspection.inspection_type
+             this.examineform.sample_type = reports.inspection.sample_type
+             this.examineform.accept_report_emails = reports.accept_report_emails
+             this.examineform.estimated_dates = reports.estimated_dates
              console.log(this.examineform.report_locale)
+             this.requirementText = reports.description
+             this.data.files = reports.files
+             _.forEach(this.data.files, function(value){
+              //  value.detach = true
+             })
+             console.log(this.data.files)
            }
         })
       }else{
@@ -651,6 +941,7 @@ export default {
     //keepData修改保存数据
     keepData(){
       console.log("修改保存数据")
+      console.log(this.editableTabs2)
       var _this =this
       var p1=new Promise(function(resolve, reject) {
         
@@ -672,9 +963,19 @@ export default {
           orderRevise({
             ..._this.examineform,
             products:_this.editableTabs2,
-            supplier:_this.supplyform,
-            factories:_this.factories,
-            files:_this.fileList,
+            supplier: {
+              name: _this.supplyform.supplier_name,
+              first_name:_this.supplyform.first_name,
+              last_name:_this.supplyform.last_name,
+              email:_this.supplyform.email,
+              phone_number:_this.supplyform.telephone,
+              phone_code:_this.supplyform.telephone_code,
+              country:7,
+              address:_this.supplyform.address,
+              address_detail:_this.supplyform.address_detail
+            },
+            description:_this.requirementText,
+            files:_this.data.files,
             orderId:_this.$route.query.orderId
           }).then(response =>{
             
@@ -686,9 +987,21 @@ export default {
         });
     },
 
+    //checkInspection
+    checkInspection(){
+      this.$router.push({ path: 'inspectionAgreement' })
+    },
+
     //goBack返回上一级路由
     goBack(){
       this.$router.go(-1)
+    },
+
+    //配置文件加载
+    ConfigUnit(){
+      this.editableTabs2[0].PO[0].unitValue = this.configs.unit
+      console.log(this.configs)
+      this.phone_codeConfig = this.configs.phone_number_codes
     }
   }
 }
@@ -790,6 +1103,26 @@ export default {
     vertical-align: middle;
   }
 
+  //supplier-information
+  .supplier-information{
+    // .supplier_name{
+    //   cursor:text !important;
+    // }
+    .el-cascader .el-input, .el-cascader .el-input__inner{
+      width:428px;
+    }
+    .el-form-item__label{
+      // padding:0 50px 0 0;
+      padding:0;
+      margin-right:50px;
+    }
+    .el-form-item:nth-child(4){
+      .el-form-item__label{
+        margin-right:39px;
+      }
+    }
+  }
+
   //orderPlace
   .orderPlace{
     .el-checkbox{
@@ -856,14 +1189,14 @@ export default {
         .countLimmit{
           position:absolute;
           bottom:10px;
-          left:666px;
+          left:660px;
           font-size:16px;
           color:rgba(144,147,153,1);
           display:inline-block;
           width:70px;
           height:21px;
           line-height: 21px;
-          text-align: center;
+          text-align: right;
         }
       }
     }
@@ -893,7 +1226,33 @@ export default {
         } 
       }
     }
+   
   }
+
+  .inspection-information{
+    .el-form-item__label{
+      padding:0;
+      margin-right:50px;
+    }
+  }
+
+  //.el-input__inner:focus光标focus
+  .el-input__inner:focus{
+    border-color:rgba(255,168,0,1);
+  }
+  .el-select .el-input__inner:focus{
+    // border-color:rgba(255,168,0,1);
+    // cursor:text;
+  }
+  .el-textarea__inner:focus{
+    border-color:rgba(255,168,0,1);
+  }
+  // .el-input-number__increase:hover:not(.is-disabled)~.el-input .el-input__inner:not(.is-disabled){
+  //   border-color:rgba(255,168,0,1);
+  // }
+  // .el-input-number__increase:hover{
+  //   color:rgba(255,168,0,1);
+  // }
 }
 </style>
 

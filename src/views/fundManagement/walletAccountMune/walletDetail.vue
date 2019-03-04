@@ -91,9 +91,32 @@ export default {
             OrderDetail(val).then( response => {
                 if( response.data.code == 0 ){
                     console.log(" 请求成功  success ")
-                    console.log(response.data.data.payment)
+                    
                     this.DataKey = response.data.data
                     this.DetailData = response.data.data.payment
+                    console.log(this.DetailData)
+                    //判断拿回来的数据进行列表状态判断
+                    if(this.DetailData.status=="0"){
+                    this.DetailData.status="待付款"
+                    }else if(this.DetailData.status=="1"){
+                    this.DetailData.status="付款中"
+                    }else if(this.DetailData.status=="2"){
+                    this.DetailData.status="已完成"
+                    }else if(this.DetailData.status=="-1"){
+                    this.DetailData.status="已关闭"
+                    }
+                    // console.log(this.DetailData)
+
+                    //判断拿回来的数据进行列表交易类型判断
+                    if(this.DetailData.type=="0"){
+                    this.DetailData.type="充值"
+                    }else if(this.DetailData.type=="1"){
+                    this.DetailData.type="订单付款"
+                    }else if(this.DetailData.type=="2"){
+                    this.DetailData.type="订单退款"
+                    }else if(this.DetailData.type=="3"){
+                    this.DetailData.type="月结还款"
+                    }
                 }
             })
         }

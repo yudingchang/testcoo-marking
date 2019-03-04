@@ -30,12 +30,14 @@ export function getOtherMessage(data) {
 }
 
 // 获取所有的订单
-export function getList(data) {
+export function getList(data, page, limit) {
   return request({
     url: '/v1/inspection',
     method: 'get',
     params: {
-      searches:data
+      searches:data,
+      page,
+      limit
     },
     paramsSerializer: function(params) {
       return qs.stringify(params, { indices: true })
@@ -125,3 +127,25 @@ export function getOrderList(data) {
       }
     })
   }
+
+  //修改删除订单产品
+  export function productDelete(data) {
+    return request({
+      url: '/v1/inspection/product/'+data.id,
+      method: 'delete',
+      data: data,
+      paramsSerializer: function(params) {
+        return qs.stringify(params, { indices: true })
+      }
+    })
+  }
+
+
+  //获取待完成订单信息
+  export function getWaitComplete(data) {
+    return request({
+      url: '/v1/dashboard',
+      method: 'get',
+      data: data,
+    })
+  }  

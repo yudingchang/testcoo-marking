@@ -1,5 +1,5 @@
 <template>
-    <div class="controlboardIndex">
+    <div class="controlboardIndex" v-loading="loading">
         <el-row>
             <!-- 立即下单 -->
             <el-col :span="24" class="controlboardIndex-immediately">
@@ -33,29 +33,52 @@
             <!-- 第二排Info -->
             <el-col :span="24" class="controlboardIndex-user">
                 <!-- 完善信息 -->
-                <el-col :span="12" class="controlboardIndex-EVPI">
+                <!-- <el-col :span="12" class="controlboardIndex-EVPI">
                     <ul class="controlboardIndex-EVPI-ul">
                         <li></li>
                         <li>完善信息</li>
                     </ul>
-                    <div>
+                    <div v-loading="EVPILoading">
                         <ul>
-                            <li><span>供应商信息（1）</span><span @click="ViewVendorInfo">查看</span></li>
+                            <li><span>供应商信息</span><span v-if="completeInfo.supply == 0">去添加</span><span v-if="!completeInfo.supply == 0" @click="ViewVendorInfo">查看</span></li>
                             <li><span>个人信息</span><span @click="PerfectingPerInfo">去完善</span></li>
                         </ul>
                         <ul>
-                            <li><span>开票信息（2）</span><span @click="ViewInvoiceInfo">查看</span></li>
+                            <li><span>开票信息</span><span v-if="completeInfo.invoice == 0">去添加</span><span v-if="!completeInfo.invoice == 0" @click="ViewInvoiceInfo">查看</span></li>
                             <li><span>企业信息</span><span @click="PerfectingCompInfo">去完善</span></li>
                         </ul>
                         <ul>
-                            <li><span>收件地址（2）</span><span @click="ViewDeliveryAddress">查看</span></li>
+                            <li><span>收件地址</span><span v-if="completeInfo.Receives == 0">去添加</span><span v-if="!completeInfo.Receives == 0" @click="ViewDeliveryAddress">查看</span></li>
                             <li><span>支付密码设置</span><span @click="setPayPassword" v-if="!is_paypassword">去设置</span><span v-if="is_paypassword" @click="modifyPassword">修改</span></li>
                         </ul>
                         <ul>
-                            <li><span>接受报告邮箱（0）</span><span @click="ViewReportBox">查看</span></li>
+                            <li><span>接受报告邮箱</span><span v-if="completeInfo.ReportMailbox == 0">去添加</span><span v-if="!completeInfo.ReportMailbox == 0" @click="ViewReportBox">查看</span></li>
                             <li><span></span><span></span></li>
                         </ul>
                     </div>
+                </el-col> -->
+                <!-- 订单信息 -->
+                <el-col :span="12" class="controlboardIndex-orderInfo">
+                    <ul>
+                        <li></li>
+                        <li>订单信息</li>
+                    </ul>
+                    <ul>
+                        <li>
+                            <p>{{ totalOrder?totalOrder:0 }}</p>
+                            <p>累计完成单量</p>
+                        </li>
+                        <li></li>
+                        <li>
+                            <p>{{ totalReport?totalReport:0 }}</p>
+                            <p>累计完成报告</p>
+                        </li>
+                        <li></li>
+                        <li>
+                            <p>{{ (totalWaitOut?totalWaitOut:0 )+( totalWaitCheck?totalWaitCheck:0)+( totalWaitModify?totalWaitModify:0 )}}</p>
+                            <p>待出报告</p>
+                        </li>
+                    </ul>
                 </el-col>
                 <!-- 钱包余额 -->
                 <el-col :span="12" class="controlboardIndex-WalletBalance">
@@ -66,21 +89,23 @@
                             <span>明细</span><i class="iconfont icon-hebingxingzhuang7"></i>
                         </li>
                     </ul>
-                    <ul>
-                        <li>
-                            <p><span>人民币</span><span>￥{{ userAccountBalance[0].price }}</span></p>
-                            <p @click="rechargeRmb">去充值</p>
-                        </li>
-                        <li></li>
-                        <li>
-                            <p><span>美元</span><span>${{ userAccountBalance[1].price }}</span></p>
-                            <p @click="rechargeDollar">去充值</p>
-                        </li>
-                    </ul>
+                    <div class="WalletBalance-ul">
+                        <ul>
+                            <li>
+                                <p @click="walletDetailCheck"><span>人民币</span><span>￥{{ _.get(userAccountBalance, '[0].price') }}</span></p>
+                                <p @click="rechargeRmb">去充值</p>
+                            </li>
+                            <li></li>
+                            <li>
+                                <p @click="walletDetailCheck"><span>美元</span><span>${{ _.get(userAccountBalance, '[1].price') }}</span></p>
+                                <p @click="rechargeDollar">去充值</p>
+                            </li>
+                        </ul>
+                    </div>
                 </el-col>
             </el-col>
             <!-- 测库月结 -->
-            <el-col :span="24" class="controlboardIndex-monthlyState">
+            <el-col :span="24" class="controlboardIndex-monthlyState" v-if="false">
                 <ul class="controlboardIndex-monthlyState-ul">
                     <li></li>
                     <li>测库月结</li>
@@ -111,39 +136,6 @@
                     </div>
                 </div>
             </el-col>
-            <!-- 订单信息 -->
-            <el-col :span="24" class="controlboardIndex-orderInfo">
-                <ul>
-                    <li></li>
-                    <li>订单信息</li>
-                </ul>
-                <ul>
-                    <li>
-                        <p>56</p>
-                        <p>累计完成单量</p>
-                    </li>
-                    <li></li>
-                    <li>
-                        <p>￥18986.00</p>
-                        <p>累计消费人民币</p>
-                    </li>
-                    <li></li>
-                    <li>
-                        <p>￥0.00</p>
-                        <p>累计消费美元</p>
-                    </li>
-                    <li></li>
-                    <li>
-                        <p>56</p>
-                        <p>累计完成报告</p>
-                    </li>
-                    <li></li>
-                    <li>
-                        <p>56</p>
-                        <p>待出报告</p>
-                    </li>
-                </ul>
-            </el-col>
             <!-- 待完成订单 -->
             <el-col :span="24" class="controlboardIndex-TBDorder">
                 <ul>
@@ -152,22 +144,22 @@
                 </ul>
                 <ul>
                     <li>
-                        <p>15</p>
+                        <p>{{ (waitQuote?waitQuote:0) + (waitInit?waitInit:0) }}</p>
                         <p @click="TBDquoted">待报价</p>
                     </li>
                     <li></li>
                     <li>
-                        <p>15</p>
+                        <p>{{ waitPay?waitPay:0 }}</p>
                         <p @click="TBDpayment">待付款</p>
                     </li>
                     <li></li>
                     <li>
-                        <p>15</p>
+                        <p>{{ ( waitInspect?waitInspect:0 ) + ( waitSplit?waitSplit:0 )}}</p>
                         <p @click="TBDexamine">待验货</p>
                     </li>
                     <li></li>
                     <li>
-                        <p>15</p>
+                        <p>{{ inspecting?inspecting:0 }}</p>
                         <p @click="examining">验货中</p>
                     </li>
                 </ul>
@@ -177,110 +169,182 @@
                 <ul class="latestOrder-ul">
                     <li></li>
                     <li>最新订单</li>
-                    <li><span>更多</span><i class="iconfont icon-hebingxingzhuang7"></i></li>
+                    <li @click="latestOrderMore"><span>更多</span><i class="iconfont icon-hebingxingzhuang7"></i></li>
                 </ul>
-                <div class="latestOrder-div">
+                <div class="latestOrder-div" v-loading="latestOrderLoading">
                     <el-table
                         :data="latestOrderTableData"
+                        v-if="!orderTotal"
                         stripe
                         style="width: 100%">
                         <el-table-column
                         label="订单号"
-                        width="221">
+                        width="241">
                         <template slot-scope="scope">
-                            <el-button @click="OrderNumberhandleClick(scope.row)" type="text" size="small">{{scope.row.order}}</el-button>
+                            <span @click="OrderNumberhandleClick(scope.row)" type="text" size="small">{{scope.row.number}}</span>
                         </template>
                         </el-table-column>
                         <el-table-column
-                        prop=""
-                        label="下单时间"
-                        width="158">
+                        prop="inspection_first_date"
+                        label="验货日期"
+                        width="200">
                         </el-table-column>
                         <el-table-column
                         label="产品名称"
-                        width="220">
+                        width="212">
                         <template slot-scope="scope">
-                            <el-button type="text" size="small">{{scope.row.order}}</el-button>
-                            <el-button v-if="scope.row.order.length > 11?true:false " @click="UnfoldTexthandleClick(scope.row.order)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
+                            <el-button type="text" size="small">{{_.get(scope.row.products, '[0].name')}}</el-button>
+                            <el-button v-if="_.get(scope.row.products, '[0].name').length > 9?true:false " @click="UnfoldTexthandleClick(scope.row.products)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
                         </template>
                         </el-table-column>
                         <el-table-column
-                        prop="city"
                         label="服务类型"
-                        width="140">
+                        width="206">
+                        <template slot-scope="scope">
+                           <span>验货</span>
+                        </template>
                         </el-table-column>
                         <el-table-column
-                        prop="address"
+                        prop="fees_total"
                         label="订单金额"
-                        width="150">
+                        width="220">
+                        <template slot-scope="scope">
+                            <el-button type="text" size="small"><span v-if="scope.row.fees_total.CNY">￥{{returnFloat(scope.row.fees_total.CNY)}}</span><span v-if="scope.row.fees_total.USD && scope.row.fees_total.CNY">/</span><span v-if="scope.row.fees_total.USD">${{returnFloat(scope.row.fees_total.USD)}}</span></el-button>
+                            <el-button type="text" size="small" v-if="!scope.row.fees_total.CNY && !scope.row.fees_total.USD">————</el-button>
+                        </template>
                         </el-table-column>
                         <el-table-column
-                        prop="zip"
+                        prop="marking_name"
                         label="状态"
-                        width="150">
-                        </el-table-column>
-                        <el-table-column
-                        prop="zip"
-                        label="测库技术"
-                        width="240">
+                        width="200">
                         </el-table-column>
                         <el-table-column
                         label="操作"
                         >
                         <template slot-scope="scope">
-                            <el-button @click="PayhandleClick(scope.row)" v-if="false" type="text" size="small">付款</el-button>
-                            <el-button @click="ClosehandleClick(scope.row)" v-if="false" type="text" size="small">关闭</el-button>
-                            <el-button @click="CopyhandleClick(scope.row)" v-if="false" type="text" size="small">复制</el-button>
+                            <!-- <el-button @click="PayhandleClick(scope.row)" v-if="can.pay" type="text" size="small">付款</el-button>
+                            <el-button @click="ClosehandleClick(scope.row)" v-if="can.close" type="text" size="small">关闭</el-button>
+                            <el-button @click="CopyhandleClick(scope.row)" v-if="true" type="text" size="small">复制</el-button>
                             <el-button @click="CheckhandleClick(scope.row)" v-if="false" type="text" size="small">查看原因</el-button>
-                            <el-button @click="BackhandleClick(scope.row)" type="text" size="small">退单</el-button>
-                            <el-button @click="VideohandleClick(scope.row)" type="text" size="small"><i class="iconfont icon-sanjiaoxing"></i>  视频</el-button>
+                            <el-button @click="BackhandleClick(scope.row)" v-if="can.refund" type="text" size="small">退单</el-button>
+                            <el-button @click="VideohandleClick(scope.row)" type="text" size="small"><i class="iconfont icon-sanjiaoxing"></i>  视频</el-button> -->
+                            <!--  -->
+                            <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.modify" @click="setDefault(scope.row)">修改</el-button>
+                            <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.later_pay" @click="addPayment(scope.row)">追加付款</el-button>
+                            <!-- <el-tooltip placement="top">
+                                <div slot="content">{{ scope.row.number }}<br/>{{ scope.row.number }}</div>
+                                <el-button type="text" size="small" v-if="scope.row.marking != 'INIT'" class="phone"><i class="iconfont icon-hebingxingzhuang4"></i></el-button>
+                            </el-tooltip> -->
+                            <el-button type="text" size="small" v-if="scope.row.marking == 'INSPECTING'" class="video"><i class="iconfont icon-hebingxingzhuang3"></i></el-button>
+                            <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.pay" @click="PayhandleClick(scope.row)">付款</el-button>
+                            <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.close" @click="ClosehandleClick(scope.row)">关闭</el-button>
+                            <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.refund" @click="BackhandleClick(scope.row)">退单</el-button>
+                            <el-button type="text" size="small" v-if="scope.row.marking == 'WAIT_INSPECT'" @click="checkRefund()">查看退单</el-button>
+                            <el-button type="text" size="small" v-if="scope.row.marking == 'COMPLETED'" @click="CheckhandleClick(scope.row)">查看报告</el-button>
+                            <el-button type="text" size="small" v-if="true" @click="CopyhandleClick(scope.row)">复制订单</el-button>
+                            <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.delete" @click="DeleteBtn(scope.row)">删除</el-button>
                         </template>
                         </el-table-column>
                     </el-table>
-                    <div class="latestOrder-div-div" v-show="false">
-                        <p>暂无待完成订单</p>
-                        <p>立即下单</p>
+                    <div class="latestOrder-div-div" v-if="orderTotal">
+                        <p>暂无最新订单</p>
+                        <p @click="placeOrder">立即下单</p>
                     </div>
                 </div>
-                <el-dialog title="全部产品" :visible.sync="latestOrderDialog">
-                <el-table
-                    :data="OproductNameTableData"
-                    height="250"
-                    border
-                    style="width: 100%">
-                    <el-table-column
-                    prop=""
-                    label="序号"
-                    width="108">
-                    <template slot-scope="scope">
-                        {{ scope.$index+1 }}
-                    </template>
-                    </el-table-column>
-                    <el-table-column
-                    prop=""
-                    label="产品名称"
-                    >
-                    <template slot-scope="scope">
-                        {{ scope.row }}
-                    </template>
-                    </el-table-column>
-                </el-table>
+                <!-- 全部产品Dialog -->
+                <el-dialog title="全部产品" :visible.sync="latestOrderDialog" class="productsDialog">
+                    <el-table
+                        :data="OproductNameTableData"
+                        height="250"
+                        border
+                        style="width: 100%">
+                        <el-table-column
+                        prop=""
+                        label="序号"
+                        width="108">
+                        <template slot-scope="scope">
+                            {{ scope.$index+1 }}
+                        </template>
+                        </el-table-column>
+                        <el-table-column
+                        prop=""
+                        label="产品名称"
+                        >
+                        <template slot-scope="scope">
+                            {{ scope.row.name }}
+                        </template>
+                        </el-table-column>
+                    </el-table>
                 </el-dialog>
+                <!-- 待报价  关闭订单Dialog -->
+                <el-dialog title="是否关闭订单" :visible.sync="closeForm.DialogForm" class="closeDialog">
+                    <el-form :model="closeForm">
+                        <el-form-item label="关闭原因:">
+                        <el-select v-model="closeForm.region" placeholder="请选择活动区域">
+                            <el-option label="不验货了不需要了" value="不验货了不需要了"></el-option>
+                            <el-option label="产品信息修改/产品数量减少" value="产品信息修改/产品数量减少"></el-option>
+                            <el-option label="区域二" value="区域二"></el-option>
+                            <el-option label="区域二" value="区域二"></el-option>
+                        </el-select>
+                        </el-form-item>
+                        <el-form-item label="备注信息:">
+                        <el-input type="textarea" v-model="closeForm.desc"></el-input>
+                        </el-form-item>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="closeForm.DialogForm = false">取 消</el-button>
+                        <el-button type="primary" :disabled="closeForm.region == '' || closeForm.desc == ''" @click="ConfirmClose">确 定</el-button>
+                    </div>
+                </el-dialog>
+                <!-- 待验货  退单弹窗Dialog -->
+                <el-dialog title="是否退单" :visible.sync="refundForm.DialogForm" class="refundDialog">
+                    <el-form :model="refundForm">
+                        <el-form-item label="关闭原因:">
+                        <el-select v-model="refundForm.desc" placeholder="请选择活动区域">
+                            <el-option label="不验货了不需要了" value="不验货了不需要了"></el-option>
+                            <el-option label="区域二" value="区域二"></el-option>
+                            <el-option label="区域二" value="区域二3"></el-option>
+                            <el-option label="区域二" value="区域二4"></el-option>
+                        </el-select>
+                        </el-form-item>
+                        <el-form-item label="备注信息:">
+                        <el-input type="textarea" v-model="refundForm.desc"></el-input>
+                        </el-form-item>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="refundForm.DialogForm = false">取 消</el-button>
+                        <el-button type="primary" @click="ConfirmRefund" :disabled=" refundForm.desc == '' ">确 定</el-button>
+                    </div>
+                </el-dialog>
+                <!-- 已关闭  删除弹窗Dialog -->
+                <div class="DeleteDialog">
+                    <el-dialog
+                        title="是否删除"
+                        :visible.sync="DeleteDialog"
+                        width="30%"
+                        center>
+                        <span slot="footer" class="dialog-footer">
+                        <el-button @click="DeleteDialog = false">取 消</el-button>
+                        <el-button type="primary" @click="ConfirmDelete">确 定</el-button>
+                        </span>
+                    </el-dialog>
+                </div>
             </el-col>
             <!-- 最新报告 -->
             <el-col :span="24" class="controlboardIndex-latestRepot">
                 <ul class="latestRepot-ul">
                     <li></li>
                     <li>最新报告</li>
-                    <li><span>更多</span><i class="iconfont icon-hebingxingzhuang7"></i></li>
+                    <li @click="latestRepotMore"><span>更多</span><i class="iconfont icon-hebingxingzhuang7"></i></li>
                 </ul>
-                <div class="latestRepot-div">
+                <div class="latestRepot-div" v-loading="latestRepotLoading">
                     <el-table
+                        v-if="!reportTotal"
                         :data="latestRepotTableData"
                         stripe
                         style="width: 100%">
                         <el-table-column
-                        prop="order"
+                        prop="number"
                         label="报告号"
                         width="241">
                         </el-table-column>
@@ -288,16 +352,22 @@
                         label="订单号"
                         width="200">
                         <template slot-scope="scope">
-                            <el-button @click="OrderNumberhandleClick(scope.row)" type="text" size="small">{{scope.row.order}}</el-button>
+                            <span @click="OrderNumberhandleClick(scope.row)" type="text" size="small">{{scope.row.order.number}}</span>
                         </template>
                         </el-table-column>
                         <el-table-column
-                        prop="city"
                         label="验货日期"
                         width="160">
+                        <template slot-scope="scope">
+                            <el-tooltip placement="left">
+                                <div slot="content">{{scope.row.order.inspection_dates.join('，')}}<br/></div>
+                                <span>{{scope.row.order.inspection_dates.join('，')}}</span>
+                            </el-tooltip>
+                            <!-- <span>{{scope.row.order.inspection_dates.join('，')}}</span> -->
+                        </template>
                         </el-table-column>
                         <el-table-column
-                        prop="address"
+                        prop="order.supplier.name"
                         label="供应商名称"
                         width="206">
                         </el-table-column>
@@ -305,28 +375,28 @@
                         label="产品货号"
                         width="220">
                         <template slot-scope="scope">
-                            <el-button type="text" size="small">{{scope.row.order}}</el-button>
-                            <el-button v-if="scope.row.order.length > 11?true:false " @click="latestRepotUnfoldArt(scope.row.order)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
+                            <el-button type="text" size="small">{{scope.row.products.numbers.join(',')}}</el-button>
+                            <el-button v-if="scope.row.products.numbers.join('').length > 9?true:false " @click="latestRepotUnfoldArt(scope.row.products.numbers)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
                         </template>
                         </el-table-column>
                         <el-table-column
                         label="产品名称"
                         width="252">
                         <template slot-scope="scope">
-                            <el-button type="text" size="small">{{scope.row.order}}</el-button>
-                            <el-button v-if="scope.row.order.length > 11?true:false " @click="latestRepotUnfoldName(scope.row.order)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
+                            <el-button type="text" size="small">{{scope.row.products.names.join(',')}}</el-button>
+                            <el-button v-if="scope.row.products.names.join('').length > 9?true:false " @click="latestRepotUnfoldName(scope.row.products.names)" type="text" size="small"><i class="iconfont icon-IconCopy"></i></el-button>
                         </template>
                         </el-table-column>
                         <el-table-column
                         label="操作"
                         >
                         <template slot-scope="scope">
-                            <el-button @click="WebRepothandleClick(scope.row)" type="text" size="small">网页报告</el-button>
+                            <el-button @click="WebRepothandleClick(scope.row)" v-if="scope.row.type_name == '线上'" type="text" size="small">网页报告</el-button>
                             <el-button @click="PDFreporthandleClick(scope.row)" type="text" size="small">下载PDF报告</el-button>
                         </template>
                         </el-table-column>
                     </el-table>
-                    <div class="latestRepot-div-div" v-show="false">
+                    <div class="latestRepot-div-div" v-if="reportTotal">
                         最近没有报告
                     </div>
                 </div>
@@ -337,14 +407,18 @@
                     border
                     style="width: 100%">
                     <el-table-column
-                    prop=""
                     label="序号"
                     width="108">
+                    <template slot-scope="scope">
+                        {{ scope.$index+1 }}
+                    </template>
                     </el-table-column>
                     <el-table-column
-                    prop=""
                     label="款号/货号"
                     >
+                    <template slot-scope="scope">
+                        {{ scope.row.numbers }}
+                    </template>
                     </el-table-column>
                 </el-table>
                 </el-dialog>
@@ -377,56 +451,109 @@
 
 <script>
 import {MoneyBlanace } from '@/api/walletDetail' //钱包余额请求数据
+import { getSupplydata,getInvoiceList,getAddressList,getdata } from '@/api/accountManagement.js'
+import {getReportManagement} from '@/api/reportManagement'
+import { getList,DeleteOrder,CloseOrder,RefundOrder,getWaitComplete } from "@/api/order";
 import { mapGetters } from 'vuex'
 import store from '../../store'
 export default {
     name: 'controlboardIndex',
+    watch:{
+        refundForm: {
+        handler(newValue, oldValue) {
+            // console.log('99999999999999')
+            this.refundForm.desc = this.refundForm.region
+        },
+        deep: true
+        },
+        closeForm: {
+        handler(newValue, oldValue) {
+            this.closeForm.desc = this.closeForm.region
+        },
+        deep: true
+        }
+    },
     data(){
         return{
+            //过渡动画
+            loading:false,
+            //订单数有无数据
+            orderTotal: '',
+            reportTotal: '',
+            //完善信息
+            completeInfo:{
+                supply:'',
+                invoice:'',
+                Receives:'',
+                ReportMailbox:'',
+            },
+            EVPILoading:false,
+
+
             //钱包余额
             userAccountBalance: [],     //用户钱包余额
+            WalletBalanceLoading:false,
+
+            //订单信息
+            totalOrder:'',          //累计完成单量
+            totalReport:'',         //累计完成报告
+
+            totalWaitOut:'',        //待出报告
+            totalWaitCheck:'',
+            totalWaitModify:'',
 
 
+            //待完成订单
+            waitQuote:'',
+            waitInit:'',
+            waitPay:'',
+            waitInspect:'',
+            waitSplit: '',
+            inspecting:'',
 
             //最新订单
-            latestOrderTableData:[         //最新订单latestOrderTableData数据
-                {order:"123456789123456毛绒玩具1,毛绒玩具2,毛绒玩具3,毛绒玩具4"},
-                {order:"12345678912"},
-                {order:"12345678912"},
-                {order:"123456789"},
-                {order:"1"},
-                {order:"12345"}
-                ],
-                latestOrderDialog:false,     //最新订单点击展开表格
-                OproductNameTableData: [{a:"1"},{a:"2"},{a:"1"},{a:"1"},{a:"1"},{a:"1"},{a:"1"}],    //最新订单 产品名称展开弹框数据
-
+            latestOrderLoading:false,
+            latestOrderTableAllData:[],   //最新订单latestOrderTableAllData数据
+               
+            latestOrderDialog:false,      //最新订单点击展开表格
+            OproductNameTableData: [],    //最新订单 产品名称展开弹框数据
+            Servicetype:'验货',
+            DeleteDialog: false,         //DeleteDialog删除弹窗
+            closeForm: {                 //closeForm关闭弹框
+                DialogForm: false,       //DialogForm关闭订单Dialong
+                region: '',
+                desc: '',
+                scopeRowId: '',
+            },
+            refundForm: {               //refundForm退单弹窗-待验货
+                DialogForm: false,      //DialogForm退单的Dialong
+                region: '',
+                desc: '',
+                scopeRowId:'',
+            },
 
             //最新报告
-            latestRepotTableData:[       //最新报告latestRepotTableData数据
-                {order:"123456789123456"},
-                {order:"123456789123456"},
-                {order:"123456789123456"},
-                {order:"123456789123456"},
-                {order:"123456789123456"},
-                {order:"123456789123456"}
-            ],
-            latestRepotDialog5:false,     //最新报告latestRepotDialog5 产品货号
-            latestRepotDialog6:false,     //最新报告latestRepotDialog6 产品名称
-            RproductOrderTableData: [{a:"1"},{a:"2"},{a:"1"},{a:"1"},{a:"1"},{a:"1"},{a:"1"}],    //产品货号 展开列表
-            RproductNameTableData: [{a:"1"},{a:"2"},{a:"1"},{a:"1"},{a:"1"},{a:"1"},{a:"1"}],     //产品名称  展开列表
+            latestRepotLoading:false,
+            latestRepotTableAllData:[],     //最新报告latestRepotTableData数据
+            latestRepotDialog5:false,       //最新报告latestRepotDialog5 产品货号
+            latestRepotDialog6:false,       //最新报告latestRepotDialog6 产品名称
+            RproductOrderTableData: [],     //产品货号 展开列表
+            RproductNameTableData: [],      //产品名称  展开列表
 
            
         }
     },
     created(){
         this.getMoneyBlanaceData();
-        console.log(this.is_paypassword)
+        this.getWaitCompleteData();
+        this.getListData();
+        this.getReportManagementData();
     },
     methods:{
 
         //立即下单
         OrderImmediateExamine(){      //验货
-            this.$router.push({name:"controlboard",params:{}}) //路由 跳转
+            this.$router.push({path:"index"}) //路由 跳转
         },
         OrderImmediateAufiting(){      //审核
             this.$message("线上暂时未开通此服务，如您需要请联系测库工作人员 联系电话: 18292669357")
@@ -472,13 +599,50 @@ export default {
             this.$router.push({ path:'/accountManagement/dataSetting', query:{ tabsIndex:0 } })
         },
 
+        // getgetSupplyData(){
+        //     getSupplydata().then(response => {
+        //         if( response.data.code == 0){
+        //             this.completeInfo.supply = response.data.data.list.length
+        //             // console.log(this.completeInfo.supply)
+        //         }
+        //     })
+        // },
+        // getInvoiceListData(){
+        //     getInvoiceList().then( response => {
+        //         if( response.data.code == 0){
+        //             this.completeInfo.invoice = response.data.data.list.length
+        //             // console.log(response.data.data.list)
+        //         }
+        //     })
+        // },
+
+        // getAddressListData(){
+        //     getAddressList().then( response => {
+        //         if( response.data.code == 0){
+        //             this.completeInfo.Receives = response.data.data.list.length
+        //             console.log(this.completeInfo.Receives)
+        //         }
+        //     })
+        // },
+
+        // getData(){
+        //     this.EVPILoading = true
+        //     getdata().then( response => {
+        //         if( response.data.code == 0){
+        //             this.completeInfo.ReportMailbox = response.data.data.list.length
+        //             this.EVPILoading = false;
+        //         }
+        //     })
+        // },
         //钱包余额
         
         getMoneyBlanaceData(){      //获取用户账户人民币和美元余额
+            this.WalletBalanceLoading = true
             MoneyBlanace().then( response => {
                 if( response.data.code == 0 ){
                     this.userAccountBalance = response.data.data.list
                     console.log(this.userAccountBalance)
+                    this.WalletBalanceLoading = false
                 }
             })
         },
@@ -493,6 +657,10 @@ export default {
             this.$router.push({ path: '/fundManagement/wallet/walletAccountIndex', query: {} })
         },
 
+        walletDetailCheck(){
+            this.$router.push({ path: '/fundManagement/wallet/walletAccountIndex'})
+        },
+
         //测库月结
         ImmediatePay(){    //ImmediatePay立即还款接口
 
@@ -500,85 +668,269 @@ export default {
 
 
         //订单信息
+        getWaitCompleteData(){      //获取订单信息  和 待完成订单信息
+            getWaitComplete().then( response => {
+                if( response.data.code == 0){
+                    console.log(response.data)
+                    this.totalOrder = response.data.data.orders_total.COMPLETED
+                    this.totalReport = response.data.data.report_total.COMPLETED
+                    this.totalWaitOut = response.data.data.report_total.WAIT_WRITE
+                    this.totalWaitModify =  response.data.data.report_total.WAIT_MODIFY
+                    this.totalWaitCheck = response.data.data.report_total.WAIT_CHECK
 
+                    this.waitQuote = response.data.data.orders_total.WAIT_QUOTE
+                    this.waitInit = response.data.data.orders_total.INIT
+                    this.waitPay = response.data.data.orders_total.WAIT_PAY
+                    this.waitInspect = response.data.data.orders_total.WAIT_INSPECT
+                    this.waitSplit = response.data.data.orders_total.WAIT_SPLIT
+                    this.inspecting = response.data.data.orders_total.INSPECTING
+
+                }
+            })
+        },
 
         //待完成订单
         TBDquoted(){    //待报价
-
+            this.$router.push({ path:'/orderManagement/examineGood', query:{tabIndex: 1}})
         },
 
         TBDpayment(){    //待付款
-
+            this.$router.push({ path:'/orderManagement/examineGood', query:{tabIndex: 2}})
         },
 
         TBDexamine(){    //待验货
-
+            this.$router.push({ path:'/orderManagement/examineGood', query:{tabIndex: 3}})
         },
         
         examining(){    //验货中ing
-
+            this.$router.push({ path:'/orderManagement/examineGood', query:{tabIndex: 4}})
         },
 
+        // getWaitInfo(){
+        //     this.getListData('WAIT_QUOTE')
+        //     this.getListData('WAIT_PAY')
+        //     this.getListData('WAIT_INSPECT')
+        //     this.getListData('INSPECTING')
+        // },
 
         //最新订单
 
         UnfoldTexthandleClick(val){     //点击展开产品名称
             this.latestOrderDialog = true
             console.log(val)
-            // this.productNameTableData = val
+            this.OproductNameTableData = val
         },
         
-        OrderNumberhandleClick(val){    //订单号链接至
-            console.log(val.order.length)
-            console.log(this.latestOrderTableData.length)
+        OrderNumberhandleClick(row){    //订单号链接至
+            console.log(row)
+            // console.log(this.latestOrderTableData.length)
+            this.$router.push({path: '/orderManagement/orderDetails', query: {orderId:row.id}})
+            // console.log(row)
         },
 
-        PayhandleClick(){    //付款
-
+        PayhandleClick(row){    //付款
+            console.log(row)
+            this.$router.push({path: '/orderManagement/pay', query: {order:row.id}})
         },
 
-        ClosehandleClick(){     //关闭
-
+        ClosehandleClick(row){     //关闭
+            this.closeForm.DialogForm = true
+            console.log(row.id)
+            this.closeForm.scopeRowId = row.id
+            this.closeForm.region = '';
+            this.closeForm.desc = '';
         },
 
-        CopyhandleClick(){      //复制
-
+        //ConfirmClose确定关闭订单
+        ConfirmClose(){
+            this.closeForm.DialogForm = false
+            console.log('进入关闭')
+            CloseOrder({ 
+                message: this.closeForm.region,
+                remark: this.closeForm.desc,
+                orderId: this.closeForm.scopeRowId
+            }).then(response => {
+                if( response.data.code == 0 ){
+                this.getListData()
+                }
+            })
+            this.closeForm.region = ''
+            this.closeForm.desc = ''
         },
 
-        CheckhandleClick(){       //查看原因
-
+        CopyhandleClick(row){      //复制
+            this.$router.push({ path: '/index', query: { orderId: row.id }})
         },
 
-        BackhandleClick(){      //退单
-
+        CheckhandleClick(){       //查看报告
+            this.$router.push({ path: '/reportManagement/inspectionReport', query:{ orderId: row.id}})
         },
 
         VideohandleClick(){     //视频
 
         },
 
+        setDefault(row){        //修改
+            this.$router.push({ path: '/index', query: { orderId: row.id ,orderSet:'set' }})
+        },
+
+        addPayment(row){        //addPayment追加付款
+            console.log(row)
+            this.$router.push({path: 'pay', query: {order:row.id}})
+        },
+
+        checkRefund(row){        //checkRefund查看退单详情
+            this.$router.push({ path: 'orderRefundDetail', query:{orderId: row.id}  })
+        },
+
+        BackhandleClick(row){        //Refund退单
+            this.refundForm.DialogForm = true
+            console.log(row.id)
+            this.refundForm.scopeRowId = row.id
+        },
+        
+        ConfirmRefund(){        //ConfirmRefund确定退单
+            this.refundForm.DialogForm = false
+            RefundOrder({
+                remark: this.refundForm.desc,
+                orderId: this.refundForm.scopeRowId
+            }).then(response => {
+                if( response.data.code = 0 ){
+                console.log("退单成功")
+                this.getListData()
+                }
+            })
+            this.refundForm.region = ''
+            this.refundForm.desc = ''
+        },
+
+        DeleteBtn(row){         //DeleteBtn删除订单
+            this.DeleteDialog = true
+            this.DeleteDialogId = row.id
+        },
+
+        //ConfirmDelete确定删除订单
+        ConfirmDelete(){
+            this.DeleteDialog = false;
+            DeleteOrder({
+                orderId:this.DeleteDialogId
+            }).then(response => {
+                if( response.data.code == 0 ){
+                console.log("删除成功")
+                this.getListData()
+                }
+            });
+        },
+
+
+        getListData(markingstyle){      //获取最新订单数据
+            this.latestOrderLoading = true
+            getList({
+                marking: markingstyle == '' ? '' : markingstyle,
+            }).then( response => {
+                if( response.data.code == 0){
+                    this.latestOrderTableAllData = response.data.data
+                    if( response.data.meta.total == 0){
+                        this.orderTotal = true
+                    }else{
+                        this.orderTotal = false
+                    }
+                    this.latestOrderLoading = false
+                    console.log(this.latestOrderTableAllData)
+                    // this.returnFloat(199.1)
+                    // if( markingstyle != '' && markingstyle == 'WAIT_QUOTE'){
+                    //     // this.waitQuote = response.data.data.length
+                    // }else if( markingstyle != '' && markingstyle == 'WAIT_PAY' ){
+                    //     // this.waitPay = response.data.data.length
+                    // }else if( markingstyle != '' && markingstyle == 'WAIT_INSPECT' ){
+                    //     // this.waitInspect = response.data.data.length
+                    // }else if( markingstyle != '' && markingstyle == 'INSPECTING' ){
+                    //     // this.inspecting = response.data.data.length
+                    // }
+                }
+            })
+        },
+
+        //latestOrderMore更多
+        latestOrderMore(){
+            this.$router.push({ path:'/orderManagement/examineGood'})
+        },
+        
+        //placeOrder下单
+        placeOrder(){
+            this.$router.push({ path: 'index'})
+        },
+
+       returnFloat(value){      //处理金额数据
+            var value=Math.round(parseFloat(value)*100)/100;
+            var xsd=value.toString().split(".");
+            if(xsd.length==1){
+                value=value.toString()+".00";
+                return value;
+            }
+            if(xsd.length>1){
+                if(xsd[1].length<2){
+                    value=value.toString()+"0";
+                }
+            return value;
+            }
+            
+        },
 
         //最新报告
-        latestRepotUnfoldArt(){     //最新报告 产品货号展开
+        latestRepotUnfoldArt(row){     //最新报告 产品货号展开
             this.latestRepotDialog5 = true
+            this.RproductOrderTableData = row
         },
 
-        latestRepotUnfoldName(){      //最新报告 产品名称展开
+        latestRepotUnfoldName(row){      //最新报告 产品名称展开
             this.latestRepotDialog6 = true
+            this.RproductNameTableData = row
         },
 
-        WebRepothandleClick(){      //网页报告
-
+        WebRepothandleClick(row){      //网页报告
+            this.$router.push({ path: '/reportManagement/inspectionReport', query:{ accountApi:row._links.self.substring(4)}})
+            // console.log(row._links.self.substring(4))
         },
 
         PDFreporthandleClick(){        //下载PDF版报告
 
+        },
+
+        getReportManagementData(){
+            this.loading = true;
+            this.latestRepotLoading = true
+            getReportManagement().then( response => {
+                if( response.data.code == 0){
+
+                    this.latestRepotLoading = false
+                    this.latestRepotTableAllData = response.data.data
+                    if( response.data.meta.total == 0){
+                        this.reportTotal = true;
+                    }else{
+                        this.reportTotal = false;
+                    }
+                    this.loading = false
+                    console.log(this.latestRepotTableData)
+                }
+            })
+        },
+
+        //latestRepotMore更多
+        latestRepotMore(){
+            this.$router.push({ path: '/reportManagement/ReportManagement'})
         }
     },
     computed: {
         ...mapGetters([
             'is_paypassword',
-        ])
+        ]),
+        latestOrderTableData:function(){
+            return this.latestOrderTableAllData.slice(0,5)     //截取数组的前5个
+        },
+        latestRepotTableData:function(){
+            return this.latestRepotTableAllData.slice(0,5)
+        }
     }
 }
 </script>
@@ -587,9 +939,9 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 //普通样式
 .controlboardIndex{
-    padding:40px 23px 153px 40px;
+    padding:20px 23px 153px 40px;
     .controlboardIndex-immediately{
-        margin-bottom:32px;
+        margin-bottom:16px;
         ul:nth-child(1){
             height: 33px;
             line-height: 33px;
@@ -744,6 +1096,7 @@ export default {
     }
     .controlboardIndex-user{
         width:1540px;
+        margin-bottom:16px;
         .controlboardIndex-EVPI{
             width:720px;
             margin-right:50px;
@@ -868,57 +1221,69 @@ export default {
                     }
                 }
             }
-            ul:nth-child(2){
+            .WalletBalance-ul{
+                width:770px;
                 height:168px;
-                background:rgba(255,255,255,1);
                 border-radius:4px;
                 border:1px solid rgba(230,234,238,1);
-                line-height: 168px;
-                li{
-                    float:left;
-                }
-                li:nth-child(1),li:nth-child(3){
-                    width:383px;
-                    height:168px;
-                    line-height: 168px;
-                    text-align: center;
-                    p:nth-child(1){
-                        height:37px;
-                        line-height: 37px;
-                        margin:32px 0 23px 0;
-                        span:nth-child(1){
-                            font-size:24px;
-                            color:rgba(80,104,140,1);
-                            margin-right:32px;
+                box-sizing:border-box;
+                ul:nth-child(1){
+                    height:166px;
+                    background:rgba(255,255,255,1);
+                    // border-radius:4px;
+                    // border:1px solid rgba(230,234,238,1);
+                    // line-height: 168px;
+                    
+                    li{
+                        float:left;
+                    }
+                    li:nth-child(1),li:nth-child(3){
+                        width:383px;
+                        height:166px;
+                        line-height: 168px;
+                        text-align: center;
+                        background:rgba(255,255,255,1);
+                        margin:0;
+                        p:nth-child(1){
+                            height:37px;
+                            line-height: 37px;
+                            margin:32px 0 23px 0;
+                            cursor:pointer;
+                            span:nth-child(1){
+                                font-size:24px;
+                                color:rgba(80,104,140,1);
+                                margin-right:32px;
+                            }
+                            span:nth-child(2){
+                                font-size:26px;
+                                color:rgba(21,139,228,1);
+                            }
                         }
-                        span:nth-child(2){
-                            font-size:26px;
-                            color:rgba(21,139,228,1);
+                        p:nth-child(2){
+                            height:40px;
+                            width:120px;
+                            background:rgba(103,194,58,1);
+                            border-radius:4px;
+                            line-height: 40px;
+                            font-size:16px;
+                            color:rgba(255,255,255,1);
+                            margin-left:132px;
+                            cursor: pointer;
                         }
                     }
-                    p:nth-child(2){
-                        height:40px;
-                        width:120px;
-                        background:rgba(103,194,58,1);
-                        border-radius:4px;
-                        line-height: 40px;
-                        font-size:16px;
-                        color:rgba(255,255,255,1);
-                        margin-left:132px;
-                        cursor: pointer;
+                    li:nth-child(2){
+                        width:1px;
+                        height:80px;
+                        background:rgba(223,227,233,1);
+                        margin-top:46px;
                     }
-                }
-                li:nth-child(2){
-                    width:1px;
-                    height:80px;
-                    background:rgba(223,227,233,1);
-                    margin-top:46px;
                 }
             }
+            
         }
     }
     .controlboardIndex-monthlyState{
-        margin:32px 0;
+        margin:16px 0 0 0;
         .controlboardIndex-monthlyState-ul{
             height: 33px;
             line-height: 33px;
@@ -1046,8 +1411,10 @@ export default {
         }
     }
     .controlboardIndex-orderInfo{
-        width:1540px;
-        margin-bottom:32px;
+        width:720px;
+        height:168px;
+        margin-bottom:16px;
+        margin-right:50px; 
         ul:nth-child(1){
             height: 33px;
             line-height: 33px;
@@ -1072,16 +1439,16 @@ export default {
             }
         }
         ul:nth-child(2){
-            height:140px;
+            height:168px;
             background:rgba(255,255,255,1);
             border-radius:4px;
             border:1px solid rgba(230,234,238,1);
-            line-height: 140px;
+            line-height: 168px;
             li{
                 float:left;
             }
             li:nth-child(1),li:nth-child(3),li:nth-child(5),li:nth-child(7){
-                width: 308px;
+                width:33%;
                 height: 140px;
                 padding-top:36px;
                 p:nth-child(1){
@@ -1132,7 +1499,7 @@ export default {
     }
     .controlboardIndex-TBDorder{
         width:1540px;
-        margin-bottom:32px;
+        margin-bottom:16px;
         ul:nth-child(1){
             height: 33px;
             line-height: 33px;
@@ -1153,6 +1520,7 @@ export default {
                 font-weight:500;
                 color:rgba(80,104,140,1);
                 line-height:33px;
+                
             }
         }
         ul:nth-child(2){
@@ -1187,6 +1555,7 @@ export default {
                     font-weight:500;
                     color:rgba(255,168,0,1);
                     text-decoration: underline;
+                    cursor:pointer;
                 }
             }
             li:nth-child(7){
@@ -1211,6 +1580,7 @@ export default {
                     font-weight:500;
                     color:rgba(255,168,0,1);
                     text-decoration: underline;
+                    cursor:pointer;
                 }
             }
             li:nth-child(2),li:nth-child(4),li:nth-child(6){
@@ -1222,7 +1592,7 @@ export default {
         }
     }
     .controlboardIndex-latestOrder{
-        margin-bottom:32px;
+        margin-bottom:16px;
         width:1540px;
         .latestOrder-ul{
             height: 33px;
@@ -1250,6 +1620,7 @@ export default {
                 float:right;
                 height:33px;
                 line-height: 33px;
+                cursor: pointer;
                 span{
                     font-size:16px;
                     font-family:PingFang-SC-Medium;
@@ -1266,7 +1637,7 @@ export default {
         }
         .latestOrder-div{
             width:1540px;
-            // height:398px;
+            height:360px;
             background:rgba(255,255,255,1);
             border-radius:4px;
             opacity:0.9;
@@ -1327,6 +1698,7 @@ export default {
                 float:right;
                 height:33px;
                 line-height: 33px;
+                cursor:pointer;
                 span{
                     font-size:16px;
                     font-family:PingFang-SC-Medium;
@@ -1343,7 +1715,7 @@ export default {
         }
         .latestRepot-div{
             width:1540px;
-            // height:308px;
+            height:360px;
             background:rgba(255,255,255,1);
             border-radius:4px;
             opacity:0.9;
@@ -1368,10 +1740,13 @@ export default {
     .controlboardIndex-latestOrder{
          //el-table
         .el-table th{
+            padding:0;
             height:60px;
         }
         .el-table td{
+            padding:0;
             height:60px;
+            line-height:60px;
         }
         .el-table .cell{
             padding:0;
@@ -1387,11 +1762,20 @@ export default {
         .el-table td:nth-child(1) div{
             padding-left:40px;
         }
-        .el-table th:nth-child(1)>.cell .el-button--text{
+        .el-table td:nth-child(1) div{
+            font-size:14px;
             color:rgba(21,139,228,1);
+            cursor:pointer;
         }
-        .el-table td:nth-child(1) div .el-button--text{
-            color:rgba(21,139,228,1);
+        .el-table td:nth-child(3) div .el-button--text{
+            font-size:14px;
+            color:rgba(80,104,140,1);
+            text-align:left;
+        }
+        .el-table td:nth-child(5) div .el-button--text{
+            font-size:14px;
+            color:rgba(80,104,140,1);
+            text-align:left;
         }
         .el-button--text{
             color:rgba(255,168,0,1);
@@ -1428,90 +1812,367 @@ export default {
             float:right;
             margin:0 60px 0 0;
         }
-        .el-table th:nth-child(8)>.cell .el-button--text:last-child span{    
-            width:88px;
-            height:32px;
-            background:rgba(103,194,58,1);
-            border-radius:4px;
-            display:block;
+        .el-table td:nth-child(5) div .el-button--text{
+            color:rgba(80,104,140,1);
+            text-align:left;
+            margin:0;
         }
-        .el-table td:nth-child(8) div .el-button--text:last-child span{       
-            width:88px;
-            height:32px;
-            background:rgba(103,194,58,1);
-            border-radius:4px;
-            display:block;
-            text-align:center;
-            line-height:32px;
-            font-size:14px;
-            color:rgba(255,255,255,1);
+        .el-table td:nth-child(7){
+           
+            line-height:60px;
         }
-        .el-table td:nth-child(8) div .el-button--text:last-child span i{
-            margin-right:12px;
-            font-size:12px;
-            color:rgba(255,255,255,1);
+        .el-table td:nth-child(7) div .el-button--text i{
+            font-size:22px;
+            color:rgba(103,194,58,1);
         }
 
         //Dialog Table
-        .el-dialog{
-            width:387px;
-            height:294px;
-            background:rgba(255,255,255,1);
-            box-shadow:0px 2px 4px 0px rgba(118,140,170,1);
-            border-radius:4px;
-            .el-dialog__header{
-                width:387px;
-                height:41px;
-                background:rgba(230,234,238,1);
-                border-radius:3px 3px 0px 3px;
-                text-align:center;
-                line-height:41px;
-                padding:0;
-                position:relative;
-                .el-dialog__headerbtn{
-                    width:12px;
-                    height:12px;
-                    line-height:12px;
-                    position:absolute;
-                    top:13px;
-                    right:13px;
-                    .el-icon-close:before{
-                        color:rgba(22,64,97,1);
-                        font-weight:600;
+        // .productsDialog{
+        //     width:387px;
+        //     height:294px;
+        //     background:rgba(255,255,255,1);
+        //     box-shadow:0px 2px 4px 0px rgba(118,140,170,1);
+        //     border-radius:4px;
+        //     .el-dialog__header{
+        //         width:387px;
+        //         height:41px;
+        //         background:rgba(230,234,238,1);
+        //         border-radius:3px 3px 0px 3px;
+        //         text-align:center;
+        //         line-height:41px;
+        //         padding:0;
+        //         position:relative;
+        //         .el-dialog__headerbtn{
+        //             width:12px;
+        //             height:12px;
+        //             line-height:12px;
+        //             position:absolute;
+        //             top:13px;
+        //             right:13px;
+        //             .el-icon-close:before{
+        //                 color:rgba(22,64,97,1);
+        //                 font-weight:600;
+        //             }
+        //         }
+        //     }
+        //     .el-dialog__body{
+        //         width:387px;
+        //         height:253px;
+        //         padding:0;
+        //         .el-table th{
+        //             height:31px;
+        //             padding:0;
+        //         }
+        //         .el-table td{
+        //             height:36px;
+        //         }
+        //         .el-table th:nth-child(1) > .cell{
+        //             padding:0;
+        //         }
+        //         .el-table .cell, .el-table th div{
+        //             font-size:14px;
+        //             color:rgba(124,140,165,1);
+        //             text-align:center;
+        //         }
+        //         .el-table td:nth-child(1) div{
+        //             padding:0;
+        //             color:rgba(22,64,97,1);
+        //             font-size:14px;
+        //         }
+        //         .el-table td:nth-child(2) div{
+        //             color:rgba(22,64,97,1);
+        //             font-size:14px;
+        //         }
+        //     }
+        // }
+
+        .productsDialog{
+            //Dialog Table
+                .el-dialog{
+                    width:387px;
+                    height:294px;
+                    background:rgba(255,255,255,1);
+                    box-shadow:0px 2px 4px 0px rgba(118,140,170,1);
+                    border-radius:4px;
+                    .el-dialog__header{
+                        width:387px;
+                        height:41px;
+                        background:rgba(230,234,238,1);
+                        border-radius:3px 3px 0px 3px;
+                        text-align:center;
+                        line-height:41px;
+                        padding:0;
+                        position:relative;
+                        .el-dialog__headerbtn{
+                            width:12px;
+                            height:12px;
+                            line-height:12px;
+                            position:absolute;
+                            top:13px;
+                            right:13px;
+                            .el-icon-close:before{
+                                color:rgba(22,64,97,1);
+                                font-weight:600;
+                            }
+                        }
                     }
+                    .el-dialog__body{
+                        width:387px;
+                        height:253px;
+                        padding:0;
+                        .el-table th{
+                            height:31px;
+                            padding:0;
+                        }
+                        .el-table td{
+                            height:36px;
+                            padding:0;
+                        }
+                        .el-table th:nth-child(1) > .cell{
+                            padding:0;
+                            width:108px;
+                        }
+                        .el-table .cell, .el-table th div{
+                            font-size:14px;
+                            color:rgba(124,140,165,1);
+                            text-align:center;
+                        }
+                        .el-table td:nth-child(1) div{
+                            padding:0;
+                            color:rgba(22,64,97,1);
+                            font-size:14px;
+                        }
+                        .el-table td:nth-child(2) div{
+                            color:rgba(22,64,97,1);
+                            font-size:14px;
+                        }
+                    }
+                }
+        }
+
+        //closeDialog订单关闭Dialog
+        .closeDialog{
+            .el-dialog{
+            width:600px;
+            height:480px;
+            background:rgba(255,255,255,1);
+            border-radius:8px;
+            .el-dialog__header{
+                padding:60px 0 0 0;
+                text-align: center;
+                .el-dialog__title{
+                height:33px;
+                font-size:24px;
+                font-weight:500;
+                color:rgba(124,143,166,1);
+                line-height:33px;
+                }
+                .el-dialog__headerbtn .el-dialog__close{
+                font-size:24px;
+                color:rgba(144,147,153,1);
+                font-weight:600;
                 }
             }
             .el-dialog__body{
-                width:387px;
-                height:253px;
-                padding:0;
-                .el-table th{
-                    height:31px;
-                    padding:0;
+                padding:40px 102px 0 84px;
+                margin-bottom:32px;
+                // text-align: center;
+                .el-form-item:nth-child(1){
+                margin-bottom:24px;
+                .el-form-item__label{
+                    width:90px;
+                    height:40px;
+                    line-height: 40px;
+                    font-size:18px;
+                    font-family:MicrosoftYaHei;
+                    color:rgba(144,147,153,1);
+                    // line-height:24px;
                 }
-                .el-table td{
-                    height:36px;
+                .el-input--medium .el-input__inner{
+                    width:316px;
+                    height:40px;
+                    border-radius:4px;
+                    border:1px solid rgba(192,196,204,1);
                 }
-                .el-table th:nth-child(1) > .cell{
-                    padding:0;
                 }
-                .el-table .cell, .el-table th div{
-                    font-size:14px;
-                    color:rgba(124,140,165,1);
-                    text-align:center;
+                .el-form-item:nth-child(2){
+                margin:0;
+                .el-form-item__label{
+                    width:90px;
+                    height:40px;
+                    line-height: 40px;
+                    font-size:18px;
+                    font-family:MicrosoftYaHei;
+                    color:rgba(144,147,153,1);
+                    float:left;
                 }
-                .el-table td:nth-child(1) div{
-                    padding:0;
-                    color:rgba(22,64,97,1);
-                    font-size:14px;
+                .el-input--medium{
+                    width:316px;
+                    height:150px;
                 }
-                .el-table td:nth-child(2) div{
-                    color:rgba(22,64,97,1);
-                    font-size:14px;
+                .el-textarea__inner{
+                    width:316px;
+                    height:150px;
+                    border-radius:3px;
+                    border:1px solid rgba(192,196,204,1);
+                    padding:9px 16px 0;
+                }
                 }
             }
+            .el-dialog__footer{
+                padding:0;
+                text-align: center;
+                .el-button--medium:nth-child(1){
+                width:98px;
+                height:50px;
+                border-radius:4px;
+                border:1px solid rgba(144,147,153,1);
+                margin-right:40px;
+                }
+                .el-button--medium:nth-child(2){
+                width:98px;
+                height:50px;
+                background:rgba(255,168,0,1);
+                border-radius:4px;
+                }
+            }
+            }
         }
-
+        // refundDialog退单Dialog
+        .refundDialog{
+            .el-dialog{
+            width:600px;
+            height:480px;
+            background:rgba(255,255,255,1);
+            border-radius:8px;
+            .el-dialog__header{
+                padding:60px 0 0 0;
+                text-align: center;
+                .el-dialog__title{
+                height:33px;
+                font-size:24px;
+                font-weight:500;
+                color:rgba(124,143,166,1);
+                line-height:33px;
+                }
+                .el-dialog__headerbtn .el-dialog__close{
+                font-size:24px;
+                color:rgba(144,147,153,1);
+                font-weight:600;
+                }
+            }
+            .el-dialog__body{
+                padding:40px 102px 0 84px;
+                margin-bottom:32px;
+                // text-align: center;
+                .el-form-item:nth-child(1){
+                margin-bottom:24px;
+                .el-form-item__label{
+                    width:90px;
+                    height:40px;
+                    line-height: 40px;
+                    font-size:18px;
+                    font-family:MicrosoftYaHei;
+                    color:rgba(144,147,153,1);
+                    // line-height:24px;
+                }
+                .el-input--medium .el-input__inner{
+                    width:316px;
+                    height:40px;
+                    border-radius:4px;
+                    border:1px solid rgba(192,196,204,1);
+                }
+                }
+                .el-form-item:nth-child(2){
+                margin:0;
+                .el-form-item__label{
+                    width:90px;
+                    height:40px;
+                    line-height: 40px;
+                    font-size:18px;
+                    font-family:MicrosoftYaHei;
+                    color:rgba(144,147,153,1);
+                    float:left;
+                }
+                .el-input--medium{
+                    width:316px;
+                    height:150px;
+                }
+                .el-textarea__inner{
+                    width:316px;
+                    height:150px;
+                    border-radius:3px;
+                    border:1px solid rgba(192,196,204,1);
+                    padding:9px 16px 0;
+                }
+                }
+            }
+            .el-dialog__footer{
+                padding:0;
+                text-align: center;
+                .el-button--medium:nth-child(1){
+                width:98px;
+                height:50px;
+                border-radius:4px;
+                border:1px solid rgba(144,147,153,1);
+                margin-right:40px;
+                }
+                .el-button--medium:nth-child(2){
+                width:98px;
+                height:50px;
+                background:rgba(255,168,0,1);
+                border-radius:4px;
+                }
+            }
+            }
+        }
+        //DeleteDialog删除Dialog
+        .DeleteDialog{
+            .el-dialog{
+            width:480px;
+            height:240px;
+            background:rgba(255,255,255,1);
+            border-radius:8px;
+            }
+            .el-dialog--center{
+            width:480px !important;
+            height:240px !important;
+            background:rgba(255,255,255,1);
+            border-radius:8px;
+            }
+            .el-dialog__header{
+            padding:60px 0 45px 0;
+            .el-dialog__title{
+                font-size:24px;
+                font-weight:500;
+                color:rgba(124,143,166,1);
+            }
+            .el-dialog__headerbtn .el-dialog__close{
+                font-size:24px;
+                color:rgba(144,147,153,1);
+                font-weight:600;
+                }
+            }
+            .el-dialog__body{
+            padding:0;
+            }
+            .el-dialog__footer{
+            padding-top:0;
+            .el-button--medium:nth-child(1){
+                width:98px;
+                height:50px;
+                border-radius:4px;
+                border:1px solid rgba(144,147,153,1);
+            }
+            .el-button--medium:nth-child(2){
+                width:98px;
+                height:50px;
+                background:rgba(255,168,0,1);
+                border-radius:4px;
+                margin-left:40px;
+            }
+            }
+        }
 
     }
     .controlboardIndex-latestRepot{
@@ -1536,11 +2197,22 @@ export default {
         .el-table td:nth-child(1) div{
             padding-left:40px;
         }
-        .el-table th:nth-child(2)>.cell .el-button--text{
+        .el-table td:nth-child(2) div{
+            font-size:14px;
             color:rgba(21,139,228,1);
         }
-        .el-table td:nth-child(2) div .el-button--text{
-            color:rgba(21,139,228,1);
+        .el-table td:nth-child(3) div{
+            font-size:14px;
+            width:80px;
+            white-space:nowrap;
+            overflow: hidden;
+            text-overflow:ellipsis;
+            cursor:pointer;
+        }
+        .el-table td:nth-child(6) div .el-button--text:nth-child(1){
+            text-align:left;
+            font-size:14px;
+            color:rgba(80,104,140,1);
         }
         .el-button--text{
             color:rgba(255,168,0,1);

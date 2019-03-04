@@ -9,7 +9,7 @@
         <div class="image-name">{{ file.name }}</div>
         <div class="image-preview-action">
           <i class="el-icon-zoom-in" v-if="file.extension == 'jpg'" @click="handlePictureCardPreview(file)"/>
-          <i class="el-icon-download" v-if="file.extension != 'jpg'"/>
+          <i class="el-icon-download" v-if="file.extension != 'jpg'" @click="handleDownload(file)"/>
           <i class="el-icon-delete" @click="handleRemove(file,index)"/>
         </div>
       </div>
@@ -47,7 +47,6 @@
 <script>
 import prettyFileIcons from 'pretty-file-icons'
 import { getToken } from '@/utils/auth'
-
 export default {
   name: 'Upload',
   props: {
@@ -68,7 +67,11 @@ export default {
       isSuccess:true,
       ImageUrl:'',
       dialogImageUrl: '',
-      dialogVisible: false
+      dialogVisible: false,
+
+      fileName:[],    //集合名字
+
+      isrepeat:'',
     }
   },
   computed: {
@@ -85,25 +88,89 @@ export default {
   methods: {
     getFileExtensions(url) {
       console.log(url)
-      return prettyFileIcons.getIcon(url)
+      // console.log('url++++++++++++++++')
+      // if( prettyFileIcons.getIcon(url)){
+      //   this.$message({
+      //     message: '你上传的文件内容异常',
+      //     type:'warning'
+      //   })
+      //   return false;
+      // }
+      // console.log(prettyFileIcons.getIcon(url))
+      // return prettyFileIcons.getIcon(url)
+      console.log(url.substring(url.lastIndexOf('.')+1, url.length))
+      return url.substring(url.lastIndexOf('.')+1, url.length)
     },
+
+    // is_repeat(file){
+    //   for(var i = 0; i <this.fileName.length; i++) {
+    //       if(file.name == this.fileName[i]) {
+    //           this.isrepeat = true;
+    //       }
+    //   }
+    //   if( this.isrepeat == true){
+    //     this.$message({
+    //       message: '注意! 上传的附件名字重复',
+    //       type: 'warning'
+    //     });
+    //     return false;
+    //   }else{
+    //     this.fileName.push(file.name)
+    //   }
+    //   console.log('this.fileName')
+    //   console.log(this.fileName)
+    //   console.log('this.fileName')
+    // },
+
     handleBeforeUpload(file) {
-      const extension = file.name.split('.')[1] === 'xls'
-      const extension2 = file.name.split('.')[1] === 'xlsx'
-      const extension3 = file.name.split('.')[1] === 'doc'
-      const extension4 = file.name.split('.')[1] === 'docx'
-      const extension5 = file.name.split('.')[1] === 'ppt'
-      const extension6 = file.name.split('.')[1] === 'pptx'
-      const extension7 = file.name.split('.')[1] === 'jpg'
-      const extension8 = file.name.split('.')[1] === 'jpeg'
-      const extension9 = file.name.split('.')[1] === 'pdf'
+
+      console.log(file)
+
+      // this.is_repeat(file)
+      for(var i = 0; i <this.fileName.length; i++) {
+          if(file.name == this.fileName[i]) {
+              this.isrepeat = true;
+          }
+      }
+      if( this.isrepeat == true){
+        this.$message({
+          message: '注意! 附件中文件或文件名存在重复，请重新确认',
+          type: 'warning'
+        });
+        this.isrepeat = '';
+        return false;
+      }else{
+        this.fileName.push(file.name)
+      }
+
+      console.log('this.fileName')
+      console.log(this.fileName)
+      console.log('this.fileName')
+      // console.log('file.type999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999')
+      // console.log()
+      // console.log('file.typetype999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999')
+      const extension  = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'xls'
+      const extension2 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'xlsx'
+      const extension3 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'doc'
+      const extension4 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'docx'
+      const extension5 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'ppt'
+      const extension6 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'pptx'
+      const extension7 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'jpg'
+      const extension8 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'jpeg'
+      const extension9 = file.name.substring(file.name.lastIndexOf('.')+1, file.name.length) === 'pdf'
       const isLt2M = file.size / 1024 / 1024 < 30
       if (!extension && !extension2 && !extension3 && !extension4 && !extension5 && !extension6 && !extension7 && !extension8 && !extension9) {
-        this.$message('上传附件只能是 xls、xlsx、doc、docx 、ppt、pptx、jpg、jpeg、pdf格式!')
+        this.$message({
+          message: '上传附件只能是 xls、xlsx、doc、docx 、ppt、pptx、jpg、jpeg、pdf格式!',
+          type: 'warning'
+        })
         return false;
       }
       if (!isLt2M) {
-       this.$message('上传单个附件大小不能超过 30MB!')
+       this.$message({
+         message: '上传单个附件大小不能超过 30MB!',
+         type: 'warning'
+       })
        return false;
       }
       
@@ -127,6 +194,7 @@ export default {
         // console.log(this.uploadingFiles)
         // this.uploadingFiles[index].image = [];
         this.files.splice(index ,1)
+        this.fileName.splice(index, 1)
         // console.log(this.files)
       }
     },
@@ -150,6 +218,12 @@ export default {
         this.ImageUrl = response.data.url
         // console.log(this.ImageUrl)
       }
+    },
+
+    // handleDownload
+    handleDownload(file){
+      console.log(file)
+      window.location.href = file.url
     }
   }
 }

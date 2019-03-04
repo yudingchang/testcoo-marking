@@ -4,6 +4,15 @@
     <div class='hometop'>
         <span class="logo">
         </span>
+        <el-dropdown trigger="click" class="switch" @command="handleCommand">
+          <span class="el-dropdown-link">
+            中文<i class="el-icon-arrow-down el-icon--right"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="a">中文</el-dropdown-item>
+            <el-dropdown-item command="b">English</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
         <span>
           400-627-8168
         </span>
@@ -37,11 +46,12 @@
             placeholder="输入登录密码"
             name="username"
             type="password"
-            class="email-content"     
+            class="email-content"
+            @keyup.native.enter="loginByEmail()"     
           />            
         </el-form-item>
         <p class="text1" @click="forgetPassword()">忘记密码?</p>
-        <el-button type="primary" @click="loginByEmail()" :disabled="((loginForm.email == '') || (this.loginForm.password == ''))" :class="{disabled:((loginForm.email == '') || (this.loginForm.password == '')),isactive:((loginForm.email != '') && (this.loginForm.password != ''))}">登录</el-button>
+        <el-button type="primary" @click="loginByEmail()" @keyup.enter.native='enterLogin()' :disabled="((loginForm.email == '') || (this.loginForm.password == ''))" :class="{disabled:((loginForm.email == '') || (this.loginForm.password == '')),isactive:((loginForm.email != '') && (this.loginForm.password != ''))}">登录</el-button>
         <p class="tip">还没加入测库? <a @click="toregister">立即注册</a></p>
       </el-form>
       <!-- 手机号登录 -->
@@ -60,7 +70,7 @@
           />   
           <div class="popover" v-show="popoverShow">
             <ul>
-              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selected(item)">{{item.label}}</li>
+              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedLogin(item)">{{item.label}}</li>
             </ul>
             <div class="popper-arrow"></div>
           </div>         
@@ -74,7 +84,8 @@
             placeholder="输入登录密码"
             name="username"
             type="password"
-            class="email-content"     
+            class="email-content"
+            @keyup.native.enter="loginByPhone()"     
           />            
         </el-form-item>
         <p class="text1" @click="forgetPassword()">忘记密码?</p>
@@ -105,7 +116,8 @@
             placeholder="输入电子邮箱"
             name="username"
             type="text"
-            class="email-content"     
+            class="email-content"
+            maxlength="50"     
           />            
         </el-form-item>
         <el-form-item prop="password" class="email">
@@ -120,6 +132,7 @@
             class="email-content"   
             @focus="showPump()" 
             @blur="hidePump()"
+            maxlength="20"
           />    
           <div class="passwordPump" v-if="passwordPumpShow">
             1、8-20位字符<br>
@@ -154,10 +167,10 @@
         
       </el-form>
       <!-- 手机号注册 -->
-      <el-form v-if="registernum==1" class="login-form" :model="phoneRegisterForm">
+      <el-form v-show="registernum==1" class="login-form" :model="phoneRegisterForm">
         <el-form-item prop="username" class="phone-email clearfloat">
           <span class="phone-style">
-            {{areaselect}}
+            {{ phoneRegisterForm.phone_number_code?phoneRegisterForm.phone_number_code:'中国大陆 +86' }}
           </span>
           <span class="arrow-next" @click="getpopover()"></span>
           <el-input
@@ -169,7 +182,7 @@
           />   
           <div class="popover" v-show="popoverShow">
             <ul>
-              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selected(item)">{{item.label}}</li>
+              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedRegistered(item)">{{item.label}}</li>
             </ul>
             <div class="popper-arrow"></div>
           </div>         
@@ -183,8 +196,15 @@
             placeholder="输入登录密码"
             name="username"
             type="password"
-            class="email-content"     
-          />            
+            class="email-content"
+            @focus="showPump()" 
+            @blur="hidePump()"    
+          />
+          <div class="passwordPump" v-if="passwordPumpShow">
+            1、8-20位字符<br>
+            2、大写字母、小写字母、数字、特殊符号两种组合以上
+            <div class="hover-pump-arrow"></div>
+          </div>            
         </el-form-item>
         <el-form-item prop="username" class="email">
           <span>
@@ -214,7 +234,7 @@
         <el-button type="primary"  class="btnreturn margin16">返回登录</el-button>
         <p class="tip"><el-checkbox v-model="checked"></el-checkbox><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p> -->
       </el-form>
-      <el-button type="primary"  class="isactive" @click="goRegister()">注册</el-button>
+      <el-button type="primary" :disabled="!checked" class="isactive" @click="goRegister()">注册</el-button>
       <el-button type="primary"  class="btnreturn margin16" @click="goLogin">返回登录</el-button>
       <p class="tip"><el-checkbox v-model="checked"></el-checkbox><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p>
        <!-- 注册报错信息报文 -->
@@ -257,7 +277,7 @@
       <div class="button-group">
         <div @click="resend()" :class={sendma:true,recolor:sendMaDisabled}>{{secondStepText}}</div>
         <div @click="backregister()">取消</div>
-        <div @click="userRegister()">继续</div>
+        <div @click="userRegister()" class="changeColorCon ">继续</div>
       </div>
     </el-form>
     <!-- 密码找回 -->
@@ -317,7 +337,7 @@
         <el-form class="login-form ma-content" v-if="secondStepPhoneShow" :model="secondStepFormPhone">
           <el-form-item prop="username" class="email clearfloat secondStepPhone">
              <span class="phone-style">
-            {{areaselect}}
+            {{secondStepFormPhone.phone_number_code?secondStepFormPhone.phone_number_code:'中国大陆 +86'}}
           </span>
           <span class="arrow-next" @click="getpopover()"></span>
           <el-input
@@ -327,9 +347,9 @@
             type="text"
             class="phone-email-content"     
           />   
-          <div class="popover" v-show="popoverShow">
+          <div class="popover popoverForget" v-show="popoverShow">
             <ul>
-              <li v-for="(item,index) in area" :key=index @click="selected(item)">{{item}}</li>
+              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedForget(item)">{{item.label}}</li>
             </ul>
             <div class="popper-arrow"></div>
           </div>            
@@ -456,7 +476,8 @@ export default {
         password: "",
         phone_number: "",
         type: "phone_number",
-        verification_code: ""
+        verification_code: "",
+        phone_number_code:'',
       },
       loginForm: {
         email: "",
@@ -467,6 +488,7 @@ export default {
         phone_number: "",
         type: "phone_number",
         password: "",
+        phone_number_code:"",
       },
       // 邮箱注册发送验证码参数
       sendMail: {
@@ -489,7 +511,8 @@ export default {
         password: "",
         confirmpassword: "",
         company_name: "",
-        verification_code: ""
+        verification_code: "",
+        phone_number_code:'',
       },
       // 用户登录参数
       userLogin: {
@@ -555,7 +578,13 @@ export default {
       // passwordType: "password",
       loading: false,
       showDialog: false,
-      redirect: undefined
+      redirect: undefined,
+
+      //判断找回方式
+      wayBack: '',
+
+      //continue
+      continue:false,
     };
   },
   watch: {
@@ -576,47 +605,71 @@ export default {
   },
   created() {
     this.getConfigs()
-    // window.addEventListener('hashchange', this.afterQRScan)
+    // window.addEventListener('hashchange', this.afterQRScan)\
+    this.keyupEnter()
   },
   destroyed() {
     // window.removeEventListener('hashchange', this.afterQRScan)
   },
   methods: {
+    //点击切换中英文版本
+    handleCommand(command) {
+      this.$message('click on item ' + command);
+    },
     goFourStep() {
-      if(this.secondStepEmailShow){
-         resetPassword({
-        type: "email",
-        verification_code: this.secondStepForm.verification_code,
-        email: this.secondStepForm.email,
-        password: this.thirdStepForm.password
-      }).then(response => {
-        if (response.data.code == 0) {
-          this.fourStepShow = true;
-          this.thirdStepShow = false;
-          this.active++;
-        } else {
-          //  this.registerWrongMessage =
-        }
-      });
-      }else{
-         resetPassword({
-        type: "phone_number",
-        verification_code: this.secondStepFormPhone.verification_code,
-        phone_number: this.secondStepFormPhone.phone_number,
-        password: this.thirdStepForm.password
-      }).then(response => {
-        if (response.data.code == 0) {
-          this.fourStepShow = true;
-          this.thirdStepShow = false;
-          this.active++;
-        } else {
-          //  this.registerWrongMessage =
-        }
-      });
-
+      var pPattern = /^(\w){6,20}$/;
+      if(!pPattern.test(this.thirdStepForm.password)){
+        this.$notify.warning({
+          title: '警告',
+          message: '密码只能输入6-20个字母、数字、下划线',
+          position: 'bottom-right',
+          duration: 1500
+        })
+        return false;
       }
-     
 
+      if( this.thirdStepForm.password != this.thirdStepForm.confirmpassword ){
+        this.$notify.error({
+          title: '错误',
+          message: '密码输入不一致',
+          position: 'bottom-right',
+          duration: 1500
+        })
+        return false;
+      }
+      if(this.secondStepEmailShow){
+        resetPassword({
+          type: "email",
+          verification_code: this.secondStepForm.verification_code,
+          email: this.secondStepForm.email,
+          password: this.thirdStepForm.password,
+          repeat_password: this.thirdStepForm.confirmpassword
+      }).then(response => {
+        if (response.data.code == 0) {
+            this.fourStepShow = true;
+            this.thirdStepShow = false;
+            this.active++;
+          } else {
+            //  this.registerWrongMessage =
+          }
+        });
+      }else{
+        resetPassword({
+            type: "phone_number",
+            verification_code: this.secondStepFormPhone.verification_code,
+            phone_number: this.secondStepFormPhone.phone_number,
+            password: this.thirdStepForm.password,
+            repeat_password: this.thirdStepForm.confirmpassword
+          }).then(response => {
+            if (response.data.code == 0) {
+              this.fourStepShow = true;
+              this.thirdStepShow = false;
+              this.active++;
+            } else {
+              //  this.registerWrongMessage =
+            }
+          });
+      }
       // this.active--
     },
     // 回退第二步
@@ -632,9 +685,14 @@ export default {
     },
     // 重置密码第三步
     goThirdStep() {
-      this.secondStepShow = false;
-      this.thirdStepShow = true;
-      this.active++;
+      // var reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式
+      // if( reg.test(this.secondStepForm.email) ){
+        this.secondStepShow = false;
+        this.thirdStepShow = true;
+        this.active++;
+      // }else{
+      //   this.$message()
+      // }
     },
     forgetSendMa() {
       if(this.secondStepEmailShow){
@@ -662,6 +720,48 @@ export default {
     },
     // 第二步发送验证码
     secondStepSendMa() {
+      console.log(this.wayBack)
+      if( this.secondStepForm.email == '' && this.wayBack == 'email' ){
+        this.$notify.warning({
+          title: '警告',
+          message: '电子邮箱不可为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
+        return false;
+      }
+      var regEmail = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式
+      if( !regEmail.test(this.secondStepForm.email) && this.wayBack == 'email' ){
+        this.$notify.error({
+          title: '错误',
+          message: '您输入的电子邮箱格式错误',
+          position: 'bottom-right',
+          duration: 1500
+        })
+        return false; 
+      }
+
+      if( this.secondStepFormPhone.phone_number == '' && this.wayBack == 'phone' ){
+        this.$notify.warning({
+          title: '警告',
+          message: '手机号码不可为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
+        return false;
+      }
+      var regPhone = /^[1][3,4,5,7,8][0-9]{9}$/;
+      if( !regPhone.test(this.secondStepFormPhone.phone_number) && this.wayBack == 'phone' ){
+        this.$notify.error({
+          title: '错误',
+          message: '您输入的手机号码格式错误',
+          position: 'bottom-right',
+          duration: 1500
+        })
+        return false; 
+      }
+
+
       this.forgetSendMa();
       const TIME_COUNT = 60;
       this.sendMaDisabled = true
@@ -684,6 +784,9 @@ export default {
       this.secondStepPhoneShow = false
       this.secondStepEmailShow = true
       if (this.active++ > 2) this.active = 0;
+      this.wayBack = 'email'
+      this.secondStepForm.email = ''  //清空上一次的内容
+      this.secondStepForm.verification_code = ''  //清空验证码
     },
     // 通过手机号找回密码
     recoveryByPhone() {
@@ -692,6 +795,9 @@ export default {
       this.secondStepPhoneShow = true
       this.secondStepEmailShow = false
       if (this.active++ > 2) this.active = 0;
+      this.wayBack = 'phone',
+      this.secondStepFormPhone.phone_number = '' ;  //清空手机号码 
+      this.secondStepFormPhone.verification_code = ''   //清空验证码
     },
     // 进入找回密码页面
     forgetPassword() {
@@ -709,8 +815,30 @@ export default {
             this.$router.push({ path: this.redirect || "/" });
           })
           .catch(() => {
+            
           });
+      }else{
+        this.$notify.warning({
+          title: '警告',
+          message: '电子邮箱格式输入错误',
+          position: 'bottom-right',
+          duration: 1500
+        })
       }
+    },
+    //
+    keyupEnter(){
+        document.onkeydown = e =>{
+            let body = document.getElementsByTagName('body')[0]
+            if (e.keyCode === 13 && e.target.baseURI.match(/inputbook/) && e.target === body) {
+                console.log('enter')
+                this.enterLogin()
+            }
+        }
+    },
+    //enterLogin回车键
+    enterLogin(){
+      this.loginByEmail()
     },
     // 手机号登录
     loginByPhone(){
@@ -721,17 +849,21 @@ export default {
           .then(() => {
             this.$router.push({ path: this.redirect || "/" });
           })
-          .catch(() => {
-          });
+          // .catch(() => {
+          //   this.$message.error('账号或密码错误')
+          // });
       // }
     },
     // 去注册
     goRegister() {
+      this.countdownVerification();
       if (this.registernum == 0) {
         this.emailsendma();
       } else {
         this.phonesendma();
       }
+
+
     },
     // 重发验证码
     resend(){
@@ -740,6 +872,12 @@ export default {
       } else {
         this.phonesendma();
       }
+      console.log(this.registernum)
+      this.countdownVerification();
+    },
+
+    // 验证码倒计时
+    countdownVerification(){
       const TIME_COUNT = 60;
       this.sendMaDisabled = true
       this.secondStepText = TIME_COUNT;
@@ -759,34 +897,76 @@ export default {
       let emailReg = /^[0-9A-Za-z][\.-_0-9A-Za-z]*@[0-9A-Za-z]+(\.[0-9A-Za-z]+)+$/;
       let passwordReg = /^(?![A-Z]+$)(?![a-z]+$)(?!\d+$)(?![\W_]+$)\S{8,20}$/;
       if (this.registerForm.email == "") {
-        this.registerWrongMessage = "电子邮箱不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "电子邮箱不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '电子邮箱不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (!emailReg.test(this.registerForm.email)) {
-        this.registerWrongMessage = "电子邮箱格式错误";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "电子邮箱格式错误";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '电子邮箱格式错误',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (this.registerForm.password == "") {
-        this.registerWrongMessage = "密码不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "密码不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '密码不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (!passwordReg.test(this.registerForm.password)) {
-        this.registerWrongMessage = "密码格式错误";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "密码格式错误";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '密码格式错误',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (this.registerForm.confirmpassword == "") {
-        this.registerWrongMessage = "确认密码不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "确认密码不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '确认密码不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (
         !(this.registerForm.confirmpassword == this.registerForm.password)
       ) {
-        this.registerWrongMessage = "密码不一致";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "密码不一致";
+        // this.registerwrongPump = true;
+        this.$notify.error({
+          title: '错误',
+          message: '两次输入密码不一致，请重新输入',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (this.registerForm.company_name == "") {
-        this.registerWrongMessage = "公司名称不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "公司名称不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '公司名称不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       }
       this.registerwrongPump = false;
@@ -795,20 +975,44 @@ export default {
     checkPhoneValidate() {
       let passwordReg = /^(?![A-Z]+$)(?![a-z]+$)(?!\d+$)(?![\W_]+$)\S{8,20}$/;
       if (this.phoneRegisterForm.phone_number == "") {
-        this.registerWrongMessage = "手机号码不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "手机号码不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '手机号码不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (this.phoneRegisterForm.password == "") {
-        this.registerWrongMessage = "密码不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "密码不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '密码不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (!passwordReg.test(this.phoneRegisterForm.password)) {
-        this.registerWrongMessage = "密码格式错误";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "密码格式错误";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '密码格式错误',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (this.phoneRegisterForm.confirmpassword == "") {
-        this.registerWrongMessage = "确认密码不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "确认密码不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '确认密码不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (
         !(
@@ -816,12 +1020,24 @@ export default {
           this.phoneRegisterForm.password
         )
       ) {
-        this.registerWrongMessage = "密码不一致";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "密码不一致";
+        // this.registerwrongPump = true;
+        this.$notify.error({
+          title: '错误',
+          message: '两次输入密码不一致，请重新输入',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       } else if (this.phoneRegisterForm.company_name == "") {
-        this.registerWrongMessage = "公司名称不能为空";
-        this.registerwrongPump = true;
+        // this.registerWrongMessage = "公司名称不能为空";
+        // this.registerwrongPump = true;
+        this.$notify.warning({
+          title: '警告',
+          message: '公司名称不能为空',
+          position: 'bottom-right',
+          duration: 1500
+        })
         return false;
       }
       this.registerwrongPump = false;
@@ -854,8 +1070,21 @@ export default {
             this.$nextTick(() => {
               this.ipt = document.querySelectorAll("#inputList .disInput");
             });
+            // this.registerForm.email = ''
+            // this.registerForm.password = ''
+            // this.registerForm.confirmpassword = ''
+            // this.registerForm.company_name = ''
           } else {
           }
+        }).catch( (error)=> {
+          console.log(error+'99999999999999')
+          // if( error && error.response){
+          //   switch( error.response.status ){
+          //     case 422:
+          //       error.message = '邮箱账号已经存在'
+          //       break;
+          //   }
+          // }
         });
       }
     },
@@ -872,6 +1101,10 @@ export default {
             this.$nextTick(() => {
               this.ipt = document.querySelectorAll("#inputList .disInput");
             });
+            // this.phoneRegisterForm.phone_number = ''
+            // this.phoneRegisterForm.password = ''
+            // this.phoneRegisterForm.confirmpassword = ''
+            // this.phoneRegisterForm.company_name = ''
           } else {
           }
         });
@@ -880,6 +1113,7 @@ export default {
     // 返回注册页
     backregister() {
       this.verifyEmail = false;
+      this.pwdList = []
     },
     // 返回登录页
     goLogin() {
@@ -893,6 +1127,17 @@ export default {
     toregister() {
       this.loginShow = false;
       this.registerShow = true;
+      //
+      this.registerForm.email = ''
+      this.registerForm.password = ''
+      this.registerForm.confirmpassword = ''
+      this.registerForm.company_name = ''
+      //
+      this.phoneRegisterForm.phone_number = ''
+      this.phoneRegisterForm.password = ''
+      this.phoneRegisterForm.confirmpassword = ''
+      this.phoneRegisterForm.company_name = ''
+
     },
     // 电子邮箱注册
     userRegister() {
@@ -905,6 +1150,7 @@ export default {
             this.registerResultShow = true;
             this.verifyEmail = false;
             this.registerShow = false;
+            // this.pwdList = [];
           }
         });
       } else {
@@ -916,6 +1162,7 @@ export default {
             this.registerResultShow = true;
             this.verifyEmail = false;
             this.registerShow = false;
+            // this.pwdList = []
           }
         });
       }
@@ -926,8 +1173,16 @@ export default {
     next() {
       if (this.active++ > 3) this.active = 1;
     },
-    selected(item) {
+    selectedLogin(item) {
       this.phoneLoginForm.phone_number_code = item.value
+      this.popoverShow = false
+    },
+    selectedRegistered(item) {
+      this.phoneRegisterForm.phone_number_code = item.value
+      this.popoverShow = false
+    },
+    selectedForget(item) {
+      this.secondStepFormPhone.phone_number_code = item.value
       this.popoverShow = false
     },
     tab(item, index) {
@@ -1171,6 +1426,7 @@ $body_padding: 13px;
     // background: rgba(0, 0, 0, 0.1);
     // border-radius: 5px;
     // color: #454545;
+    margin-bottom:12px;
   }
 }
 </style>
@@ -1195,13 +1451,14 @@ $light_gray: #eee;
   color: #909399 !important;
 }
 .disabled {
-  width: 100%;
+  width: 400px;
   height: 40px;
   text-align: center;
   font-size: 16px;
   color: #ffffff;
   background: #b9b9b9;
   border: none;
+  margin:0 0 0 15px;
 }
 .disabled:hover {
   background: #b9b9b9;
@@ -1223,7 +1480,7 @@ $light_gray: #eee;
 .btnreturn {
   display: block;
   width: 400px;
-  margin: 0 auto;
+  margin: 0 auto 16px;
   height: 40px;
   text-align: center;
   font-size: 16px;
@@ -1244,6 +1501,7 @@ $light_gray: #eee;
   font-size: 14px;
   color: #ffffff;
   margin-bottom: 30px;
+  margin-top:12px;
   .agreement {
     margin-left: 8px;
   }
@@ -1599,6 +1857,10 @@ $light_gray: #eee;
         letter-spacing: 3.44px;
         text-align: center;
       }
+      .changeColorCon{
+        background:rgba(255,168,0,1) !important;
+        color:red;
+      }
     }
   }
   .hometop {
@@ -1612,12 +1874,31 @@ $light_gray: #eee;
       height: 20px;
       display: block;
     }
-    span:nth-child(2) {
+    span:nth-child(3) {
       float: right;
       font-size: 14px;
       color: #c0c4cc;
       vertical-align: middle;
+      margin-right:35px;
     }
+    .switch{
+      float:right;
+      width:50px;
+      cursor:pointer;
+      span:nth-child(1){
+        background:none;
+        font-size:13px;
+        font-weight:500;
+        color:rgba(255,168,0,1);
+        line-height:20px;
+      }
+      .el-icon--right{
+        color:rgba(185,185,185,1);
+      }
+    }
+  }
+  .register-form-box{
+    height:600px !important;
   }
   .login-form-box {
     position: relative;
@@ -1627,11 +1908,11 @@ $light_gray: #eee;
     .errorPump {
       position: absolute;
       right: -370px;
-      bottom: 20px;
+      bottom: 216px;
       background: rgba(214, 214, 214, 0.2);
       // opacity: 0.2;
       width: 350px;
-      height: 226px;
+      // height: 226px;
       font-size: 20px;
       padding: 20px;
       color: #ffffff;
@@ -1650,7 +1931,7 @@ $light_gray: #eee;
         border-left-color: transparent;
         border-right-color: rgba(214, 214, 214, 0.2);
         border-bottom-color: transparent;
-        top: 50px;
+        top: 23px;
         left: -20px;
       }
     }
@@ -1699,6 +1980,33 @@ $light_gray: #eee;
       padding: 0 0 10px 5px;
       margin-top: 32px;
       position: relative;
+      .passwordPump {
+        position: absolute;
+        top: 55px;
+        left: -5px;
+        padding: 16px 23px;
+        width: 400px;
+        // height: 90px;
+        background: #ffffff;
+        font-size: 14px;
+        color: #909399;
+        text-align: left;
+        z-index: 2;
+        .hover-pump-arrow {
+          position: absolute;
+          content: " ";
+          width: 0;
+          height: 0;
+          border: 10px solid rgba(96, 98, 102, 0.9);
+          border-top-color: transparent;
+          border-left-color: transparent;
+          border-right-color: transparent;
+          border-bottom-color: #ffffff;
+          top: -20px;
+          left: 50%;
+          margin-left: -10px;
+        }
+      }
       .phone-style {
         float: left;
         font-size: 16px;
@@ -1818,7 +2126,6 @@ $light_gray: #eee;
       text-align: center;
       font-size: 14px;
       color: #ffffff;
-      margin-top:12px;
       .agreement {
         margin-left: 8px;
       }
@@ -1874,6 +2181,47 @@ $light_gray: #eee;
     position: absolute;
     right: 35px;
     bottom: 28px;
+  }
+  .popoverForget{
+    position: absolute;
+    top: 50px;
+    width: 191px;
+    // height: 200px;
+    border-radius: 5px;
+    background: #ffffff;
+    z-index: 5;
+    > ul {
+      height: 310px;
+      overflow-y: scroll;
+      list-style: none;
+      margin-left: -20px;
+      padding-top:21px;
+      li {
+        color: #7c8ca5;
+        font-size: 14px;
+        height: 22px;
+        line-height: 22px;
+        margin-bottom: 10px;
+        padding-left:40px;
+        cursor:pointer;
+      }
+      li:active{
+        color:rgba(22,64,97,1);
+      }
+    }
+    .popper-arrow:after {
+      position: absolute;
+      content: " ";
+      width: 0;
+      height: 0;
+      border: 6px solid #ffffff;
+      border-top-color: transparent;
+      border-left-color: transparent;
+      border-right-color: transparent;
+      border-bottom-color: #ffffff;
+      top: -12px;
+      left: 20px;
+    }
   }
 }
 </style>
