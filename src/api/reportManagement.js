@@ -12,9 +12,21 @@ export function getReportManagement(data) {
 //报告详情页面
 export function getReportSelf(url) {
   return request({
-    url: url,
+    url: '/v1/inspector/report/'+url,
     method: 'get',
     // params: data
+  })
+}
+
+// 报告提交
+export function reportsubmit(id, data) {
+  return request({
+    url: '/v1/inspector/report/' + id + '/submit',
+    method: 'put',
+    data: data,
+    paramsSerializer: function(params) {
+    return qs.stringify(params, { indices: true })
+    }
   })
 }
 

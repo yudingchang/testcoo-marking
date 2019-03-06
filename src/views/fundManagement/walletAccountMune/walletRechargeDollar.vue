@@ -49,7 +49,7 @@
 
 <script>
 import payMentUsa from '../../common/paymentUSA.vue'
-import { recharge,rechargeProps,rechargeSuccess,getPaypal } from '@/api/walletDetail'
+import { recharge,rechargeProps,rechargeSuccess,getPaypal,Is_Paysuccess } from '@/api/walletDetail'
 import { orderDetail,confirmPay,surePay } from "@/api/order";
 let newTab;
 export default {
@@ -103,7 +103,7 @@ export default {
 
             //输入金额框
             numberValidateForm: {
-                AccountInput: 700,
+                AccountInput: 119,
             },
 
             //input框的value
@@ -281,6 +281,27 @@ export default {
         //         }
         //     })
         // },
+
+        // JudgePayIsSuccess确认付款是否成功
+        JudgePayIsSuccess(){
+            Is_Paysuccess(this.RechargeData.payment_id).then( response => {
+                if( response.data.code == 0){
+                    console.log(response)
+                    if( response.data.data.deliveries_at ){
+                        console.log('付款成功了++++++++')
+                        this.$message.success({
+                            message: 'PayPal支付成功'
+                        })
+                        this.$router.go(-1)
+                    }else{
+                        console.log('付款成功了++++++++')
+                        this.$message.error({
+                            message: 'PayPal支付失败,请重新确认'
+                        })
+                    }
+                }
+            })
+        },
 
         //获取数据,传递参数（充值金额，付款方式）
         getRechargeData(val){

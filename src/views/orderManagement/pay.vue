@@ -89,7 +89,7 @@
                 <el-form-item label="付款方式"> 
                     <ul class="paystyle" v-if="CNYPayShow">
                         <li v-for="(item,index) in CNYPay" :key="index">
-                            <span v-show="item.id==1"><el-radio v-model="paymentTypeId" :label="item.id"><img style="" src="../../../static/image/payment.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
+                            <span v-show="item.id==1"><el-radio v-model="paymentTypeId" :label="item.id"><img style="" src="/static/image/payment.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
                             <span v-show="item.id==2"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>￥{{ _.get(userAccountBalance, '[0].price') }}</span><span @click="PayRechargeRmb">充值</span></el-radio></span>
                             <span v-show="item.id==3"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span></span></el-radio></span>
                             <span v-show="item.id==4"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span>
@@ -99,7 +99,7 @@
                     </ul>
                     <ul class="paystyle" v-if="USDPayShow">
                         <li v-for="(item,index) in USDPay" :key="index">
-                            <span v-if="item.id==5"><el-radio v-model="paymentTypeId" :label="item.id"><img src="../../../static/image/paypal.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
+                            <span v-if="item.id==5"><el-radio v-model="paymentTypeId" :label="item.id"><img src="/static/image/paypal.png" alt=""><span>{{item.trans_name}}</span></el-radio></span>
                             <span class="payrechargeUsa" v-if="item.id==12"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span><span>${{ _.get(userAccountBalance, '[1].price') }}</span><span @click="PayRechargeDollar">充值</span></el-radio></span>
                             <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id"><span>{{item.trans_name}}</span></el-radio></span>
                             <!-- <span v-if="item.id==9"><el-radio v-model="paymentTypeId" :label="item.id">{{item.trans_name}}</el-radio></span> -->

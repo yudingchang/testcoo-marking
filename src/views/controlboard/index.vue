@@ -97,8 +97,10 @@
                   <el-option
                     v-for="item in phone_codeConfig"
                     :key="item.value"
-                    :label="item.label"
+                    :label="item.value"
                     :value="item.value">
+                    <span style="float: left">{{ _.join( _.split(item.label,',',1) ) }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ _.get(_.split(item.label,',',2), '[1]')   }}</span>
                   </el-option>
                 </el-select>
               </el-input>
@@ -109,13 +111,21 @@
             </el-form-item>
             <br>
             <el-form-item label="验货地址">
+              <el-select v-model="targetCountry_id" style="width: 212px;" placeholder="请选择国家" @change="handleCountryChange">
+                <el-option
+                  v-for="item in countryOptions"
+                  :key="item.id"
+                  :label="item.chinese_name"
+                  :value="item.id"/>
+              </el-select>
               <el-cascader
                 expand-trigger="hover"
                 :options="optionsProvinces"
                 :props="{label:'chinese_name',value:'id',children:'children_simple'}"
                 v-model="supplyform.address"
                 @change="handleChange"
-                style="width:428px;"
+                placeholder="请选择省市区"
+
                 >
               </el-cascader>
             </el-form-item>
@@ -293,8 +303,8 @@
 
 <script>
 import { addEmail, getdata,getSupplydata,addSupply } from '@/api/accountManagement'
-import {order , getOtherMessage, orderId, orderRevise, productDelete} from '@/api/order'
-import { fetchList,fetchCounty } from '@/api/fetch';
+import {order , getOtherMessage, orderId, orderRevise, productDelete, getDefault} from '@/api/order'
+import { fetchCountryList,fetchCounty } from '@/api/fetch';
 import upLoad from '@/components/Upload';
 import { mapGetters } from 'vuex';
 import store from '../../store/';
@@ -391,6 +401,8 @@ export default {
         // }],
         email: [{ validator: checkEmail, trigger: 'blur' ,required: true}]
       },
+      targetCountry_id:'',
+      countryOptions: [],
       optionsProvinces:[],
       examinerules: {
         report_locale: [{
@@ -484,6 +496,12 @@ export default {
       //   this.$store.commit('setOrderData', newData)
       // },
       // deep: true
+    },
+    'targetCountry_id' : {
+      handler(val, oldVal) {
+        this.getFetchProvinces(val);
+      },
+      deep: true
     }
   },
   created() {
@@ -491,7 +509,9 @@ export default {
     this.getOrderIdData('/'+this.$route.query.orderId)
     this.getSupplyNameList()
     this.ConfigUnit()
-    this.getFetchProvinces(7)  //获取中国省市区
+    this.getDefaultData()
+    this.getCountryOptions()    //获取所有的国家
+    this.getFetchProvinces(this.targetCountry_id)     //获取中国省市区
   },
   mounted() {
     // console.log(this.$route.fullPath)
@@ -663,6 +683,20 @@ export default {
       })
     },
 
+    // 查找国家
+    getCountryOptions() {
+      fetchCountryList().then(response => {
+        if (response.data.code == 0) {
+          this.$nextTick(function() {
+            this.countryOptions = response.data.data
+            console.log(this.countryOptions)
+            // Code that will run only after the
+            // entire view has been rendered
+          })
+        }
+      })
+    },
+
     //getFetchCounty获取省市区
     getFetchProvinces(val){
       fetchCounty({ pid: val }).then( response => {
@@ -688,6 +722,7 @@ export default {
       }).then(response => {
         if (response.data.code == 0) {
           this.is_exist = true;
+          this.$refs.supplyform.clearValidate(); //移除校验结果
           console.log("获取到了name")
           let supplierInfo = response.data.data
           this.supplyform.supplier_name = supplierInfo.supplier_name
@@ -736,13 +771,13 @@ export default {
       }
       console.log(this.supplyform.telephone_code+'手机区号')
       //判断是否选择手机区号
-      if( !this.supplyform.telephone_code){
-        this.$message({
-          message: '请选择供应商信息中手机号码前的区号',
-          type: 'warning'
-        })
-        return false;
-      }
+      // if( !this.supplyform.telephone_code){
+      //   this.$message({
+      //     message: '请选择供应商信息中手机号码前的区号',
+      //     type: 'warning'
+      //   })
+      //   return false;
+      // }
       
       var _this =this
       var p1=new Promise(function(resolve, reject) {
@@ -760,7 +795,7 @@ export default {
               }
               resolve();
             }else{
-              _this.$message('供应商信息是必填的')
+              _this.$message.warning('供应商信息是必填的')
             }
           })
         });
@@ -798,7 +833,7 @@ export default {
               email:_this.supplyform.email,
               phone_number:_this.supplyform.telephone,
               phone_code:_this.supplyform.telephone_code,
-              country:7,
+              country:_this.targetCountry_id,
               address:_this.supplyform.address,
               address_detail:_this.supplyform.address_detail
             },
@@ -970,7 +1005,7 @@ export default {
               email:_this.supplyform.email,
               phone_number:_this.supplyform.telephone,
               phone_code:_this.supplyform.telephone_code,
-              country:7,
+              country:_this.targetCountry_id,
               address:_this.supplyform.address,
               address_detail:_this.supplyform.address_detail
             },
@@ -997,11 +1032,27 @@ export default {
       this.$router.go(-1)
     },
 
+    //handleCountryChange
+    handleCountryChange(){
+
+    },
+
+    //getDefault
+    getDefaultData(){
+      let DefaultData= [];
+      getDefault().then(response => {
+        if( response.data.code == 0){
+          this.examineform.accept_report_emails = response.data.data.email.split()
+          console.log(this.examineform.accept_report_emails)
+        }
+      })
+    },
     //配置文件加载
     ConfigUnit(){
       this.editableTabs2[0].PO[0].unitValue = this.configs.unit
       console.log(this.configs)
       this.phone_codeConfig = this.configs.phone_number_codes
+      console.log(this.phone_codeConfig)
     }
   }
 }
@@ -1109,7 +1160,7 @@ export default {
     //   cursor:text !important;
     // }
     .el-cascader .el-input, .el-cascader .el-input__inner{
-      width:428px;
+      width:212px;
     }
     .el-form-item__label{
       // padding:0 50px 0 0;
@@ -1120,6 +1171,9 @@ export default {
       .el-form-item__label{
         margin-right:39px;
       }
+    }
+    .el-form-item:nth-child(7){
+     
     }
   }
 

@@ -148,4 +148,27 @@ export function getOrderList(data) {
       method: 'get',
       data: data,
     })
-  }  
+  }
+  
+  
+  //获取
+  export function getDefault(data) {
+    return request({
+      url: '/v1/supplier/get/get_default',
+      method: 'get',
+      data: data,
+    })
+  }
+  
+  
+  //关闭退单申请
+  export function closeRefund(data) {
+    return request({
+      url: '/v1/order/refund/'+data.id+'/close',
+      method: 'put',
+      data: data,
+      paramsSerializer: function(params) {
+        return qs.stringify(params, { indices: true })
+      }
+    })
+  }

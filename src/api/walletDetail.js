@@ -60,3 +60,12 @@ export function getPaypal(data) {
     method: 'get',
   })
 }
+
+//确认付款是否成功
+export function Is_Paysuccess(val) {
+  return request({
+    url: '/v1/payment/pay/callback/'+val,
+    method: 'get',
+  })
+  
+}

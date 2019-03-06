@@ -1,430 +1,429 @@
 <template>
   <div class="login-container">
-    <!-- 头部 -->
-    <div class='hometop'>
-        <span class="logo">
-        </span>
-        <el-dropdown trigger="click" class="switch" @command="handleCommand">
-          <span class="el-dropdown-link">
-            中文<i class="el-icon-arrow-down el-icon--right"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="a">中文</el-dropdown-item>
-            <el-dropdown-item command="b">English</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <span>
-          400-627-8168
-        </span>
-    </div>
-
-    <!-- 登录界面主体 -->
-    <el-form class='login-form-box' v-if="loginShow">
-      <ul class="tabs">
-        <li :class="{active:item.isBool}" v-for="(item,index) in denglustyle" :key = index @click="tab(item,index)">{{item.content}}</li>
-      </ul>
-      <!-- 电子邮箱登录 -->
-      <el-form ref="loginForm" :model="loginForm"  class="login-form"  label-position="left" v-if="num==0">
-        <el-form-item prop="username" class="email">
-          <span>
-            <img src="/static/image/email.png" alt="">
-          </span>
-          <el-input
-            v-model="loginForm.email"
-            placeholder="输入电子邮箱"
-            name="username"
-            type="text"
-            class="email-content"     
-          />            
-        </el-form-item>
-        <el-form-item prop="username" class="email">
-          <span>
-            <img src="/static/image/password.png" alt="">
-          </span>
-          <el-input
-            v-model="loginForm.password"
-            placeholder="输入登录密码"
-            name="username"
-            type="password"
-            class="email-content"
-            @keyup.native.enter="loginByEmail()"     
-          />            
-        </el-form-item>
-        <p class="text1" @click="forgetPassword()">忘记密码?</p>
-        <el-button type="primary" @click="loginByEmail()" @keyup.enter.native='enterLogin()' :disabled="((loginForm.email == '') || (this.loginForm.password == ''))" :class="{disabled:((loginForm.email == '') || (this.loginForm.password == '')),isactive:((loginForm.email != '') && (this.loginForm.password != ''))}">登录</el-button>
-        <p class="tip">还没加入测库? <a @click="toregister">立即注册</a></p>
-      </el-form>
-      <!-- 手机号登录 -->
-      <el-form v-if="num==1" class="login-form" :model="phoneLoginForm">
-        <el-form-item prop="username" class="phone-email clearfloat">
-          <span class="phone-style">
-            {{ phoneLoginForm.phone_number_code?phoneLoginForm.phone_number_code:'中国大陆 +86' }}
-          </span>
-          <span class="arrow-next" @click="getpopover()"></span>
-          <el-input
-            v-model="phoneLoginForm.phone_number"
-            placeholder="请输入手机号码"
-            name="username"
-            type="text"
-            class="phone-email-content"     
-          />   
-          <div class="popover" v-show="popoverShow">
-            <ul>
-              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedLogin(item)">{{item.label}}</li>
-            </ul>
-            <div class="popper-arrow"></div>
-          </div>         
-        </el-form-item>
-        <el-form-item prop="username" class="email">
-          <span>
-            <img src="/static/image/password.png" alt="">
-          </span>
-          <el-input
-            v-model="phoneLoginForm.password"
-            placeholder="输入登录密码"
-            name="username"
-            type="password"
-            class="email-content"
-            @keyup.native.enter="loginByPhone()"     
-          />            
-        </el-form-item>
-        <p class="text1" @click="forgetPassword()">忘记密码?</p>
-        <el-button type="primary"  @click="loginByPhone()" :disabled="(phoneLoginForm.phone_number=='') || (phoneLoginForm.password=='')" :class="{disabled:(phoneLoginForm.phone_number=='') || (phoneLoginForm.password==''),isactive:(phoneLoginForm.phone_number!='') && (phoneLoginForm.password!='')}">登录</el-button>
-        <p class="tip">还没加入测库? <a  @click="toregister">立即注册</a></p>
-      </el-form>
-      <!-- 登录报错信息报文 -->
-      <div class="errorPump" v-if="loginPumpShow">
-        <div class="error-content">{{wrongMessage}}</div>
-        <div class="errorPump-arrow">
+   
+        <!-- 头部 -->
+        <div class='hometop'>
+            <span class="logo">
+            </span>
+            <el-dropdown trigger="click" class="switch" @command="handleCommand">
+              <span class="el-dropdown-link">
+                中文<i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="a">中文</el-dropdown-item>
+                <el-dropdown-item command="b">English</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+            <span>
+              400-627-8168
+            </span>
         </div>
-      </div>
-    </el-form>
-
-    <!-- 注册界面主体 -->
-    <el-form class="login-form-box register-form-box" v-if="registerShow">
-      <ul class="tabs">
-        <li :class="{active:item.isBool}" v-for="(item,index) in registerstyle" :key = index @click="registerTab(item,index)">{{item.content}}</li>
-      </ul>
-      <!-- 电子邮箱注册 -->
-      <el-form ref="registerForm" :model="registerForm"   class="login-form" label-position="left" v-if="registernum==0">
-        <el-form-item prop="email" class="email">
-          <span>
-            <img src="/static/image/email.png" alt="">
-          </span>
-          <el-input
-            v-model="registerForm.email"
-            placeholder="输入电子邮箱"
-            name="username"
-            type="text"
-            class="email-content"
-            maxlength="50"     
-          />            
-        </el-form-item>
-        <el-form-item prop="password" class="email">
-          <span>
-            <img src="/static/image/password.png" alt="">
-          </span>
-          <el-input
-            v-model="registerForm.password"
-            placeholder="输入登录密码"
-            name="username"
-            type="password"
-            class="email-content"   
-            @focus="showPump()" 
-            @blur="hidePump()"
-            maxlength="20"
-          />    
-          <div class="passwordPump" v-if="passwordPumpShow">
-            1、8-20位字符<br>
-            2、大写字母、小写字母、数字、特殊符号两种组合以上
-            <div class="hover-pump-arrow"></div>
-          </div>        
-        </el-form-item>
-        <el-form-item prop="confirmpassword" class="email">
-          <span>
-            <img src="/static/image/password.png" alt="">
-          </span>
-          <el-input
-            v-model="registerForm.confirmpassword"
-            placeholder="确认输入登录密码"
-            name="username"
-            type="password"
-            class="email-content"     
-          />            
-        </el-form-item>
-        <el-form-item prop="company_name" class="email">
-          <span>
-            <img src="/static/image/company.png" alt="">
-          </span>
-          <el-input
-            v-model="registerForm.company_name"
-            placeholder="请输入公司名称"
-            name="username"
-            type="text"
-            class="email-content"     
-          />            
-        </el-form-item>
-        
-      </el-form>
-      <!-- 手机号注册 -->
-      <el-form v-show="registernum==1" class="login-form" :model="phoneRegisterForm">
-        <el-form-item prop="username" class="phone-email clearfloat">
-          <span class="phone-style">
-            {{ phoneRegisterForm.phone_number_code?phoneRegisterForm.phone_number_code:'中国大陆 +86' }}
-          </span>
-          <span class="arrow-next" @click="getpopover()"></span>
-          <el-input
-            v-model="phoneRegisterForm.phone_number"
-            placeholder="请输入电话号码"
-            name="username"
-            type="text"
-            class="phone-email-content"     
-          />   
-          <div class="popover" v-show="popoverShow">
-            <ul>
-              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedRegistered(item)">{{item.label}}</li>
-            </ul>
-            <div class="popper-arrow"></div>
-          </div>         
-        </el-form-item>
-        <el-form-item prop="username" class="email">
-          <span>
-            <img src="/static/image/password.png" alt="">
-          </span>
-          <el-input
-            v-model="phoneRegisterForm.password"
-            placeholder="输入登录密码"
-            name="username"
-            type="password"
-            class="email-content"
-            @focus="showPump()" 
-            @blur="hidePump()"    
-          />
-          <div class="passwordPump" v-if="passwordPumpShow">
-            1、8-20位字符<br>
-            2、大写字母、小写字母、数字、特殊符号两种组合以上
-            <div class="hover-pump-arrow"></div>
-          </div>            
-        </el-form-item>
-        <el-form-item prop="username" class="email">
-          <span>
-            <img src="/static/image/password.png" alt="">
-          </span>
-          <el-input
-            v-model="phoneRegisterForm.confirmpassword"
-            placeholder="确认输入登录密码"
-            name="username"
-            type="password"
-            class="email-content"     
-          />            
-        </el-form-item>
-        <el-form-item prop="username" class="email">
-          <span>
-            <img src="/static/image/company.png" alt="">
-          </span>
-          <el-input
-            v-model="phoneRegisterForm.company_name"
-            placeholder="请输入公司名称"
-            name="username"
-            type="text"
-            class="email-content"     
-          />            
-        </el-form-item>
-        <!-- <el-button type="primary"  class="isactive margin40">注册</el-button>
-        <el-button type="primary"  class="btnreturn margin16">返回登录</el-button>
-        <p class="tip"><el-checkbox v-model="checked"></el-checkbox><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p> -->
-      </el-form>
-      <el-button type="primary" :disabled="!checked" class="isactive" @click="goRegister()">注册</el-button>
-      <el-button type="primary"  class="btnreturn margin16" @click="goLogin">返回登录</el-button>
-      <p class="tip"><el-checkbox v-model="checked"></el-checkbox><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p>
-       <!-- 注册报错信息报文 -->
-      <div class="errorPump" v-if="registerwrongPump">
-        <div class="error-content">{{registerWrongMessage}}</div>
-        <div class="errorPump-arrow">
-        </div>
-      </div>
-    </el-form>
-    <!-- 验证电子邮箱 -->
-    <el-form class="verify-email" v-if="verifyEmail">
-      <span class="email-img"></span>
-      <p class="t1">验证您的电子邮箱地址以创建测库帐号</p>
-      <p class="t1">一封包含验证码的电子邮件已发至{{registerForm.email}}
-      <br>请在此处输入验证码：</p>
-      <el-form-item class="input-box">
-        <!-- <ul class="write-input"> -->
-          <!-- getbackMoney -->
-          <!-- <li v-for="disInput in disInputs" :key="disInput.value"><input class="disInput" type="tel" maxlength="1" v-model="disInput.value" ></li>
-        </ul> -->
-        <div id="inputList" class="write-input"> 
-          <input type="tel" v-model="pwdList[i]" maxlength="1" @input="changeInput"
-      @click="changePwd"
-      @keyup="keyUp($event)"
-      @keydown="oldPwdList = pwdList.length" class="disInput" v-for="(v, i) in 6" :key="i">
-        </div>
-        
-        <!-- <input type="text" maxlength="1">
-        <input type="text" maxlength="1">
-        <input type="text" maxlength="1">
-        <input type="text" maxlength="1">
-        <input type="text" maxlength="1">  -->
-      </el-form-item>
-      <div class="t2">没有收到电子邮件?
-        <div class="hover-pump">检查您的垃圾邮件文件夹或等待几分钟。<br>
-        如果仍然存在问题，可以请求新的验证代码
-          <div class="hover-pump-arrow"></div>
-        </div>
-      </div>    
-      <div class="button-group">
-        <div @click="resend()" :class={sendma:true,recolor:sendMaDisabled}>{{secondStepText}}</div>
-        <div @click="backregister()">取消</div>
-        <div @click="userRegister()" class="changeColorCon ">继续</div>
-      </div>
-    </el-form>
-    <!-- 密码找回 -->
-    <el-form class="password-recovery" v-if="passwordRecoveryShow">
-      <el-steps :active="active" finish-status="finish" align-center>
-        <el-step title="选择找回方式"></el-step>
-        <el-step title="验证码校验"></el-step>
-        <el-step title="设置新的登录密码"></el-step>
-        <el-step title="完成"></el-step>
-      </el-steps>
-      <div class="first-step" v-if="firstStepShow">
-        <div class="recovery-style">
-          <div @click="recoveryByEmail()">
-            <i class="iconfont icon-mimazhaohuiyouxiang-"></i>
-            <span>电子邮箱</span>
+        <!-- 登录界面主体 -->
+        <el-form class='login-form-box' v-if="loginShow">
+          <ul class="tabs">
+            <li :class="{active:item.isBool}" v-for="(item,index) in denglustyle" :key = index @click="tab(item,index)">{{item.content}}</li>
+          </ul>
+          <!-- 电子邮箱登录 -->
+          <el-form ref="loginForm" :model="loginForm"  class="login-form"  label-position="left" v-if="num==0">
+            <el-form-item prop="username" class="email">
+              <span>
+                <img src="/static/image/email.png" alt="">
+              </span>
+              <el-input
+                v-model="loginForm.email"
+                placeholder="输入电子邮箱"
+                name="username"
+                type="text"
+                class="email-content"     
+              />            
+            </el-form-item>
+            <el-form-item prop="username" class="email">
+              <span>
+                <img src="/static/image/password.png" alt="">
+              </span>
+              <el-input
+                v-model="loginForm.password"
+                placeholder="输入登录密码"
+                name="username"
+                type="password"
+                class="email-content"
+                @keyup.native.enter="loginByEmail()"     
+              />            
+            </el-form-item>
+            <p class="text1" @click="forgetPassword()">忘记密码?</p>
+            <el-button type="primary" @click="loginByEmail()" @keyup.enter.native='enterLogin()' :disabled="((loginForm.email == '') || (this.loginForm.password == ''))" :class="{disabled:((loginForm.email == '') || (this.loginForm.password == '')),isactive:((loginForm.email != '') && (this.loginForm.password != ''))}">登录</el-button>
+            <p class="tip">还没加入测库? <a @click="toregister">立即注册</a></p>
+          </el-form>
+          <!-- 手机号登录 -->
+          <el-form v-if="num==1" class="login-form" :model="phoneLoginForm">
+            <el-form-item prop="username" class="phone-email clearfloat">
+              <span class="phone-style">
+                {{ phoneLoginForm.phone_number_code?phoneLoginForm.phone_number_code:'中国大陆 +86' }}
+              </span>
+              <span class="arrow-next" @click="getpopover()"></span>
+              <el-input
+                v-model="phoneLoginForm.phone_number"
+                placeholder="请输入手机号码"
+                name="username"
+                type="text"
+                class="phone-email-content"     
+              />   
+              <div class="popover" v-show="popoverShow">
+                <ul>
+                  <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedLogin(item)"><span>{{ _.join( _.split(item.label,',',1) )}}</span><span>{{_.get(_.split(item.label,',',2), '[1]')}}</span></li>
+                </ul>
+                <div class="popper-arrow"></div>
+              </div>         
+            </el-form-item>
+            <el-form-item prop="username" class="email">
+              <span>
+                <img src="/static/image/password.png" alt="">
+              </span>
+              <el-input
+                v-model="phoneLoginForm.password"
+                placeholder="输入登录密码"
+                name="username"
+                type="password"
+                class="email-content"
+                @keyup.native.enter="loginByPhone()"     
+              />            
+            </el-form-item>
+            <p class="text1" @click="forgetPassword()">忘记密码?</p>
+            <el-button type="primary"  @click="loginByPhone()" :disabled="(phoneLoginForm.phone_number=='') || (phoneLoginForm.password=='')" :class="{disabled:(phoneLoginForm.phone_number=='') || (phoneLoginForm.password==''),isactive:(phoneLoginForm.phone_number!='') && (phoneLoginForm.password!='')}">登录</el-button>
+            <p class="tip">还没加入测库? <a  @click="toregister">立即注册</a></p>
+          </el-form>
+          <!-- 登录报错信息报文 -->
+          <div class="errorPump" v-if="loginPumpShow">
+            <div class="error-content">{{wrongMessage}}</div>
+            <div class="errorPump-arrow">
+            </div>
           </div>
-          <div @click="recoveryByPhone()">
-            <i class="iconfont icon-Fill"></i>
-            <span>手机号码</span>
+        </el-form>
+        <!-- 注册界面主体 -->
+        <el-form class="login-form-box register-form-box" v-if="registerShow">
+          <ul class="tabs">
+            <li :class="{active:item.isBool}" v-for="(item,index) in registerstyle" :key = index @click="registerTab(item,index)">{{item.content}}</li>
+          </ul>
+          <!-- 电子邮箱注册 -->
+          <el-form ref="registerForm" :model="registerForm"   class="login-form" label-position="left" v-if="registernum==0">
+            <el-form-item prop="email" class="email">
+              <span>
+                <img src="/static/image/email.png" alt="">
+              </span>
+              <el-input
+                v-model="registerForm.email"
+                placeholder="输入电子邮箱"
+                name="username"
+                type="text"
+                class="email-content"
+                maxlength="50"     
+              />            
+            </el-form-item>
+            <el-form-item prop="password" class="email">
+              <span>
+                <img src="/static/image/password.png" alt="">
+              </span>
+              <el-input
+                v-model="registerForm.password"
+                placeholder="输入登录密码"
+                name="username"
+                type="password"
+                class="email-content"   
+                @focus="showPump()" 
+                @blur="hidePump()"
+                maxlength="20"
+              />    
+              <div class="passwordPump" v-if="passwordPumpShow">
+                1、8-20位字符<br>
+                2、大写字母、小写字母、数字、特殊符号两种组合以上
+                <div class="hover-pump-arrow"></div>
+              </div>        
+            </el-form-item>
+            <el-form-item prop="confirmpassword" class="email">
+              <span>
+                <img src="/static/image/password.png" alt="">
+              </span>
+              <el-input
+                v-model="registerForm.confirmpassword"
+                placeholder="确认输入登录密码"
+                name="username"
+                type="password"
+                class="email-content"     
+              />            
+            </el-form-item>
+            <el-form-item prop="company_name" class="email">
+              <span>
+                <img src="/static/image/company.png" alt="">
+              </span>
+              <el-input
+                v-model="registerForm.company_name"
+                placeholder="请输入公司名称"
+                name="username"
+                type="text"
+                class="email-content"     
+              />            
+            </el-form-item>
+            
+          </el-form>
+          <!-- 手机号注册 -->
+          <el-form v-show="registernum==1" class="login-form" :model="phoneRegisterForm">
+            <el-form-item prop="username" class="phone-email clearfloat">
+              <span class="phone-style">
+                {{ phoneRegisterForm.phone_number_code?phoneRegisterForm.phone_number_code:'中国大陆 +86' }}
+              </span>
+              <span class="arrow-next" @click="getpopover()"></span>
+              <el-input
+                v-model="phoneRegisterForm.phone_number"
+                placeholder="请输入电话号码"
+                name="username"
+                type="text"
+                class="phone-email-content"     
+              />   
+              <div class="popover" v-show="popoverShow">
+                <ul>
+                  <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedRegistered(item)"><span>{{ _.join( _.split(item.label,',',1) )}}</span><span>{{_.get(_.split(item.label,',',2), '[1]')}}</span></li>
+                </ul>
+                <div class="popper-arrow"></div>
+              </div>         
+            </el-form-item>
+            <el-form-item prop="username" class="email">
+              <span>
+                <img src="/static/image/password.png" alt="">
+              </span>
+              <el-input
+                v-model="phoneRegisterForm.password"
+                placeholder="输入登录密码"
+                name="username"
+                type="password"
+                class="email-content"
+                @focus="showPump()" 
+                @blur="hidePump()"    
+              />
+              <div class="passwordPump" v-if="passwordPumpShow">
+                1、8-20位字符<br>
+                2、大写字母、小写字母、数字、特殊符号两种组合以上
+                <div class="hover-pump-arrow"></div>
+              </div>            
+            </el-form-item>
+            <el-form-item prop="username" class="email">
+              <span>
+                <img src="/static/image/password.png" alt="">
+              </span>
+              <el-input
+                v-model="phoneRegisterForm.confirmpassword"
+                placeholder="确认输入登录密码"
+                name="username"
+                type="password"
+                class="email-content"     
+              />            
+            </el-form-item>
+            <el-form-item prop="username" class="email">
+              <span>
+                <img src="/static/image/company.png" alt="">
+              </span>
+              <el-input
+                v-model="phoneRegisterForm.company_name"
+                placeholder="请输入公司名称"
+                name="username"
+                type="text"
+                class="email-content"     
+              />            
+            </el-form-item>
+            <!-- <el-button type="primary"  class="isactive margin40">注册</el-button>
+            <el-button type="primary"  class="btnreturn margin16">返回登录</el-button>
+            <p class="tip"><el-checkbox v-model="checked"></el-checkbox><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p> -->
+          </el-form>
+          <el-button type="primary" :disabled="!checked" class="isactive" @click="goRegister()">注册</el-button>
+          <el-button type="primary"  class="btnreturn margin16" @click="goLogin">返回登录</el-button>
+          <p class="tip"><el-checkbox v-model="checked"></el-checkbox><span class="agreement">我已阅读并同意<a href="">《用户协议》</a></span></p>
+          <!-- 注册报错信息报文 -->
+          <div class="errorPump" v-if="registerwrongPump">
+            <div class="error-content">{{registerWrongMessage}}</div>
+            <div class="errorPump-arrow">
+            </div>
           </div>
-        </div>
-        <div class="btn-recovery-return margin70" @click="goLogin()">返回登录</div>
-      </div>
-      <div class="second-step" v-if="secondStepShow" >
-        <el-form class="login-form ma-content" v-if="secondStepEmailShow" :model="secondStepForm">
-          <el-form-item prop="username" class="email">
-            <span>
-              <img src="/static/image/email.png" alt="">
-            </span>
-            <el-input
-              v-model="secondStepForm.email"
-              :placeholder="mamessage"
-              name="username"
-              type="text"
-              class="email-content"     
-            />            
+        </el-form>
+        <!-- 验证电子邮箱 -->
+        <el-form class="verify-email" v-if="verifyEmail">
+          <span class="email-img"></span>
+          <p class="t1">验证您的电子邮箱地址以创建测库帐号</p>
+          <p class="t1">一封包含验证码的电子邮件已发至{{registerForm.email?registerForm.email:phoneRegisterForm.phone_number}}
+          <br>请在此处输入验证码：</p>
+          <el-form-item class="input-box">
+            <!-- <ul class="write-input"> -->
+              <!-- getbackMoney -->
+              <!-- <li v-for="disInput in disInputs" :key="disInput.value"><input class="disInput" type="tel" maxlength="1" v-model="disInput.value" ></li>
+            </ul> -->
+            <div id="inputList" class="write-input"> 
+              <input type="tel" v-model="pwdList[i]" maxlength="1" @input="changeInput"
+          @click="changePwd"
+          @keyup="keyUp($event)"
+          @keydown="oldPwdList = pwdList.length" class="disInput" v-for="(v, i) in 6" :key="i">
+            </div>
+            
+            <!-- <input type="text" maxlength="1">
+            <input type="text" maxlength="1">
+            <input type="text" maxlength="1">
+            <input type="text" maxlength="1">
+            <input type="text" maxlength="1">  -->
           </el-form-item>
-          <el-form-item prop="username" class="email">
-            <span>
-              <img src="/static/image/ma.png" alt="">
-            </span>
-            <el-input
-              v-model="secondStepForm.verification_code"
-              placeholder="输入验证码"
-              name="username"
-              type="text"
-              class="ma-input email-content"     
-            />  
-            <div :class="{sendma:true,changeColor:sendMaDisabled}" @click="secondStepSendMa()" :disabled="sendMaDisabled" >
-              {{secondStepText}}
-            </div>       
-          </el-form-item> 
-          <el-button @click="goThirdStep()" :disabled="secondStepForm.email==''|| secondStepForm.verification_code==''" class="btn-next">下一步</el-button>
-          <el-button @click="backFirstStep()" class="btn-return-sm">返回</el-button>
-        </el-form> 
-        
-        <el-form class="login-form ma-content" v-if="secondStepPhoneShow" :model="secondStepFormPhone">
-          <el-form-item prop="username" class="email clearfloat secondStepPhone">
-             <span class="phone-style">
-            {{secondStepFormPhone.phone_number_code?secondStepFormPhone.phone_number_code:'中国大陆 +86'}}
-          </span>
-          <span class="arrow-next" @click="getpopover()"></span>
-          <el-input
-            v-model="secondStepFormPhone.phone_number"
-            placeholder="请输入电话号码"
-            name="username"
-            type="text"
-            class="phone-email-content"     
-          />   
-          <div class="popover popoverForget" v-show="popoverShow">
-            <ul>
-              <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedForget(item)">{{item.label}}</li>
-            </ul>
-            <div class="popper-arrow"></div>
-          </div>            
-          </el-form-item>
-          <el-form-item prop="username" class="email">
-            <span>
-              <img src="/static/image/ma.png" alt="">
-            </span>
-            <el-input
-              v-model="secondStepFormPhone.verification_code"
-              placeholder="输入验证码"
-              name="username"
-              type="text"
-              class="ma-input email-content"     
-            />  
-            <div :class={sendma:true,changeColor:sendMaDisabled}  @click="secondStepSendMa()">
-              {{secondStepText}}
-            </div>          
-          </el-form-item> 
-          <el-button @click="goThirdStep()" :disabled="secondStepFormPhone.phone_number==''|| secondStepFormPhone.verification_code==''" class="btn-next">下一步</el-button>
-          <el-button @click="backFirstStep()" class="btn-return-sm">返回</el-button>
-        </el-form> 
+          <div class="t2">没有收到电子邮件?
+            <div class="hover-pump">检查您的垃圾邮件文件夹或等待几分钟。<br>
+            如果仍然存在问题，可以请求新的验证代码
+              <div class="hover-pump-arrow"></div>
+            </div>
+          </div>    
+          <div class="button-group">
+            <div @click="resend()" :class={sendma:true,recolor:sendMaDisabled}>{{secondStepText}}</div>
+            <div @click="backregister()">取消</div>
+            <div @click="userRegister()" class="changeColorCon ">继续</div>
+          </div>
+        </el-form>
+        <!-- 密码找回 -->
+        <el-form class="password-recovery" v-if="passwordRecoveryShow">
+          <el-steps :active="active" finish-status="finish" align-center>
+            <el-step title="选择找回方式"></el-step>
+            <el-step title="验证码校验"></el-step>
+            <el-step title="设置新的登录密码"></el-step>
+            <el-step title="完成"></el-step>
+          </el-steps>
+          <div class="first-step" v-if="firstStepShow">
+            <div class="recovery-style">
+              <div @click="recoveryByEmail()">
+                <i class="iconfont icon-mimazhaohuiyouxiang-"></i>
+                <span>电子邮箱</span>
+              </div>
+              <div @click="recoveryByPhone()">
+                <i class="iconfont icon-Fill"></i>
+                <span>手机号码</span>
+              </div>
+            </div>
+            <div class="btn-recovery-return margin70" @click="goLogin()">返回登录</div>
+          </div>
+          <div class="second-step" v-if="secondStepShow" >
+            <el-form class="login-form ma-content" v-if="secondStepEmailShow" :model="secondStepForm">
+              <el-form-item prop="username" class="email">
+                <span>
+                  <img src="/static/image/email.png" alt="">
+                </span>
+                <el-input
+                  v-model="secondStepForm.email"
+                  :placeholder="mamessage"
+                  name="username"
+                  type="text"
+                  class="email-content"     
+                />            
+              </el-form-item>
+              <el-form-item prop="username" class="email">
+                <span>
+                  <img src="/static/image/ma.png" alt="">
+                </span>
+                <el-input
+                  v-model="secondStepForm.verification_code"
+                  placeholder="输入验证码"
+                  name="username"
+                  type="text"
+                  class="ma-input email-content"     
+                />  
+                <div :class="{sendma:true,changeColor:sendMaDisabled}" @click="secondStepSendMa()" :disabled="sendMaDisabled" >
+                  {{secondStepText}}
+                </div>       
+              </el-form-item> 
+              <el-button @click="goThirdStep()" :disabled="secondStepForm.email==''|| secondStepForm.verification_code==''" class="btn-next">下一步</el-button>
+              <el-button @click="backFirstStep()" class="btn-return-sm">返回</el-button>
+            </el-form> 
+            
+            <el-form class="login-form ma-content" v-if="secondStepPhoneShow" :model="secondStepFormPhone">
+              <el-form-item prop="username" class="email clearfloat secondStepPhone">
+                <span class="phone-style">
+                {{secondStepFormPhone.phone_number_code?secondStepFormPhone.phone_number_code:'中国大陆 +86'}}
+              </span>
+              <span class="arrow-next" @click="getpopover()"></span>
+              <el-input
+                v-model="secondStepFormPhone.phone_number"
+                placeholder="请输入电话号码"
+                name="username"
+                type="text"
+                class="phone-email-content"     
+              />   
+              <div class="popover popoverForget" v-show="popoverShow">
+                <ul>
+                  <li v-for="(item,index) in Configs.phone_number_codes" :key='index' @click="selectedForget(item)">{{item.label}}</li>
+                </ul>
+                <div class="popper-arrow"></div>
+              </div>            
+              </el-form-item>
+              <el-form-item prop="username" class="email">
+                <span>
+                  <img src="/static/image/ma.png" alt="">
+                </span>
+                <el-input
+                  v-model="secondStepFormPhone.verification_code"
+                  placeholder="输入验证码"
+                  name="username"
+                  type="text"
+                  class="ma-input email-content"     
+                />  
+                <div :class={sendma:true,changeColor:sendMaDisabled}  @click="secondStepSendMa()">
+                  {{secondStepText}}
+                </div>          
+              </el-form-item> 
+              <el-button @click="goThirdStep()" :disabled="secondStepFormPhone.phone_number==''|| secondStepFormPhone.verification_code==''" class="btn-next">下一步</el-button>
+              <el-button @click="backFirstStep()" class="btn-return-sm">返回</el-button>
+            </el-form> 
 
-         
-      </div>
-      <div class="second-step third-step" v-if="thirdStepShow">
-         <el-form class="login-form ma-content" :model="thirdStepForm">
-          <el-form-item prop="username" class="email">
-            <span>
-              <img src="/static/image/password.png" alt="">
-            </span>
-            <el-input
-              v-model="thirdStepForm.password"
-              placeholder="输入登录密码"
-              name="username"
-              type="password"
-              class="email-content"     
-            />            
-          </el-form-item>
-          <el-form-item prop="username" class="email">
-            <span>
-              <img src="/static/image/password.png" alt="">
-            </span>
-            <el-input
-              v-model="thirdStepForm.confirmpassword"
-              placeholder="确认输入登录密码"
-              name="username"
-              type="password"
-              class="email-content"     
-            />            
-          </el-form-item>
-          <el-button @click="goFourStep()" :disabled="thirdStepForm.password=='' || thirdStepForm.confirmpassword==''" class="btn-next">下一步</el-button>
-          <el-button @click="backSecondStep()" class="btn-return-sm">返回</el-button>
+            
+          </div>
+          <div class="second-step third-step" v-if="thirdStepShow">
+            <el-form class="login-form ma-content" :model="thirdStepForm">
+              <el-form-item prop="username" class="email">
+                <span>
+                  <img src="/static/image/password.png" alt="">
+                </span>
+                <el-input
+                  v-model="thirdStepForm.password"
+                  placeholder="输入登录密码"
+                  name="username"
+                  type="password"
+                  class="email-content"     
+                />            
+              </el-form-item>
+              <el-form-item prop="username" class="email">
+                <span>
+                  <img src="/static/image/password.png" alt="">
+                </span>
+                <el-input
+                  v-model="thirdStepForm.confirmpassword"
+                  placeholder="确认输入登录密码"
+                  name="username"
+                  type="password"
+                  class="email-content"     
+                />            
+              </el-form-item>
+              <el-button @click="goFourStep()" :disabled="thirdStepForm.password=='' || thirdStepForm.confirmpassword==''" class="btn-next">下一步</el-button>
+              <el-button @click="backSecondStep()" class="btn-return-sm">返回</el-button>
+              
+
+            </el-form> 
+          </div>
+          <div class="four-step"  v-if="fourStepShow">
+            <el-form class="login-form ma-content">
+              <span class="success"></span>
+              <p class="t1">您的登录密码重置成功</p>
+              <el-button @click="goLogin()" class="btn-next">立即登录</el-button>
+            </el-form> 
+          </div>
           
-
-        </el-form> 
-      </div>
-      <div class="four-step"  v-if="fourStepShow">
-         <el-form class="login-form ma-content">
-          <span class="success"></span>
-          <p class="t1">您的登录密码重置成功</p>
-          <el-button @click="goLogin()" class="btn-next">立即登录</el-button>
-        </el-form> 
-      </div>
-      
-      <!-- <el-button style="margin-top: 12px;" @click="next">下一步</el-button> -->
-    </el-form>
-    <!-- 注册成功页面 -->
-    <div class="registerResult"  v-if="registerResultShow">
-      <el-form class="ma-content">
-        <span class="success"></span>
-        <p class="t1">恭喜您注册成功</p>
-        <el-button class="btn-next" @click="goLogin()">进入测库</el-button>
-      </el-form> 
-    </div>
+          <!-- <el-button style="margin-top: 12px;" @click="next">下一步</el-button> -->
+        </el-form>
+        <!-- 注册成功页面 -->
+        <div class="registerResult"  v-if="registerResultShow">
+          <el-form class="ma-content">
+            <span class="success"></span>
+            <p class="t1">恭喜您注册成功</p>
+            <el-button class="btn-next" @click="goLogin()">进入测库</el-button>
+          </el-form> 
+        </div>
   </div>
 </template>
 
@@ -701,6 +700,7 @@ export default {
           to: this.secondStepForm.email
         }).then(response => {
           if (response.data.code == 0) {
+            
           } else {
             //  this.registerWrongMessage =
           }
@@ -1114,6 +1114,8 @@ export default {
     backregister() {
       this.verifyEmail = false;
       this.pwdList = []
+      // this.$router.push({ path: '/login' })
+      this.Initialize()
     },
     // 返回登录页
     goLogin() {
@@ -1127,17 +1129,22 @@ export default {
     toregister() {
       this.loginShow = false;
       this.registerShow = true;
-      //
+      this.Initialize()
+
+    },
+
+    //初始化填写信息
+    Initialize(){
+      //邮箱
       this.registerForm.email = ''
       this.registerForm.password = ''
       this.registerForm.confirmpassword = ''
       this.registerForm.company_name = ''
-      //
+      //手机号
       this.phoneRegisterForm.phone_number = ''
       this.phoneRegisterForm.password = ''
       this.phoneRegisterForm.confirmpassword = ''
       this.phoneRegisterForm.company_name = ''
-
     },
     // 电子邮箱注册
     userRegister() {
@@ -2054,7 +2061,21 @@ $light_gray: #eee;
             line-height: 22px;
             margin-bottom: 10px;
             padding-left:40px;
+            padding-right:20px;
             cursor:pointer;
+            span{
+              display:inline-block;
+            }
+            span:nth-child(1){
+              float:left;
+            }
+            span:nth-child(2){
+              float:right;
+            }
+          }
+          li:hover{
+            color:rgba(22,64,97,1);
+            font-weight:600;
           }
           li:active{
             color:rgba(22,64,97,1);

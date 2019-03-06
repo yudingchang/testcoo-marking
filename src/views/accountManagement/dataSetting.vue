@@ -233,9 +233,11 @@
                     <el-option
                     v-for="item in phone_codeConfig"
                     :key="item.value"
-                    :label="item.label"
+                    :label="item.value"
                     :value="item.value"
-                    >    
+                    >
+                    <span style="float: left">{{ _.join( _.split(item.label,',',1) ) }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ _.get(_.split(item.label,',',2), '[1]')   }}</span>    
                     </el-option>
                   </el-select>
               </el-input> 
@@ -276,9 +278,11 @@
                               <el-option
                               v-for="item in phone_codeConfig"
                               :key="item.value"
-                              :label="item.label"
+                              :label="item.value"
                               :value="item.value"
-                              >    
+                              >
+                              <span style="float: left">{{ _.join( _.split(item.label,',',1) ) }}</span>
+                              <span style="float: right; color: #8492a6; font-size: 13px">{{ _.get(_.split(item.label,',',2), '[1]')   }}</span>    
                               </el-option>
                             </el-select>
                         </el-input>
@@ -318,13 +322,22 @@
                     </el-form-item>
                     <br>
                     <el-form-item label="收件地址：" prop="address">
+                        <el-select v-model="addressform.targetCountry_id" style="width: 150px;" placeholder="请选择国家" @change="handleCountryChange">
+                          <el-option
+                            v-for="item in countryOptions"
+                            :key="item.id"
+                            :label="item.chinese_name"
+                            :value="item.id"/>
+                        </el-select>
                         <!-- <el-input v-model="addressform.address"   style="width:375px"></el-input> -->
                         <el-cascader
                           expand-trigger="hover"
                           :options="optionsProvinces"
                           :props="{label:'chinese_name',value:'id',children:'children_simple'}"
                           v-model="addressform.address"
-                          @change="handleChange">
+                          @change="handleChange"
+                          style="width:212px;"
+                          >
                         </el-cascader>
                     </el-form-item>
                     <br>
@@ -338,9 +351,11 @@
                               <el-option
                               v-for="item in phone_codeConfig"
                               :key="item.value"
-                              :label="item.label"
+                              :label="item.value"
                               :value="item.value"
                               >
+                              <span style="float: left">{{ _.join( _.split(item.label,',',1) ) }}</span>
+                              <span style="float: right; color: #8492a6; font-size: 13px">{{ _.get(_.split(item.label,',',2), '[1]')   }}</span>
                               <!-- <span style="float: left">{{ item.label }}</span>     -->
                               </el-option>
                             </el-select>
@@ -353,9 +368,11 @@
                               <el-option
                               v-for="item in phone_codeConfig"
                               :key="item.value"
-                              :label="item.label"
+                              :label="item.value"
                               :value="item.value"
-                              >    
+                              >
+                              <span style="float: left">{{ _.join( _.split(item.label,',',1) ) }}</span>
+                              <span style="float: right; color: #8492a6; font-size: 13px">{{ _.get(_.split(item.label,',',2), '[1]')   }}</span>    
                               </el-option>
                             </el-select>
                         </el-input>                     
@@ -373,7 +390,7 @@
 
 <script>
 import {getdata , addEmail , setDefault , editEmail , removeEmail , getSupplydata , addSupply , editSupply , setSupplyDefault , removeSupply ,addInvoice,getInvoiceList,setInvoiceDefault,removeInvoice,getAddressList,addAddress,setaddressDefault,removeaddress} from "@/api/accountManagement";
-import { fetchList,fetchCounty } from '@/api/fetch';
+import { fetchCountryList,fetchCounty } from '@/api/fetch';
 import { mapGetters } from 'vuex'
 import store from '../../store/'
 export default {
@@ -470,6 +487,8 @@ export default {
         address:[],
         detailed_address:'',
       },
+      targetCountry_id:'',
+      countryOptions: [],
       optionsProvinces:[],
       invoicerules:{
         company_name:[{ required: true, message: '请输入公司名称', trigger: 'blur' }],    
@@ -490,7 +509,8 @@ export default {
         telephone : '',
         fixed_telephone : '',
         telephone_code : '',
-        fixed_telephone_code : ''
+        fixed_telephone_code : '',
+        targetCountry_id: ''
       },
       addressrules:{
         last_name:[{required: true, message: '请输入收件人姓', trigger: 'blur'}],
@@ -519,8 +539,8 @@ export default {
     this.getdata()
     this.routerIndex()
     this.ConfigUnit()
-    // this.getFetchCounty()     获取所有的国家
-    this.getFetchProvinces(7)  //获取中国省市区
+    this.getCountryOptions()    //获取所有的国家
+    this.getFetchProvinces(this.targetCountry_id)  //获取中国省市区
   },
   methods: {
     // tab切换
@@ -623,6 +643,7 @@ export default {
         this.addressform.fixed_telephone = ''
         this.addressform.telephone_code = ''
         this.addressform.fixed_telephone_code = ''
+        this.addressform.targetCountry_id = ''
         this.$nextTick( ()=> {
           this.$refs.addressform.clearValidate()
         })
@@ -981,8 +1002,23 @@ export default {
       })
     },
 
+    // 查找国家
+    getCountryOptions() {
+      fetchCountryList().then(response => {
+        if (response.data.code == 0) {
+          this.$nextTick(function() {
+            this.countryOptions = response.data.data
+            console.log(this.countryOptions)
+            // Code that will run only after the
+            // entire view has been rendered
+          })
+        }
+      })
+    },
+
     //getFetchCounty获取省市区
     getFetchProvinces(val){
+      console.log('进入')
       fetchCounty({ pid: val }).then( response => {
         this.$nextTick(function() {
           // this.locationOptions = response.data.data
@@ -995,8 +1031,21 @@ export default {
     //handleChange
     handleChange(value){
       // console.log(value)
+    },
+
+    //handleCountryChange
+    handleCountryChange(){
+
     }
 
+  },
+  watch: {
+    'targetCountry_id' : {
+      handler(val, oldVal) {
+        this.getFetchProvinces(val);
+      },
+      deep: true
+    }
   },
   computed:{
     ...mapGetters([
@@ -1070,6 +1119,11 @@ export default {
   
 
   //email-dialog
+  .email-dialog{
+    .el-input__inner:focus{
+      border-color:rgba(245,166,35,1);
+    }
+  }
 
   //supply-dialog
   .supply-dialog{
@@ -1082,12 +1136,28 @@ export default {
         color:rgba(255,255,255,1);
       }
     }
+    .el-input__inner:focus{
+      border-color:rgba(245,166,35,1);
+    }
+    .el-input-group__prepend .el-input__inner:focus{
+      border-color:transparent;
+    }
+    
   }
 
   //invoice-dialog
   .invoice-dialog{
     .el-cascader .el-input, .el-cascader .el-input__inner{
       width:410px;
+    }
+    .el-input__inner:focus{
+      border-color:rgba(245,166,35,1);
+    }
+    .el-textarea__inner:focus{
+      border-color:rgba(245,166,35,1);
+    }
+    .el-input-group__prepend .el-input__inner:focus{
+      border-color:transparent;
     }
   }
   
@@ -1112,7 +1182,17 @@ export default {
       }
    }
    .el-cascader .el-input, .el-cascader .el-input__inner{
-      width:375px;
+      width:221px;
+    }
+
+    .el-input__inner:focus{
+      border-color:rgba(245,166,35,1);
+    }
+    .el-textarea__inner:focus{
+      border-color:rgba(245,166,35,1);
+    }
+    .el-input-group__prepend .el-input__inner:focus{
+      border-color:transparent;
     }
   }
   

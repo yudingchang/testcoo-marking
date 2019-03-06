@@ -4,36 +4,37 @@
             <el-col :span="24">
                 <div class="Refund-close">
                     <p>订单号</p>
-                    <p>2018050310291584</p>
-                    <p>关闭退单</p>
+                    <p>{{orderData.number}}</p>
+                    <p @click="closeRefundSupply">关闭退单</p>
                 </div>
                 <div class="Refund-result">
                     <p>处理结果</p>
-                    <p>退单失败 （原因：跟客户沟通确认已经前往验货，不退单）</p>
-                    <p>退客户金额￥799.00</p>
+                    <p>{{ orderData.marking_name }} </p>
+                    <p v-if="orderData.refund">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;退客户金额 <span v-if="orderData.refund && orderData.refund.refunded_currency == 'CNY'">￥</span><span v-if="orderData.refund && orderData.refund.refunded_currency == 'USD'">$</span>   {{returnFloat(orderData.refund.refunded_fee)}}</p>
                 </div>
                 <div class="Refund-progress">
                     <p>退单进度</p>
                     <p>
                         <span>退单申请</span>
                         <span>处理中</span>
-                        <span>退单失败</span>
+                        <span v-if="orderData.refund.marking == 'WAIT_CHECK'">审核结束</span>
+                        <span v-else :class="{ 'failed':activeData == 0}">{{orderData.refund.marking == 'COMPLETED'?'退单成功':'退单失败'}}</span>
                     </p>
                     <p class="refund-step">
                         <el-steps :active="activeData">
-                        <el-step title="步骤 1" icon="iconfont icon-duihao"></el-step>
-                        <el-step title="步骤 2" icon="iconfont icon-duihao"></el-step>
-                        <el-step title="步骤 3" icon="iconfont icon-duihao"></el-step>
+                        <el-step :title="startTime" icon="iconfont icon-duihao"></el-step>
+                        <el-step title="" icon="iconfont icon-duihao"></el-step>
+                        <el-step :title="endTime" icon="iconfont icon-duihao"></el-step>
                         </el-steps>
                     </p>
                 </div>
                 <div class="Refund-reason">
                     <p>退单原因</p>
-                    <p>不要了</p>
+                    <p>{{ orderData.refund.remark }}</p>
                 </div>
                 <div class="Refund-remark">
                     <p>备注信息</p>
-                    <p>下错了</p>
+                    <p>{{ orderData.refund.remark }}</p>
                 </div>
             </el-col>
         </el-row>
@@ -42,17 +43,84 @@
 
 
 <script>
+import { getOrderList,closeRefund } from "@/api/order";
 export default {
     name: 'orderRefundDetail',
     data(){
         return {
             //进度条进度active
-            activeData: 3,
+            activeData: 0,
+
+            //订单数据
+            orderData: [],
+            
+
+            orderId:this.$route.query.orderId,
+
+            //
+            startTime: '',
+            middleTime: '',
+            endTime: '',
+
+
         }
     },
     methods:{
-        
-    }
+        //   获取订单详情
+      getOrderList(){
+        //   this.loading = true
+          getOrderList({
+              url:'/v1/inspection/'+ this.orderId
+          }).then(response =>{
+              if(response.data.code == 0){
+                this.orderData = response.data.data
+                console.log(this.orderData)
+                this.startTime = this.orderData.refund.created_at.date.split('.')[0]
+                this.endTime = this.orderData.refund.updated_at.date.split('.')[0]
+                if(this.orderData.refund.marking == 'WAIT_CHECK' ){
+                    this.activeData = 1
+                }else if(this.orderData.refund.marking == 'COMPLETED'){
+                    this.activeData = 2
+                }else{
+                    this.activeData = 0
+                }
+              }
+          })
+      },
+
+      //closeRefund关闭退单申请
+      closeRefundSupply(){
+        closeRefund(this.orderData.refund).then( response => {
+            if( response.data.code == 0){
+                console.log('success')
+                this.$router.push({ path: 'examineGood' })
+                this.$message.success({
+                    message: '关闭申请退单成功',
+                    
+                })
+            }
+        })
+      },
+
+      returnFloat(value){      //处理金额数据
+        var value=Math.round(parseFloat(value)*100)/100;
+        var xsd=value.toString().split(".");
+            if(xsd.length==1){
+                value=value.toString()+".00";
+                return value;
+            }
+            if(xsd.length>1){
+                if(xsd[1].length<2){
+                    value=value.toString()+"0";
+                }
+            return value;
+            }
+        },
+    },
+
+    created(){
+        this.getOrderList()
+    },
 
 }
 </script>
@@ -125,10 +193,13 @@ export default {
             line-height:21px;
             margin-bottom:9px;
             span{
-                margin-right:241px;
+                margin-right:173px;
             }
             span:nth-child(3){
                 margin:0;
+            }
+            .failed{
+                color:rgba(255,84,84,1);
             }
         }
     }

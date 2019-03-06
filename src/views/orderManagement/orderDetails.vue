@@ -65,8 +65,8 @@
               <li>付款时间</li>
               <li>{{ _.get(fees, '[0].paid_at') }}</li>
             </ul>
-            <ul>
-              <li>¥500.00(其他费用)</li>
+            <ul v-if="fees.length>1">
+              <li> <span></span><span></span><span>{{(_.get(fees, '[1].name'))}}</span> ¥500.00(其他费用)</li>
               <li>付款方式</li>
               <li>支付宝</li>
               <li>付款时间</li>
@@ -1237,7 +1237,7 @@ export default {
         line-height:21px;
         padding-left:136px;
         margin-top:17px;
-        display:none;
+        // display:none;
         li{
           float:left;
         }

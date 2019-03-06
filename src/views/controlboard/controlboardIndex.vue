@@ -1,6 +1,6 @@
 <template>
     <div class="controlboardIndex" v-loading="loading">
-        <el-row>
+        <el-row :gutter="20">
             <!-- 立即下单 -->
             <el-col :span="24" class="controlboardIndex-immediately">
                 <ul>
@@ -8,30 +8,40 @@
                     <li>立即下单</li>
                 </ul>
                 <ul>
-                    <li @click="OrderImmediateExamine">
-                        <i class="iconfont icon-hebingxingzhuangcopy"></i>
-                        <span>验货</span>
-                        <i class="iconfont icon-hebingxingzhuangcopy"></i>
-                    </li>
-                    <li @click="OrderImmediateAufiting">
-                        <i class="iconfont icon-hebingxingzhuang1"></i>
-                        <span>审核</span>
-                        <i class="iconfont icon-hebingxingzhuang1"></i>
-                    </li>
-                    <li @click="OrderImmediateSupervision">
-                        <i class="iconfont icon-FillCopy"></i>
-                        <span>监装</span>
-                        <i class="iconfont icon-FillCopy"></i>
-                    </li>
-                    <li @click="OrderImmediateSample">
-                        <i class="iconfont icon-hebingxingzhuang2"></i>
-                        <span>取样</span>
-                        <i class="iconfont icon-hebingxingzhuang2"></i>
-                    </li>
+                    <el-row :gutter="20">
+                        <el-col :span="6">
+                            <li @click="OrderImmediateExamine" class="immediately1">
+                                <i class="iconfont icon-hebingxingzhuangcopy"></i>
+                                <span>验货</span>
+                                <i class="iconfont icon-hebingxingzhuangcopy"></i>
+                            </li>
+                        </el-col>
+                        <el-col :span="6">
+                            <li @click="OrderImmediateAufiting" class="immediately2">
+                                <i class="iconfont icon-hebingxingzhuang1"></i>
+                                <span>审核</span>
+                                <i class="iconfont icon-hebingxingzhuang1"></i>
+                            </li>
+                        </el-col>
+                        <el-col :span="6">
+                            <li @click="OrderImmediateSupervision" class="immediately3">
+                                <i class="iconfont icon-FillCopy"></i>
+                                <span>监装</span>
+                                <i class="iconfont icon-FillCopy"></i>
+                            </li>
+                        </el-col>
+                        <el-col :span="6">
+                            <li @click="OrderImmediateSample" class="immediately4">
+                                <i class="iconfont icon-hebingxingzhuang2"></i>
+                                <span>取样</span>
+                                <i class="iconfont icon-hebingxingzhuang2"></i>
+                            </li>
+                        </el-col>
+                    </el-row>
                 </ul>
             </el-col>
             <!-- 第二排Info -->
-            <el-col :span="24" class="controlboardIndex-user">
+            <!-- <el-col :span="24" class="controlboardIndex-user"> -->
                 <!-- 完善信息 -->
                 <!-- <el-col :span="12" class="controlboardIndex-EVPI">
                     <ul class="controlboardIndex-EVPI-ul">
@@ -58,52 +68,52 @@
                     </div>
                 </el-col> -->
                 <!-- 订单信息 -->
-                <el-col :span="12" class="controlboardIndex-orderInfo">
-                    <ul>
-                        <li></li>
-                        <li>订单信息</li>
-                    </ul>
-                    <ul>
-                        <li>
-                            <p>{{ totalOrder?totalOrder:0 }}</p>
-                            <p>累计完成单量</p>
-                        </li>
-                        <li></li>
-                        <li>
-                            <p>{{ totalReport?totalReport:0 }}</p>
-                            <p>累计完成报告</p>
-                        </li>
-                        <li></li>
-                        <li>
-                            <p>{{ (totalWaitOut?totalWaitOut:0 )+( totalWaitCheck?totalWaitCheck:0)+( totalWaitModify?totalWaitModify:0 )}}</p>
-                            <p>待出报告</p>
-                        </li>
-                    </ul>
-                </el-col>
-                <!-- 钱包余额 -->
-                <el-col :span="12" class="controlboardIndex-WalletBalance">
-                    <ul>
-                        <li></li>
-                        <li>钱包余额</li>
-                        <li @click="WalletBalance">
-                            <span>明细</span><i class="iconfont icon-hebingxingzhuang7"></i>
-                        </li>
-                    </ul>
-                    <div class="WalletBalance-ul">
-                        <ul>
-                            <li>
-                                <p @click="walletDetailCheck"><span>人民币</span><span>￥{{ _.get(userAccountBalance, '[0].price') }}</span></p>
-                                <p @click="rechargeRmb">去充值</p>
-                            </li>
-                            <li></li>
-                            <li>
-                                <p @click="walletDetailCheck"><span>美元</span><span>${{ _.get(userAccountBalance, '[1].price') }}</span></p>
-                                <p @click="rechargeDollar">去充值</p>
-                            </li>
-                        </ul>
-                    </div>
-                </el-col>
+            <el-col :span="12"  class="controlboardIndex-orderInfo">
+                <ul>
+                    <li></li>
+                    <li>订单信息</li>
+                </ul>
+                <ul>
+                    <li>
+                        <p>{{ totalOrder?totalOrder:0 }}</p>
+                        <p>累计完成单量</p>
+                    </li>
+                    <li></li>
+                    <li>
+                        <p>{{ totalReport?totalReport:0 }}</p>
+                        <p>累计完成报告</p>
+                    </li>
+                    <li></li>
+                    <li>
+                        <p>{{ (totalWaitOut?totalWaitOut:0 )+( totalWaitCheck?totalWaitCheck:0)+( totalWaitModify?totalWaitModify:0 )}}</p>
+                        <p>待出报告</p>
+                    </li>
+                </ul>
             </el-col>
+            <!-- 钱包余额 -->
+            <el-col :span="12" class="controlboardIndex-WalletBalance">
+                <ul>
+                    <li></li>
+                    <li>钱包余额</li>
+                    <li @click="WalletBalance">
+                        <span>明细</span><i class="iconfont icon-hebingxingzhuang7"></i>
+                    </li>
+                </ul>
+                <div class="WalletBalance-ul">
+                    <ul>
+                        <li>
+                            <p @click="walletDetailCheck"><span>人民币</span><span>￥{{ _.get(userAccountBalance, '[0].price') }}</span></p>
+                            <p @click="rechargeRmb">去充值</p>
+                        </li>
+                        <li></li>
+                        <li>
+                            <p @click="walletDetailCheck"><span>美元</span><span>${{ _.get(userAccountBalance, '[1].price') }}</span></p>
+                            <p @click="rechargeDollar">去充值</p>
+                        </li>
+                    </ul>
+                </div>
+            </el-col>
+            <!-- </el-col> -->
             <!-- 测库月结 -->
             <el-col :span="24" class="controlboardIndex-monthlyState" v-if="false">
                 <ul class="controlboardIndex-monthlyState-ul">
@@ -942,6 +952,7 @@ export default {
     padding:20px 23px 153px 40px;
     .controlboardIndex-immediately{
         margin-bottom:16px;
+        z-index: 2;
         ul:nth-child(1){
             height: 33px;
             line-height: 33px;
@@ -967,14 +978,14 @@ export default {
         }
         ul:nth-child(2){
             height:120px;
-            width:1540px;
+            // width:1540px;
             line-height: 120px;
             li{
                 float:left;
                 cursor: pointer;
             }
-            li:nth-child(1){
-                width:370px;
+            .immediately1{
+                width:100%;
                 height:120px;
                 background:linear-gradient(315deg,rgba(140,129,246,1) 0%,rgba(200,109,215,1) 100%);
                 border-radius: 4px;
@@ -1003,8 +1014,9 @@ export default {
                     opacity: 0.2;
                 }
             }
-            li:nth-child(2){
-                width:370px;
+            .immediately2{
+                // width:370px;
+                width:100%;
                 height:120px;
                 background:linear-gradient(131deg,rgba(234,124,97,1) 0%,rgba(254,113,151,1) 100%);
                 border-radius:4px;
@@ -1033,8 +1045,9 @@ export default {
                     opacity: 0.2;
                 }
             }
-            li:nth-child(3){
-                width:370px;
+            .immediately3{
+                // width:370px;
+                width:100%;
                 height:120px;
                 background:linear-gradient(135deg,rgba(98,178,255,1) 0%,rgba(134,162,253,1) 100%);
                 border-radius:4px;
@@ -1063,8 +1076,9 @@ export default {
                     opacity: 0.2;
                 }
             }
-            li:nth-child(4){
-                width:370px;
+            .immediately4{
+                // width:370px;
+                width:100%;
                 height:120px;
                 background:linear-gradient(136deg,rgba(54,200,196,1) 0%,rgba(22,161,207,1) 100%);
                 border-radius:4px;
@@ -1094,9 +1108,9 @@ export default {
             }
         }
     }
-    .controlboardIndex-user{
-        width:1540px;
-        margin-bottom:16px;
+    // .controlboardIndex-user{
+    //     width:1540px;
+    //     margin-bottom:16px;
         .controlboardIndex-EVPI{
             width:720px;
             margin-right:50px;
@@ -1180,8 +1194,8 @@ export default {
             }
         }
         .controlboardIndex-WalletBalance{
-            width:770px;
-            float:left;
+            // width:770px;
+            // float:left;
             ul:nth-child(1){
                 height: 33px;
                 line-height: 33px;
@@ -1222,7 +1236,7 @@ export default {
                 }
             }
             .WalletBalance-ul{
-                width:770px;
+                // width:770px;
                 height:168px;
                 border-radius:4px;
                 border:1px solid rgba(230,234,238,1);
@@ -1238,7 +1252,7 @@ export default {
                         float:left;
                     }
                     li:nth-child(1),li:nth-child(3){
-                        width:383px;
+                        width:49.5%;
                         height:166px;
                         line-height: 168px;
                         text-align: center;
@@ -1252,7 +1266,7 @@ export default {
                             span:nth-child(1){
                                 font-size:24px;
                                 color:rgba(80,104,140,1);
-                                margin-right:32px;
+                                margin-right:8.5%;
                             }
                             span:nth-child(2){
                                 font-size:26px;
@@ -1267,7 +1281,7 @@ export default {
                             line-height: 40px;
                             font-size:16px;
                             color:rgba(255,255,255,1);
-                            margin-left:132px;
+                            margin-left:35%;
                             cursor: pointer;
                         }
                     }
@@ -1281,7 +1295,7 @@ export default {
             }
             
         }
-    }
+    // }
     .controlboardIndex-monthlyState{
         margin:16px 0 0 0;
         .controlboardIndex-monthlyState-ul{
@@ -1307,7 +1321,7 @@ export default {
             }
         }
         .controlboardIndex-monthlyState-div{
-            width:1540px;
+            // width:1540px;
             height:162px;
             background:rgba(255,255,255,1);
             border-radius:4px;
@@ -1411,10 +1425,11 @@ export default {
         }
     }
     .controlboardIndex-orderInfo{
-        width:720px;
+        // width:720px;
+        // width:100%;
         height:168px;
         margin-bottom:16px;
-        margin-right:50px; 
+        // margin-right:50px; 
         ul:nth-child(1){
             height: 33px;
             line-height: 33px;
@@ -1498,8 +1513,9 @@ export default {
         }
     }
     .controlboardIndex-TBDorder{
-        width:1540px;
+        // width:1540px;
         margin-bottom:16px;
+        margin-top:16px;
         ul:nth-child(1){
             height: 33px;
             line-height: 33px;
@@ -1524,7 +1540,7 @@ export default {
             }
         }
         ul:nth-child(2){
-            width:1540px;
+            // width:1540px;
             height:100px;
             background:rgba(255,255,255,1);
             border-radius:4px;
@@ -1534,7 +1550,7 @@ export default {
                 float:left;
             }
             li:nth-child(1),li:nth-child(3),li:nth-child(5){
-                width:385px;
+                width:24.9%;
                 height:100px;
                 p{
                     float:left;
@@ -1559,7 +1575,7 @@ export default {
                 }
             }
             li:nth-child(7){
-                width:380px;
+                width:24.9%;
                 height:100px;
                 p{
                     float:left;
@@ -1593,7 +1609,7 @@ export default {
     }
     .controlboardIndex-latestOrder{
         margin-bottom:16px;
-        width:1540px;
+        // width:1540px;
         .latestOrder-ul{
             height: 33px;
             line-height: 33px;
@@ -1636,7 +1652,7 @@ export default {
             }
         }
         .latestOrder-div{
-            width:1540px;
+            // width:1540px;
             height:360px;
             background:rgba(255,255,255,1);
             border-radius:4px;
@@ -1672,7 +1688,7 @@ export default {
         }
     }
     .controlboardIndex-latestRepot{
-        width:1540px;
+        // width:1540px;
         .latestRepot-ul{
             height: 33px;
             line-height: 33px;
@@ -1714,7 +1730,7 @@ export default {
             }
         }
         .latestRepot-div{
-            width:1540px;
+            // width:1540px;
             height:360px;
             background:rgba(255,255,255,1);
             border-radius:4px;

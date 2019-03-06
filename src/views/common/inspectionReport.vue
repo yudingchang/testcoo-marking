@@ -6,7 +6,7 @@
                 <!-- 基本信息 -->
                 <div class="Report-interface-baseInfo">
                     <ul>
-                        <li><a href="#"><img src="../../../static/image/LogoReport.png" alt=""></a></li>
+                        <li><a href="#"><img src="/static/image/LogoReport.png" alt=""></a></li>
                         <li>检验报告</li>
                         <li >返回上一页</li>
                     </ul>

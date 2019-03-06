@@ -26,6 +26,7 @@ import * as filters from './filters' // global filters
 
 import VueLodash from 'vue-lodash'
 Vue.use(VueLodash, { name: '_' })
+Vue.use(require('vue-moment'))
 
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium', // set element-ui default size

@@ -3,12 +3,12 @@
     <ul class="paymentCHN-ul">
         <!-- <li v-if="unionpay">
             <el-radio v-model="radio" label="1"/>
-            <img src="../../../static/image/UnionPay.png" alt="">
+            <img src="/static/image/UnionPay.png" alt="">
             <span>银联</span>
         </li>
         <li v-if="alipayment">
             <el-radio v-model="radio" label="2" />
-            <img src="../../../static/image/payment.png" alt="">
+            <img src="/static/image/payment.png" alt="">
             <span>支付宝</span>
         </li>
         <li v-if="testcoopay">
@@ -26,13 +26,13 @@
              <el-radio v-model="radio" :label="item.id"/>
              <template v-if="item.id == 2 ">
                  <span class="lis1">
-                     <img src="../../../static/image/UnionPay.png" alt="">
+                     <img src="/static/image/UnionPay.png" alt="">
                      <span>银联</span>
                  </span>
              </template>
              <template v-if=" item.id == 1 ">
                  <span class="lis2">
-                    <img src="../../../static/image/payment.png" alt="">
+                    <img src="/static/image/payment.png" alt="">
                     <span>支付宝</span>
                  </span>
              </template>

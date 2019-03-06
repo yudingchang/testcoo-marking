@@ -106,7 +106,7 @@
                     label="操作"
                     >
                     <template slot-scope="scope" v-if="scope.row.marking == 'COMPLETED'">
-                        <el-button @click="webpageHandleClick(scope.row)" v-if="scope.row.type_name == '线上'" type="text" size="small">网页报告</el-button>
+                        <el-button @click="webpageHandleClick(scope.row)" v-if="scope.row.type == 'online'" type="text" size="small">网页报告</el-button>
                         <el-button @click="PDFHandleClick(scope.row,scope.$index)" type="text" size="small">PDF报告</el-button>
                     </template>
                     </el-table-column>
@@ -272,7 +272,7 @@ export default {
         //webpageHandleClick 点击网页报告
         webpageHandleClick(row){
             // console.log(row,index);
-            this.$router.push({ path: 'inspectionReport', query:{ accountApi:row._links.self.substring(4)}})
+            this.$router.push({ path: 'inspectionReport', query:{ id:row.id}})
             console.log(row)
         }, 
 

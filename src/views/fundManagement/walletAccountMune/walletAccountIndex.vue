@@ -405,7 +405,8 @@ export default {
             }
         }
         .walletAccount-detail{
-            width:1420px;
+            // width:1420px;
+            
             .walletAccount-detail-name{
                 height:33px;
                 line-height: 33px;
@@ -427,12 +428,12 @@ export default {
                 ul:nth-child(1){
                     height:36px;
                     line-height:36px;
-                    padding-left:40px;
+                    padding:20px 0  20px 40px;
                     li{
                         list-style:none;
                         float:left;
-
-                    }
+                        // height:36px;
+                    }   
                     li:nth-child(1){
                         margin-right:16px;
                         font-size:16px;

@@ -105,7 +105,7 @@
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.pay" @click="pay(scope.row)">付款</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.close" @click="CloseOrder(scope.row)">关闭</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.refund" @click="Refund(scope.row)">退单</el-button>
-              <el-button type="text" size="small" v-if="scope.row.can && !scope.row.can.refund" @click="checkRefund(scope.row)">查看退单</el-button>
+              <el-button type="text" size="small" v-if="scope.row && scope.row.refund" @click="checkRefund(scope.row)">查看退单</el-button>
               <el-button type="text" size="small" v-if="scope.row.marking == 'COMPLETED'" @click="checkRport(scope.row)">查看报告</el-button>
               <el-button type="text" size="small" v-if="true" @click="CopyOrder(scope.row)">复制订单</el-button>
               <el-button type="text" size="small" v-if="scope.row.can && scope.row.can.delete" @click="DeleteBtn(scope.row)">删除</el-button>
@@ -585,6 +585,7 @@ export default {
             message: '退单已经申请',
             type: 'success'
           })
+          this.updataGetList()
         }
       })
       this.refundForm.region = ''
@@ -1282,7 +1283,7 @@ export default {
       background-color: #ffffff;
       border-bottom: 1px solid #e6eaee;
       padding: 19px 0 0 32px;
-      height:74px;
+      // height:74px;
       // .el-date-editor .el-range-separator{
       //   padding:0 !important;
       // }
